@@ -19,3 +19,8 @@ https://dev.to/aws-builders/a-beginner-s-guide-to-create-aws-cdk-construct-libra
 - Add `cdkDependencies` that will be used in the construct.
 
 Run `npx projen` to propagate changes
+
+### Add npm deploy token to GitHub secrets
+
+- Create an access token on [npmjs.com](https://npmjs.com)
+- Add `NPM_TOKEN` to GitHub project secrets
