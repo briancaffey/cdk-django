@@ -5,5 +5,5 @@ const app = new cdk.App();
 const stack = new cdk.Stack(app, 'MyStack');
 
 new DjangoCdk(stack, 'Cdk-Sample-Lib', {
-  bucketName: "my-django-cdk-static-files-bucket"
+  bucketName: 'my-django-cdk-static-files-bucket',
 });
