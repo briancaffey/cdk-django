@@ -6,11 +6,42 @@ const project = new AwsCdkConstructLibrary({
   cdkVersion: '1.95.2',
   defaultReleaseBranch: 'main',
   name: 'django-cdk',
-  repositoryUrl: 'https://github.com/briancaffey2010/django-cdk.git',
+  repositoryUrl: 'https://github.com/briancaffey/django-cdk.git',
 
   /* AwsCdkConstructLibraryOptions */
-  // cdkAssert: true,                                                          /* Install the @aws-cdk/assert library? */
-  // cdkDependencies: undefined,                                               /* Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed? */
+  cdkAssert: true, /* Install the @aws-cdk/assert library? */
+  cdkDependencies: [
+    '@aws-cdk/core',
+    '@aws-cdk/aws-cloudformation',
+    '@aws-cdk/aws-certificatemanager',
+    '@aws-cdk/aws-cloudwatch',
+    '@aws-cdk/aws-logs',
+    '@aws-cdk/aws-lambda',
+    '@aws-cdk/aws-events',
+    '@aws-cdk/aws-events-targets',
+    '@aws-cdk/aws-secretsmanager',
+    '@aws-cdk/aws-route53',
+    '@aws-cdk/aws-s3',
+    '@aws-cdk/aws-s3-deployment',
+    '@aws-cdk/aws-cloudfront',
+    '@aws-cdk/aws-route53-targets',
+    '@aws-cdk/aws-ecr',
+    '@aws-cdk/aws-ec2',
+    '@aws-cdk/aws-rds',
+    '@aws-cdk/aws-ssm',
+    '@aws-cdk/aws-elasticache',
+    '@aws-cdk/aws-elasticloadbalancingv2',
+    '@aws-cdk/aws-ecs',
+    '@aws-cdk/aws-ecs-patterns',
+    '@aws-cdk/aws-autoscaling',
+    '@aws-cdk/aws-rds',
+  ],
+
+  python: {
+    distName: 'django-cdk',
+    module: 'django_cdk',
+  },
+  license: 'Apache-2.0',
   // cdkDependenciesAsDeps: true,                                              /* If this is enabled (default), all modules declared in `cdkDependencies` will be also added as normal `dependencies` (as well as `peerDependencies`). */
   // cdkTestDependencies: undefined,                                           /* AWS CDK modules required for testing. */
   // cdkVersionPinning: false,                                                 /* Use pinned version instead of caret version for CDK. */
