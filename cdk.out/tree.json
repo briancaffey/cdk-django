@@ -1,0 +1,107 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree",
+        "constructInfo": {
+          "fqn": "@aws-cdk/core.Construct",
+          "version": "1.100.0"
+        }
+      },
+      "MyStack": {
+        "id": "MyStack",
+        "path": "MyStack",
+        "children": {
+          "Cdk-Sample-Lib": {
+            "id": "Cdk-Sample-Lib",
+            "path": "MyStack/Cdk-Sample-Lib",
+            "children": {
+              "bucketName": {
+                "id": "bucketName",
+                "path": "MyStack/Cdk-Sample-Lib/bucketName",
+                "constructInfo": {
+                  "fqn": "@aws-cdk/core.CfnOutput",
+                  "version": "1.100.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "django-cdk.DjangoCdk",
+              "version": "0.0.0"
+            }
+          },
+          "StaticBucket": {
+            "id": "StaticBucket",
+            "path": "MyStack/StaticBucket",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "MyStack/StaticBucket/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::S3::Bucket",
+                  "aws:cdk:cloudformation:props": {
+                    "bucketName": "my-static-static-files"
+                  }
+                },
+                "constructInfo": {
+                  "fqn": "@aws-cdk/aws-s3.CfnBucket",
+                  "version": "1.100.0"
+                }
+              },
+              "Notifications": {
+                "id": "Notifications",
+                "path": "MyStack/StaticBucket/Notifications",
+                "constructInfo": {
+                  "fqn": "@aws-cdk/core.Construct",
+                  "version": "1.100.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "@aws-cdk/aws-s3.Bucket",
+              "version": "1.100.0"
+            }
+          },
+          "CDKMetadata": {
+            "id": "CDKMetadata",
+            "path": "MyStack/CDKMetadata",
+            "children": {
+              "Default": {
+                "id": "Default",
+                "path": "MyStack/CDKMetadata/Default",
+                "constructInfo": {
+                  "fqn": "@aws-cdk/core.CfnResource",
+                  "version": "1.100.0"
+                }
+              },
+              "Condition": {
+                "id": "Condition",
+                "path": "MyStack/CDKMetadata/Condition",
+                "constructInfo": {
+                  "fqn": "@aws-cdk/core.CfnCondition",
+                  "version": "1.100.0"
+                }
+              }
+            },
+            "constructInfo": {
+              "fqn": "@aws-cdk/core.Construct",
+              "version": "1.100.0"
+            }
+          }
+        },
+        "constructInfo": {
+          "fqn": "@aws-cdk/core.Stack",
+          "version": "1.100.0"
+        }
+      }
+    },
+    "constructInfo": {
+      "fqn": "@aws-cdk/core.App",
+      "version": "1.100.0"
+    }
+  }
+}

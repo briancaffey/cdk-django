@@ -1,0 +1,89 @@
+{
+  "version": "9.0.0",
+  "artifacts": {
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    },
+    "MyStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "MyStack.template.json"
+      },
+      "metadata": {
+        "/MyStack/Cdk-Sample-Lib/bucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CdkSampleLibbucketName1E3CD3BC",
+            "trace": [
+              "new DjangoCdk (/home/brian/github/django-cdk/lib/django-cdk.js:24:9)",
+              "Object.<anonymous> (/home/brian/github/django-cdk/lib/integ.default.js:7:1)",
+              "Module._compile (node:internal/modules/cjs/loader:1083:30)",
+              "Object.Module._extensions..js (node:internal/modules/cjs/loader:1112:10)",
+              "Module.load (node:internal/modules/cjs/loader:948:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:789:14)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:72:12)",
+              "node:internal/main/run_main_module:17:47"
+            ]
+          }
+        ],
+        "/MyStack/StaticBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "StaticBucket92253581",
+            "trace": [
+              "new Bucket (/home/brian/github/django-cdk/node_modules/@aws-cdk/aws-s3/lib/bucket.js:521:26)",
+              "new DjangoCdk (/home/brian/github/django-cdk/lib/django-cdk.js:21:35)",
+              "Object.<anonymous> (/home/brian/github/django-cdk/lib/integ.default.js:7:1)",
+              "Module._compile (node:internal/modules/cjs/loader:1083:30)",
+              "Object.Module._extensions..js (node:internal/modules/cjs/loader:1112:10)",
+              "Module.load (node:internal/modules/cjs/loader:948:32)",
+              "Function.Module._load (node:internal/modules/cjs/loader:789:14)",
+              "Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:72:12)",
+              "node:internal/main/run_main_module:17:47"
+            ]
+          }
+        ],
+        "/MyStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata",
+            "trace": [
+              "new MetadataResource (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/metadata-resource.js:22:30)",
+              "/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:128:9",
+              "visit (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:184:9)",
+              "visit (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:181:9)",
+              "injectMetadataResources (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:117:5)",
+              "Object.synthesize (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:17:5)",
+              "App.synth (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/stage.js:100:41)",
+              "process.<anonymous> (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/app.js:50:51)",
+              "Object.onceWrapper (node:events:434:26)",
+              "process.emit (node:events:327:20)"
+            ]
+          }
+        ],
+        "/MyStack/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable",
+            "trace": [
+              "new MetadataResource (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/metadata-resource.js:30:35)",
+              "/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:128:9",
+              "visit (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:184:9)",
+              "visit (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:181:9)",
+              "injectMetadataResources (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:117:5)",
+              "Object.synthesize (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/private/synthesis.js:17:5)",
+              "App.synth (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/stage.js:100:41)",
+              "process.<anonymous> (/home/brian/github/django-cdk/node_modules/@aws-cdk/core/lib/app.js:50:51)",
+              "Object.onceWrapper (node:events:434:26)",
+              "process.emit (node:events:327:20)"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
