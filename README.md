@@ -30,5 +30,9 @@ Run `npx projen` to propagate changes
 Create a tag `v*` and the run the following:
 
 ```
-yarn bump --release-as 0.0.3 && git push --follow-tags origin main
+yarn bump --release-as 0.0.3
+```
+
+```
+git push --follow-tags origin main
 ```
