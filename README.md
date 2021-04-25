@@ -24,3 +24,11 @@ Run `npx projen` to propagate changes
 
 - Create an access token on [npmjs.com](https://npmjs.com)
 - Add `NPM_TOKEN` to GitHub project secrets
+
+### Release process
+
+Create a tag `v*` and the run the following:
+
+```
+yarn bump --release-as 0.0.3 && git push --follow-tags origin main
+```
