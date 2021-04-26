@@ -21,7 +21,7 @@ export class DjangoCdk extends cdk.Construct {
      * static files bucket name is derived from the Construct id if not provided
      */
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
-      bucketName: props?.bucketName && `my-static-static-files`,
+      bucketName: props?.bucketName && `${id}-static-files-bucket`,
     });
 
     new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
