@@ -1,4 +1,6 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ecs from '@aws-cdk/aws-ecs';
+import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 // import * as ecs from '@aws-cdk/aws-ecs';
@@ -32,6 +34,23 @@ export class DjangoCdk extends cdk.Construct {
      */
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
       bucketName: props?.bucketName,
+    });
+
+    /**
+     * cluster
+     */
+    const cluster = new ecs.Cluster(scope, 'EcsCluster', { vpc });
+
+    /**
+     * task definition construct
+     */
+    // const taskDefinition
+
+    /**
+     * ECS load-balanced fargate service
+     */
+    new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
+      cluster, // taskDefinition
     });
 
     new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
