@@ -1,51 +1,10 @@
 {
-  "vpc-provider:account=733623710918:filter.isDefault=true:region=us-east-1:returnAsymmetricSubnets=true": {
-    "vpcId": "vpc-5426b62c",
-    "vpcCidrBlock": "172.31.0.0/16",
-    "availabilityZones": [],
-    "subnetGroups": [
-      {
-        "name": "Public",
-        "type": "Public",
-        "subnets": [
-          {
-            "subnetId": "subnet-91c151da",
-            "cidr": "172.31.16.0/20",
-            "availabilityZone": "us-east-1a",
-            "routeTableId": "rtb-dc457ba6"
-          },
-          {
-            "subnetId": "subnet-21559c7c",
-            "cidr": "172.31.32.0/20",
-            "availabilityZone": "us-east-1b",
-            "routeTableId": "rtb-dc457ba6"
-          },
-          {
-            "subnetId": "subnet-1bc1a67f",
-            "cidr": "172.31.0.0/20",
-            "availabilityZone": "us-east-1c",
-            "routeTableId": "rtb-dc457ba6"
-          },
-          {
-            "subnetId": "subnet-5150847e",
-            "cidr": "172.31.80.0/20",
-            "availabilityZone": "us-east-1d",
-            "routeTableId": "rtb-dc457ba6"
-          },
-          {
-            "subnetId": "subnet-9f8e37a0",
-            "cidr": "172.31.64.0/20",
-            "availabilityZone": "us-east-1e",
-            "routeTableId": "rtb-dc457ba6"
-          },
-          {
-            "subnetId": "subnet-7fada173",
-            "cidr": "172.31.48.0/20",
-            "availabilityZone": "us-east-1f",
-            "routeTableId": "rtb-dc457ba6"
-          }
-        ]
-      }
-    ]
-  }
+  "availability-zones:account=733623710918:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ]
 }

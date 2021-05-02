@@ -1,0 +1,183 @@
+digraph "Diagram" {
+  splines = "ortho";
+  pad = "1.0";
+  nodesep = "0.60";
+  ranksep = "0.75";
+  fontname = "Sans-Serif";
+  fontsize = "15";
+  dpi = "200";
+  rankdir = "BT";
+  compound = "true";
+  fontcolor = "#222222";
+  edge [
+    color = "#D5871488",
+    penwidth = 2,
+    arrowhead = "dot",
+    arrowtail = "dot",
+  ];
+  node [
+    shape = "box",
+    style = "rounded",
+    fixedsize = true,
+    width = 1.7,
+    height = 1.7,
+    labelloc = "c",
+    imagescale = true,
+    fontname = "Sans-Serif",
+    fontsize = 8,
+    margin = 8,
+  ];
+  subgraph "MyStack" {
+    subgraph "cluster-SubGraph.MyStack" {
+      graph [
+        label = "MyStack",
+        labelloc = "b",
+        labeljust = "l",
+        margin = "10",
+        fontsize = "16",
+        penwidth = "2",
+        pencolor = "#888888",
+        style = "filled,rounded",
+        fillcolor = "#e4e4e4",
+      ];
+      "MyStack/Vpc" [
+        label = " Vpc",
+        fontsize = 12,
+        image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Service/Arch_Networking-Content/64/Arch_Amazon-Virtual-Private-Cloud_64@5x.png",
+        imagescale = "true",
+        imagepos = "tc",
+        penwidth = "0",
+        shape = "node",
+        fixedsize = "true",
+        labelloc = "b",
+        width = 2,
+        height = 2.266,
+      ];
+      "MyStack/StaticBucket" [
+        label = " StaticBucket",
+        fontsize = 12,
+        image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Service/Arch_Storage/64/Arch_Amazon-S3-Standard_64@5x.png",
+        imagescale = "true",
+        imagepos = "tc",
+        penwidth = "0",
+        shape = "node",
+        fixedsize = "true",
+        labelloc = "b",
+        width = 2,
+        height = 2.266,
+      ];
+      "MyStack/EcsCluster" [
+        label = " EcsCluster",
+        fontsize = 12,
+        image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Service/Arch_Compute/64/Arch_Amazon-Elastic-Container-Service_64@5x.png",
+        imagescale = "true",
+        imagepos = "tc",
+        penwidth = "0",
+        shape = "node",
+        fixedsize = "true",
+        labelloc = "b",
+        width = 2,
+        height = 2.266,
+      ];
+      "MyStack/TaskDefinition" [
+        label = " TaskDefinition",
+        fontsize = 12,
+        image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Resource/Res_Containers/Res_48_Dark/Res_Amazon-Elastic-Container-Service_Task_48_Dark_gen.png",
+        imagescale = "true",
+        imagepos = "tc",
+        penwidth = "0",
+        shape = "node",
+        fixedsize = "true",
+        labelloc = "b",
+        width = 2,
+        height = 2.266,
+      ];
+      subgraph "cluster-SubGraph.AlbFargateService" {
+        graph [
+          label = "AlbFargateService",
+          labelloc = "b",
+          labeljust = "l",
+          margin = "10",
+          fontsize = "16",
+          penwidth = "2",
+          pencolor = "#888888",
+          style = "filled,rounded",
+          fillcolor = "#d6d6d6",
+        ];
+        "MyStack/AlbFargateService/LB" [
+          label = " LB",
+          fontsize = 12,
+          image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Service/Arch_Networking-Content/64/Arch_Elastic-Load-Balancing_64@5x.png",
+          imagescale = "true",
+          imagepos = "tc",
+          penwidth = "0",
+          shape = "node",
+          fixedsize = "true",
+          labelloc = "b",
+          width = 2,
+          height = 2.266,
+        ];
+        subgraph "cluster-SubGraph.Service" {
+          graph [
+            label = "Service",
+            labelloc = "b",
+            labeljust = "l",
+            margin = "10",
+            fontsize = "16",
+            penwidth = "2",
+            pencolor = "#888888",
+            style = "filled,rounded",
+            fillcolor = "#c7c7c7",
+          ];
+          "MyStack/AlbFargateService/Service/Service" [
+            label = " ECS Service Service",
+            fontsize = 12,
+            image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Resource/Res_Containers/Res_48_Dark/Res_Amazon-Elastic-Container-Service_Service_48_Dark_gen.png",
+            imagescale = "true",
+            imagepos = "tc",
+            penwidth = "0",
+            shape = "node",
+            fixedsize = "true",
+            labelloc = "b",
+            width = 2,
+            height = 2.266,
+          ];
+          "MyStack/AlbFargateService/Service/SecurityGroup" [
+            label = " SecurityGroup",
+            fontsize = 12,
+          ];
+        }
+      }
+    }
+  }
+  "MyStack/TaskDefinition" -> "MyStack/StaticBucket" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/LB" -> "MyStack/Vpc" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/LB" -> "MyStack/AlbFargateService/Service/SecurityGroup" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/Vpc" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/EcsCluster" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/TaskDefinition" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/AlbFargateService/LB" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/AlbFargateService/Service/SecurityGroup" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/SecurityGroup" -> "MyStack/Vpc" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/Service/SecurityGroup" -> "MyStack/AlbFargateService/LB" [
+    dir = "both",
+  ];
+}
