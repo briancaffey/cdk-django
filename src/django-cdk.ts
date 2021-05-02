@@ -3,6 +3,9 @@ import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
+import { RdsPostgresInstance } from './database';
+import { ApplicationVpc } from './vpc';
+
 
 export interface DjangoCdkProps {
   /**
@@ -26,11 +29,16 @@ export class DjangoCdk extends cdk.Construct {
 
     /**
      * VPC must have public, private and isolated subnets
+     *
+     * If you don't provide a VPC, a new VPC will be created
      */
-    const vpc = props?.vpc ?? ec2.Vpc.fromLookup(this, 'DefaultVpc', {
-      isDefault: true,
-    });
-    this.vpc = vpc;
+    if (!props.vpc) {
+      const applicationVpc = new ApplicationVpc(scope, 'AppVpc');
+      this.vpc = applicationVpc.vpc;
+    } else {
+      const vpc = props.vpc;
+      this.vpc = vpc;
+    }
 
     /**
      * static files bucket name is derived from the Construct id if not provided
@@ -38,11 +46,12 @@ export class DjangoCdk extends cdk.Construct {
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
       bucketName: props?.bucketName,
     });
+    this.staticFileBucket = staticFilesBucket;
 
     /**
-     * cluster
+     * ECS cluster
      */
-    const cluster = new ecs.Cluster(scope, 'EcsCluster', { vpc });
+    const cluster = new ecs.Cluster(scope, 'EcsCluster', { vpc: this.vpc });
 
     /**
      * task definition construct
@@ -53,8 +62,11 @@ export class DjangoCdk extends cdk.Construct {
       memoryMiB: '512',
     });
 
-    const environment = {
+    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', { vpc: this.vpc });
+
+    const environment: { [key: string]: string } = {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
+      POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
     };
 
     const container = taskDefinition.addContainer('backendContainer', {
@@ -74,12 +86,16 @@ export class DjangoCdk extends cdk.Construct {
     const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
       cluster,
       taskDefinition,
+      securityGroups: [],
     });
+
+    /**
+     * Grant the task defintion read-write access to static files bucket
+     */
+    staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
 
     new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
     new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
-
-    this.staticFileBucket = staticFilesBucket;
 
   }
 }
