@@ -81,13 +81,26 @@ export class DjangoCdk extends cdk.Construct {
     });
 
     /**
+     * A security group in the VPC for our application (ECS Fargate services and tasks)
+     * Allow the application services to access the RDS security group
+     */
+    const appSecurityGroup = new ec2.SecurityGroup(scope, 'appSecurityGroup', {
+      vpc: this.vpc,
+    });
+
+    /**
      * ECS load-balanced fargate service
      */
     const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
       cluster,
       taskDefinition,
-      securityGroups: [],
+      securityGroups: [appSecurityGroup],
     });
+
+    /**
+     * Allows the app security group to communicate with the database security group
+     */
+    database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
     /**
      * Grant the task defintion read-write access to static files bucket
