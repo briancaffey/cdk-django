@@ -11,5 +11,14 @@ const stack = new cdk.Stack(app, 'MyStack', { env });
 new DjangoCdk(stack, 'Cdk-Sample-Lib', {
   bucketName: 'my-django-cdk-static-files-bucket',
   imageDirectory: './test/backend',
-  // webCommand: ['gunicorn'],
+  webCommand: [
+    'gunicorn',
+    '-t',
+    '300',
+    '-w',
+    '4',
+    '-b',
+    '0.0.0.0:8000',
+    'backend.wsgi',
+  ],
 });
