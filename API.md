@@ -46,6 +46,8 @@ new DjangoCdk(scope: Construct, id: string, props: DjangoCdkProps)
 
 Name | Type | Description 
 -----|------|-------------
+**cluster** | <code>[Cluster](#aws-cdk-aws-ecs-cluster)</code> | <span></span>
+**image** | <code>[ContainerImage](#aws-cdk-aws-ecs-containerimage)</code> | <span></span>
 **staticFileBucket** | <code>[Bucket](#aws-cdk-aws-s3-bucket)</code> | <span></span>
 **vpc** | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | <span></span>
 

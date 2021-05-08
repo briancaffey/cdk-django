@@ -1,10 +1,12 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as rds from '@aws-cdk/aws-rds';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 
 
 export interface RdsPostgresInstanceProps {
   readonly vpc: ec2.IVpc;
+  readonly secret: secretsmanager.ISecret;
 }
 
 export class RdsPostgresInstance extends cdk.Construct {
@@ -33,6 +35,10 @@ export class RdsPostgresInstance extends cdk.Construct {
       vpcPlacement: { subnetType: ec2.SubnetType.ISOLATED },
       port: 5432,
       securityGroups: [rdsSecurityGroup],
+      credentials: {
+        username: 'postgres',
+        password: props.secret.secretValue,
+      },
     });
     this.rdsPostgresInstance = rdsPostgresInstance;
   }

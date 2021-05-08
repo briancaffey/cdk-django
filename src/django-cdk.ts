@@ -2,8 +2,10 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './database';
+import { managementCommandTask } from './tasks';
 import { ApplicationVpc } from './vpc';
 
 
@@ -23,6 +25,9 @@ export class DjangoCdk extends cdk.Construct {
 
   public staticFileBucket: s3.Bucket;
   public vpc: ec2.IVpc;
+  public cluster: ecs.Cluster;
+  public image: ecs.ContainerImage;
+  private secret: secretsmanager.ISecret;
 
   constructor(scope: cdk.Construct, id: string, props: DjangoCdkProps) {
     super(scope, id);
@@ -51,7 +56,7 @@ export class DjangoCdk extends cdk.Construct {
     /**
      * ECS cluster
      */
-    const cluster = new ecs.Cluster(scope, 'EcsCluster', { vpc: this.vpc });
+    this.cluster = new ecs.Cluster(scope, 'EcsCluster', { vpc: this.vpc });
 
     /**
      * task definition construct
@@ -62,15 +67,31 @@ export class DjangoCdk extends cdk.Construct {
       memoryMiB: '512',
     });
 
-    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', { vpc: this.vpc });
+    /**
+     * Secret used for RDS postgres password
+     */
+    this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
+      secretName: 'dbSecret',
+    });
+
+    /**
+     * Container image used in web API, celery worker and management task containers
+     */
+    this.image = new ecs.AssetImage(props.imageDirectory);
+
+    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
+      vpc: this.vpc,
+      secret: this.secret,
+    });
 
     const environment: { [key: string]: string } = {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
+      POSTGRES_PASSWORD: this.secret.secretValue.toString(),
     };
 
     const container = taskDefinition.addContainer('backendContainer', {
-      image: new ecs.AssetImage(props.imageDirectory),
+      image: this.image,
       environment,
       command: props.webCommand,
     });
@@ -88,11 +109,18 @@ export class DjangoCdk extends cdk.Construct {
       vpc: this.vpc,
     });
 
+    // const collectstaticTask =
+    new managementCommandTask(scope, 'migrate', {
+      image: this.image,
+      command: ['python3', 'manage.py', 'migrate', '--no-input'],
+      appSecurityGroup,
+    });
+
     /**
      * ECS load-balanced fargate service
      */
     const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
-      cluster,
+      cluster: this.cluster,
       taskDefinition,
       securityGroups: [appSecurityGroup],
     });
