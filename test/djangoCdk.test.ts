@@ -1,4 +1,3 @@
-import * as ec2 from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
 import { DjangoCdk, DjangoCdkProps } from '../src/index';
 import '@aws-cdk/assert/jest';
@@ -10,10 +9,9 @@ test('create app', () => {
   };
   const app = new cdk.App();
   const stack = new cdk.Stack(app, 'MyStack', { env });
-  const vpc = new ec2.Vpc(stack, 'myVpc');
+
   const djangoCdkProps: DjangoCdkProps = {
     bucketName: 'my-bucket',
-    vpc,
     imageDirectory: './test/backend',
     webCommand: ['gunicorn'],
   };
@@ -30,10 +28,9 @@ test('create app with default bucket name', () => {
   };
   const app = new cdk.App();
   const stack = new cdk.Stack(app, 'MyStack', { env });
-  const vpc = new ec2.Vpc(stack, 'myVpc');
+
   const djangoCdkProps: DjangoCdkProps = {
     bucketName: 'my-bucket',
-    vpc,
     imageDirectory: './test/backend',
     webCommand: ['gunicorn'],
   };

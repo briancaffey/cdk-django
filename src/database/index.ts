@@ -11,7 +11,7 @@ export class RdsPostgresInstance extends cdk.Construct {
 
   public rdsPostgresInstance: rds.IDatabaseInstance;
   public rdsSecurityGroup: ec2.ISecurityGroup;
-  // public databaseUsername: 
+  // public databaseUsername:
 
   constructor(scope: cdk.Construct, id: string, props: RdsPostgresInstanceProps) {
     super(scope, id);
