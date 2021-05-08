@@ -1,0 +1,3 @@
+[submodule "test/django-step-by-step"]
+	path = test/django-step-by-step
+	url = git@github.com:briancaffey/django-step-by-step.git
