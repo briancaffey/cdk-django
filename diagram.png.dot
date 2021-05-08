@@ -40,8 +40,8 @@ digraph "Diagram" {
         style = "filled,rounded",
         fillcolor = "#e4e4e4",
       ];
-      "MyStack/Vpc" [
-        label = " Vpc",
+      "MyStack/ApplicationVpc" [
+        label = " ApplicationVpc",
         fontsize = 12,
         image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Service/Arch_Networking-Content/64/Arch_Amazon-Virtual-Private-Cloud_64@5x.png",
         imagescale = "true",
@@ -83,6 +83,19 @@ digraph "Diagram" {
         label = " TaskDefinition",
         fontsize = 12,
         image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Resource/Res_Containers/Res_48_Dark/Res_Amazon-Elastic-Container-Service_Task_48_Dark_gen.png",
+        imagescale = "true",
+        imagepos = "tc",
+        penwidth = "0",
+        shape = "node",
+        fixedsize = "true",
+        labelloc = "b",
+        width = 2,
+        height = 2.266,
+      ];
+      "MyStack/RdsDatabaseInstance" [
+        label = " RdsDatabaseInstance",
+        fontsize = 12,
+        image = "/home/brian/.npm/_npx/b98735c91b702b55/node_modules/cdk-dia/icons/aws/Resource/Res_Compute/Res_48_Dark/Res_Amazon-EC2_M5-Instance_48_Dark.png",
         imagescale = "true",
         imagepos = "tc",
         penwidth = "0",
@@ -153,13 +166,19 @@ digraph "Diagram" {
   "MyStack/TaskDefinition" -> "MyStack/StaticBucket" [
     dir = "both",
   ];
-  "MyStack/AlbFargateService/LB" -> "MyStack/Vpc" [
+  "MyStack/TaskDefinition" -> "MyStack/RdsDatabaseInstance" [
+    dir = "both",
+  ];
+  "MyStack/RdsDatabaseInstance" -> "MyStack/ApplicationVpc" [
+    dir = "both",
+  ];
+  "MyStack/AlbFargateService/LB" -> "MyStack/ApplicationVpc" [
     dir = "both",
   ];
   "MyStack/AlbFargateService/LB" -> "MyStack/AlbFargateService/Service/SecurityGroup" [
     dir = "both",
   ];
-  "MyStack/AlbFargateService/Service/Service" -> "MyStack/Vpc" [
+  "MyStack/AlbFargateService/Service/Service" -> "MyStack/ApplicationVpc" [
     dir = "both",
   ];
   "MyStack/AlbFargateService/Service/Service" -> "MyStack/EcsCluster" [
@@ -174,7 +193,7 @@ digraph "Diagram" {
   "MyStack/AlbFargateService/Service/Service" -> "MyStack/AlbFargateService/Service/SecurityGroup" [
     dir = "both",
   ];
-  "MyStack/AlbFargateService/Service/SecurityGroup" -> "MyStack/Vpc" [
+  "MyStack/AlbFargateService/Service/SecurityGroup" -> "MyStack/ApplicationVpc" [
     dir = "both",
   ];
   "MyStack/AlbFargateService/Service/SecurityGroup" -> "MyStack/AlbFargateService/LB" [
