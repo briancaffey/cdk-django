@@ -4448,9 +4448,9 @@ jsii-diff@^1.29.0:
     yargs "^16.2.0"
 
 jsii-docgen@^1.8.69:
-  version "1.8.69"
-  resolved "https://registry.npmjs.org/jsii-docgen/-/jsii-docgen-1.8.69.tgz"
-  integrity sha512-eVbZlDnWByLbvRa9zeC6S9SY0odBKNzdC0cJijMjZMfGwqoh+UUjOTrWKWZIA9mJFwCxB4LJ/S+c9eW7Ji+RUA==
+  version "1.8.76"
+  resolved "https://registry.yarnpkg.com/jsii-docgen/-/jsii-docgen-1.8.76.tgz#f7d2dc5bc53d91a84ecb077dfb0a964fd15a862a"
+  integrity sha512-ca1IszTvRPE9AcNk3qGQF11rqb6rVFoko+VQImhSX6M8KrQlx7/AgQ3azbm0kvkHerdHj315izcxO0kbsQGHJA==
   dependencies:
     "@jsii/spec" "^1.16.0"
     fs-extra "^9.0.1"
