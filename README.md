@@ -36,3 +36,15 @@ yarn bump --release-as 0.0.3
 ```
 git push --follow-tags origin main
 ```
+
+### Deploy a sample application to CDK using the construct locally
+
+```
+cdk deploy --app="./lib/integ.default.js
+```
+
+### Destroy the sample application
+
+```
+cdk destroy --app="./lib/integ.default.js
+```
