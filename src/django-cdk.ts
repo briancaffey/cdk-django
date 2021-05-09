@@ -1,6 +1,7 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
+import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
@@ -88,12 +89,20 @@ export class DjangoCdk extends cdk.Construct {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
       POSTGRES_PASSWORD: this.secret.secretValue.toString(),
+      DEBUG: '0',
+      DJANGO_SETTINGS_MODULE: 'backend.settings.base',
     };
 
     const container = taskDefinition.addContainer('backendContainer', {
       image: this.image,
       environment,
       command: props.webCommand,
+      logging: ecs.LogDriver.awsLogs(
+        {
+          logRetention: logs.RetentionDays.ONE_DAY,
+          streamPrefix: 'BackendContainer',
+        },
+      ),
     });
 
     container.addPortMappings({
@@ -123,6 +132,13 @@ export class DjangoCdk extends cdk.Construct {
       cluster: this.cluster,
       taskDefinition,
       securityGroups: [appSecurityGroup],
+    });
+
+    /**
+     * Health check for the application load balancer
+     */
+    albfs.targetGroup.configureHealthCheck({
+      path: '/api/health-check/',
     });
 
     /**

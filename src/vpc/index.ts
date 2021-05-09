@@ -6,6 +6,8 @@ export class ApplicationVpc extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
     const vpc = new ec2.Vpc(scope, 'ApplicationVpc', {
+      maxAzs: 2,
+      natGateways: 1,
       subnetConfiguration: [
         {
           cidrMask: 24,

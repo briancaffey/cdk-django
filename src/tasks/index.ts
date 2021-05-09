@@ -1,6 +1,7 @@
 // import * as ec2 from '@aws-cdk/aws-ec2';
 import { ISecurityGroup } from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
+import * as logs from '@aws-cdk/aws-logs';
 import * as cdk from '@aws-cdk/core';
 
 export interface managementCommandTaskProps {
@@ -28,6 +29,12 @@ export class managementCommandTask extends cdk.Construct {
     taskDefinition.addContainer(`TaskContainer${id}`, {
       image: props.image,
       command: props.command,
+      logging: ecs.LogDriver.awsLogs(
+        {
+          logRetention: logs.RetentionDays.ONE_DAY,
+          streamPrefix: `${id}Container`,
+        },
+      ),
     });
   }
 }
