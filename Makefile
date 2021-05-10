@@ -4,7 +4,7 @@ synth:
 	cdk synth --app='./lib/integ.default.js'
 
 deploy:
-	cdk deploy --app='./lib/integ.default.js'
+	cdk deploy --app='./lib/integ.default.js' --force
 
 destroy:
 	cdk destroy --app='./lib/integ.default.js'

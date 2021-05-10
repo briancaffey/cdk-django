@@ -12,6 +12,7 @@ export interface managementCommandTaskProps {
   readonly bucketName?: string[];
   readonly appSecurityGroup: ISecurityGroup;
   readonly image: ecs.ContainerImage;
+  readonly environment: { [key: string]: string };
 }
 
 export class managementCommandTask extends cdk.Construct {
@@ -29,6 +30,7 @@ export class managementCommandTask extends cdk.Construct {
     taskDefinition.addContainer(`TaskContainer${id}`, {
       image: props.image,
       command: props.command,
+      environment: props.environment,
       logging: ecs.LogDriver.awsLogs(
         {
           logRetention: logs.RetentionDays.ONE_DAY,

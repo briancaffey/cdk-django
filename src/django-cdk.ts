@@ -73,6 +73,7 @@ export class DjangoCdk extends cdk.Construct {
      */
     this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
       secretName: 'dbSecret',
+      description: 'secret for rds',
     });
 
     /**
@@ -93,10 +94,14 @@ export class DjangoCdk extends cdk.Construct {
       DJANGO_SETTINGS_MODULE: 'backend.settings.base',
     };
 
-    const container = taskDefinition.addContainer('backendContainer', {
+    taskDefinition.addContainer('backendContainer', {
       image: this.image,
       environment,
       command: props.webCommand,
+      portMappings: [{
+        containerPort: 8000,
+        hostPort: 8000,
+      }],
       logging: ecs.LogDriver.awsLogs(
         {
           logRetention: logs.RetentionDays.ONE_DAY,
@@ -105,10 +110,10 @@ export class DjangoCdk extends cdk.Construct {
       ),
     });
 
-    container.addPortMappings({
-      containerPort: 80,
-      protocol: ecs.Protocol.TCP,
-    });
+    // container.addPortMappings({
+    //   containerPort: 8000,
+    //   protocol: ecs.Protocol.TCP,
+    // });
 
     /**
      * A security group in the VPC for our application (ECS Fargate services and tasks)
@@ -123,6 +128,7 @@ export class DjangoCdk extends cdk.Construct {
       image: this.image,
       command: ['python3', 'manage.py', 'migrate', '--no-input'],
       appSecurityGroup,
+      environment,
     });
 
     /**
@@ -132,7 +138,13 @@ export class DjangoCdk extends cdk.Construct {
       cluster: this.cluster,
       taskDefinition,
       securityGroups: [appSecurityGroup],
+      desiredCount: 2,
+      assignPublicIp: true,
     });
+
+    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+
+    albfs.loadBalancer.logAccessLogs(albLogsBucket);
 
     /**
      * Health check for the application load balancer

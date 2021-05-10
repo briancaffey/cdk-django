@@ -8,7 +8,7 @@ const env = {
 const app = new cdk.App();
 const stack = new cdk.Stack(app, 'MyStack', { env });
 
-new DjangoCdk(stack, 'Cdk-Sample-Lib', {
+const construct = new DjangoCdk(stack, 'Cdk-Sample-Lib', {
   imageDirectory: './test/django-step-by-step/backend',
   webCommand: [
     'gunicorn',
@@ -21,3 +21,8 @@ new DjangoCdk(stack, 'Cdk-Sample-Lib', {
     'backend.wsgi',
   ],
 });
+
+/**
+ * Add tagging for this construct and all child constructs
+ */
+cdk.Tags.of(construct).add('stack', 'MyStack');
