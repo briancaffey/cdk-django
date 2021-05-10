@@ -1,6 +1,7 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
+import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
@@ -72,6 +73,7 @@ export class DjangoCdk extends cdk.Construct {
      */
     this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
       secretName: 'dbSecret',
+      description: 'secret for rds',
     });
 
     /**
@@ -88,18 +90,30 @@ export class DjangoCdk extends cdk.Construct {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
       POSTGRES_PASSWORD: this.secret.secretValue.toString(),
+      DEBUG: '0',
+      DJANGO_SETTINGS_MODULE: 'backend.settings.base',
     };
 
-    const container = taskDefinition.addContainer('backendContainer', {
+    taskDefinition.addContainer('backendContainer', {
       image: this.image,
       environment,
       command: props.webCommand,
+      portMappings: [{
+        containerPort: 8000,
+        hostPort: 8000,
+      }],
+      logging: ecs.LogDriver.awsLogs(
+        {
+          logRetention: logs.RetentionDays.ONE_DAY,
+          streamPrefix: 'BackendContainer',
+        },
+      ),
     });
 
-    container.addPortMappings({
-      containerPort: 80,
-      protocol: ecs.Protocol.TCP,
-    });
+    // container.addPortMappings({
+    //   containerPort: 8000,
+    //   protocol: ecs.Protocol.TCP,
+    // });
 
     /**
      * A security group in the VPC for our application (ECS Fargate services and tasks)
@@ -114,6 +128,7 @@ export class DjangoCdk extends cdk.Construct {
       image: this.image,
       command: ['python3', 'manage.py', 'migrate', '--no-input'],
       appSecurityGroup,
+      environment,
     });
 
     /**
@@ -123,6 +138,19 @@ export class DjangoCdk extends cdk.Construct {
       cluster: this.cluster,
       taskDefinition,
       securityGroups: [appSecurityGroup],
+      desiredCount: 2,
+      assignPublicIp: true,
+    });
+
+    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+
+    albfs.loadBalancer.logAccessLogs(albLogsBucket);
+
+    /**
+     * Health check for the application load balancer
+     */
+    albfs.targetGroup.configureHealthCheck({
+      path: '/api/health-check/',
     });
 
     /**
