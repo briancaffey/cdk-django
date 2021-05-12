@@ -91,7 +91,7 @@ export class DjangoCdk extends cdk.Construct {
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
       POSTGRES_PASSWORD: this.secret.secretValue.toString(),
       DEBUG: '0',
-      DJANGO_SETTINGS_MODULE: 'backend.settings.base',
+      DJANGO_SETTINGS_MODULE: 'backend.settings.production',
     };
 
     taskDefinition.addContainer('backendContainer', {
@@ -123,10 +123,16 @@ export class DjangoCdk extends cdk.Construct {
       vpc: this.vpc,
     });
 
-    // const collectstaticTask =
     new managementCommandTask(scope, 'migrate', {
       image: this.image,
       command: ['python3', 'manage.py', 'migrate', '--no-input'],
+      appSecurityGroup,
+      environment,
+    });
+
+    new managementCommandTask(scope, 'collectstatic', {
+      image: this.image,
+      command: ['python3', 'manage.py', 'collectstatic', '--no-input'],
       appSecurityGroup,
       environment,
     });
@@ -138,7 +144,7 @@ export class DjangoCdk extends cdk.Construct {
       cluster: this.cluster,
       taskDefinition,
       securityGroups: [appSecurityGroup],
-      desiredCount: 2,
+      desiredCount: 1,
       assignPublicIp: true,
     });
 

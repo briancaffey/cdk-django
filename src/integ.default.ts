@@ -11,14 +11,7 @@ const stack = new cdk.Stack(app, 'MyStack', { env });
 const construct = new DjangoCdk(stack, 'Cdk-Sample-Lib', {
   imageDirectory: './test/django-step-by-step/backend',
   webCommand: [
-    'gunicorn',
-    '-t',
-    '300',
-    '-w',
-    '4',
-    '-b',
-    '0.0.0.0:8000',
-    'backend.wsgi',
+    './scripts/start_prod.sh',
   ],
 });
 
