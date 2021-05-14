@@ -6,6 +6,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './database';
+import { ElastiCacheCluster } from './elasticache';
 import { managementCommandTask } from './tasks';
 import { ApplicationVpc } from './vpc';
 
@@ -86,12 +87,27 @@ export class DjangoCdk extends cdk.Construct {
       secret: this.secret,
     });
 
+
+    /**
+     * A security group in the VPC for our application (ECS Fargate services and tasks)
+     * Allow the application services to access the RDS security group
+     */
+    const appSecurityGroup = new ec2.SecurityGroup(scope, 'appSecurityGroup', {
+      vpc: this.vpc,
+    });
+
+    const elastiCacheRedis = new ElastiCacheCluster(scope, 'ElastiCacheCluster', {
+      vpc: this.vpc,
+      appSecurityGroup,
+    });
+
     const environment: { [key: string]: string } = {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
       POSTGRES_PASSWORD: this.secret.secretValue.toString(),
       DEBUG: '0',
       DJANGO_SETTINGS_MODULE: 'backend.settings.production',
+      REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,
     };
 
     taskDefinition.addContainer('backendContainer', {
@@ -108,19 +124,6 @@ export class DjangoCdk extends cdk.Construct {
           streamPrefix: 'BackendContainer',
         },
       ),
-    });
-
-    // container.addPortMappings({
-    //   containerPort: 8000,
-    //   protocol: ecs.Protocol.TCP,
-    // });
-
-    /**
-     * A security group in the VPC for our application (ECS Fargate services and tasks)
-     * Allow the application services to access the RDS security group
-     */
-    const appSecurityGroup = new ec2.SecurityGroup(scope, 'appSecurityGroup', {
-      vpc: this.vpc,
     });
 
     new managementCommandTask(scope, 'migrate', {
@@ -160,7 +163,7 @@ export class DjangoCdk extends cdk.Construct {
     });
 
     /**
-     * Allows the app security group to communicate with the database security group
+     * Allows the app security group to communicate with the RDS security group
      */
     database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
