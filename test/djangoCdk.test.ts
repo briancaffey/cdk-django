@@ -12,7 +12,7 @@ test('create app', () => {
 
   const djangoCdkProps: DjangoCdkProps = {
     bucketName: 'my-bucket',
-    imageDirectory: './test/django-step-by-step/backend',
+    imageDirectory: './test/test-app/backend',
     webCommand: ['gunicorn'],
   };
   new DjangoCdk(stack, 'TestDjangoCdkStack', djangoCdkProps);
@@ -30,7 +30,7 @@ test('create app with default bucket name', () => {
   const stack = new cdk.Stack(app, 'MyStack', { env });
 
   const djangoCdkProps: DjangoCdkProps = {
-    imageDirectory: './test/django-step-by-step/backend',
+    imageDirectory: './test/test-app/backend',
     webCommand: ['gunicorn'],
   };
   new DjangoCdk(stack, 'TestDjangoCdkStack', djangoCdkProps);

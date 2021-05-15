@@ -20,35 +20,35 @@ export interface DjangoCdkProps {
 
   /**
    * Name of existing bucket to use for media files
-   * 
+   *
    * This name will be auto-generated if not specified
    */
   readonly bucketName?: string;
 
   /**
-   * The VPC to use for the application. It must contain 
+   * The VPC to use for the application. It must contain
    * PUBLIC, PRIVATE and ISOLATED subnets
-   * 
+   *
    * A VPC will be created if this is not specified
    */
   readonly vpc?: ec2.IVpc;
 
   /**
-   * The location of the Dockerfile used to create the main 
+   * The location of the Dockerfile used to create the main
    * application image. This is also the context used for building the image.
-   * 
+   *
    * TODO: set image and context path separately.
    */
   readonly imageDirectory: string;
 
   /**
-   * The command used to run the API web service. 
+   * The command used to run the API web service.
    */
   readonly webCommand?: string[];
 
   /**
    * Used to enable the celery beat service.
-   * 
+   *
    * @default false
    */
   readonly useCeleryBeat?: boolean;
