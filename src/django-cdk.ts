@@ -5,6 +5,8 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
+import { CeleryBeat } from './celery/beat';
+import { CeleryWorker } from './celery/worker';
 import { RdsPostgresInstance } from './database';
 import { ElastiCacheCluster } from './elasticache';
 import { managementCommandTask } from './tasks';
@@ -15,10 +17,41 @@ export interface DjangoCdkProps {
   /**
    * Options to configure a Django CDK project
    */
+
+  /**
+   * Name of existing bucket to use for media files
+   * 
+   * This name will be auto-generated if not specified
+   */
   readonly bucketName?: string;
+
+  /**
+   * The VPC to use for the application. It must contain 
+   * PUBLIC, PRIVATE and ISOLATED subnets
+   * 
+   * A VPC will be created if this is not specified
+   */
   readonly vpc?: ec2.IVpc;
+
+  /**
+   * The location of the Dockerfile used to create the main 
+   * application image. This is also the context used for building the image.
+   * 
+   * TODO: set image and context path separately.
+   */
   readonly imageDirectory: string;
+
+  /**
+   * The command used to run the API web service. 
+   */
   readonly webCommand?: string[];
+
+  /**
+   * Used to enable the celery beat service.
+   * 
+   * @default false
+   */
+  readonly useCeleryBeat?: boolean;
 
 }
 
@@ -138,6 +171,49 @@ export class DjangoCdk extends cdk.Construct {
       command: ['python3', 'manage.py', 'collectstatic', '--no-input'],
       appSecurityGroup,
       environment,
+    });
+
+    /**
+     * Use celery beat if it is configured in props
+     */
+    if (props.useCeleryBeat ?? false) {
+      new CeleryBeat(scope, 'CeleryBeat', {
+        image: this.image,
+        command: [
+          'celery',
+          '--app=backend.celery_app:app',
+          'beat',
+          '--loglevel=INFO',
+          '--pidfile=/code/celerybeat.pid',
+        ],
+        environment,
+        cluster: this.cluster,
+        securityGroups: [appSecurityGroup],
+      });
+    };
+
+    /**
+     * Celery worker
+     *
+     * TODO: refactor to support defining multiple queues
+     */
+    new CeleryWorker(scope, 'CeleryWorkerDefaultQueue', {
+      image: this.image,
+      command: [
+        'celery',
+        '-A',
+        'backend.celery_app:app',
+        'worker',
+        '-l',
+        'info',
+        '-Q',
+        'celery',
+        '-n',
+        'worker-celery@%h',
+      ],
+      environment,
+      cluster: this.cluster,
+      securityGroups: [appSecurityGroup],
     });
 
     /**

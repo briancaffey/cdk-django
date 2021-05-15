@@ -1,3 +1,4 @@
+import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
 import * as cdk from '@aws-cdk/core';
@@ -7,6 +8,7 @@ export interface CeleryWorkerProps {
   readonly command: string[];
   readonly environment: { [key: string]: string };
   readonly cluster: ecs.ICluster;
+  readonly securityGroups: ec2.ISecurityGroup[];
 }
 
 export class CeleryWorker extends cdk.Construct {
@@ -36,6 +38,7 @@ export class CeleryWorker extends cdk.Construct {
       cluster: props.cluster,
       taskDefinition,
       desiredCount: 1,
+      securityGroups: props.securityGroups,
     });
 
     // TODO: scaling options

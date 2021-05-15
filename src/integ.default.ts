@@ -13,6 +13,7 @@ const construct = new DjangoCdk(stack, 'Cdk-Sample-Lib', {
   webCommand: [
     './scripts/start_prod.sh',
   ],
+  useCeleryBeat: true,
 });
 
 /**

@@ -1,3 +1,4 @@
+import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
 import * as cdk from '@aws-cdk/core';
@@ -7,6 +8,7 @@ export interface CeleryBeatProps {
   readonly command: string[];
   readonly environment: { [key: string]: string };
   readonly cluster: ecs.ICluster;
+  readonly securityGroups: ec2.ISecurityGroup[];
 }
 
 export class CeleryBeat extends cdk.Construct {
@@ -22,6 +24,9 @@ export class CeleryBeat extends cdk.Construct {
 
     taskDefinition.addContainer(`TaskContainerFor${id}`, {
       image: props.image,
+      // TODO: figure out what the best practice is here
+      // running as the `app` user results in permissions error
+      user: 'root',
       command: props.command,
       environment: props.environment,
       logging: ecs.LogDriver.awsLogs(
@@ -37,6 +42,7 @@ export class CeleryBeat extends cdk.Construct {
       taskDefinition,
       // only run one instance of celery beat
       desiredCount: 1,
+      securityGroups: props.securityGroups,
     });
   }
 }
