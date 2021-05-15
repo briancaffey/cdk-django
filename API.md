@@ -34,10 +34,10 @@ new DjangoCdk(scope: Construct, id: string, props: DjangoCdkProps)
 * **scope** (<code>[Construct](#aws-cdk-core-construct)</code>)  *No description*
 * **id** (<code>string</code>)  *No description*
 * **props** (<code>[DjangoCdkProps](#django-cdk-djangocdkprops)</code>)  *No description*
-  * **imageDirectory** (<code>string</code>)  The location of the Dockerfile used to create the main  application image. 
+  * **imageDirectory** (<code>string</code>)  The location of the Dockerfile used to create the main application image. 
   * **bucketName** (<code>string</code>)  Name of existing bucket to use for media files. __*Optional*__
   * **useCeleryBeat** (<code>boolean</code>)  Used to enable the celery beat service. __*Default*__: false
-  * **vpc** (<code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code>)  The VPC to use for the application. It must contain  PUBLIC, PRIVATE and ISOLATED subnets. __*Optional*__
+  * **vpc** (<code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code>)  The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets. __*Optional*__
   * **webCommand** (<code>Array<string></code>)  The command used to run the API web service. __*Optional*__
 
 
@@ -63,10 +63,10 @@ Name | Type | Description
 
 Name | Type | Description 
 -----|------|-------------
-**imageDirectory** | <code>string</code> | The location of the Dockerfile used to create the main  application image.
+**imageDirectory** | <code>string</code> | The location of the Dockerfile used to create the main application image.
 **bucketName**? | <code>string</code> | Name of existing bucket to use for media files.<br/>__*Optional*__
 **useCeleryBeat**? | <code>boolean</code> | Used to enable the celery beat service.<br/>__*Default*__: false
-**vpc**? | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | The VPC to use for the application. It must contain  PUBLIC, PRIVATE and ISOLATED subnets.<br/>__*Optional*__
+**vpc**? | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets.<br/>__*Optional*__
 **webCommand**? | <code>Array<string></code> | The command used to run the API web service.<br/>__*Optional*__
 
 
