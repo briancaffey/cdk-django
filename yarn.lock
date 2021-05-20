@@ -312,6 +312,24 @@
     "@aws-cdk/cx-api" "1.104.0"
     constructs "^3.3.69"
 
+"@aws-cdk/aws-eks@^1.104.0":
+  version "1.104.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-eks/-/aws-eks-1.104.0.tgz#c175e6079ddac730a29ba160ca43631a4e078dcf"
+  integrity sha512-cmSuak/8X/rYuAJj4xlQoJzB9WSwSBQEfyD8v1lgZEOeexcahk6vVO79Gt0ZDGnCaogNEl9XdXmgnWPLNSJi5Q==
+  dependencies:
+    "@aws-cdk/aws-autoscaling" "1.104.0"
+    "@aws-cdk/aws-ec2" "1.104.0"
+    "@aws-cdk/aws-iam" "1.104.0"
+    "@aws-cdk/aws-kms" "1.104.0"
+    "@aws-cdk/aws-lambda" "1.104.0"
+    "@aws-cdk/aws-ssm" "1.104.0"
+    "@aws-cdk/core" "1.104.0"
+    "@aws-cdk/custom-resources" "1.104.0"
+    "@aws-cdk/lambda-layer-awscli" "1.104.0"
+    "@aws-cdk/lambda-layer-kubectl" "1.104.0"
+    constructs "^3.3.69"
+    yaml "1.10.2"
+
 "@aws-cdk/aws-elasticache@^1.104.0":
   version "1.104.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-elasticache/-/aws-elasticache-1.104.0.tgz#8f4b897775d04328ed3b502e3e32134878f69fa0"
@@ -722,6 +740,15 @@
   version "1.104.0"
   resolved "https://registry.npmjs.org/@aws-cdk/lambda-layer-awscli/-/lambda-layer-awscli-1.104.0.tgz"
   integrity sha512-PwzsbENBSS6VNaJuygC+e17gztVdrWmhFsuQV0OC0Ggm0liTDZmFMocpsA7w11/Nr4LHudQTz8GbCzdcu2f8Tg==
+  dependencies:
+    "@aws-cdk/aws-lambda" "1.104.0"
+    "@aws-cdk/core" "1.104.0"
+    constructs "^3.3.69"
+
+"@aws-cdk/lambda-layer-kubectl@1.104.0":
+  version "1.104.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/lambda-layer-kubectl/-/lambda-layer-kubectl-1.104.0.tgz#e89228b35cd90c45f33362ef4915ec4750bda1ad"
+  integrity sha512-3rHdMkns9vnfKTZ01D1MknjcTnMbrv+Ml5kQcD0o3PObkiMz5kzjOSPQHrHYLoTsWlIh6LswtlhwxeNGlLsxIA==
   dependencies:
     "@aws-cdk/aws-lambda" "1.104.0"
     "@aws-cdk/core" "1.104.0"

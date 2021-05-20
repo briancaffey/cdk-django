@@ -48,3 +48,5 @@ cdk deploy --app="./lib/integ.default.js
 ```
 cdk destroy --app="./lib/integ.default.js
 ```
+
+# https://www.stacksimplify.com/aws-eks/aws-fargate/learn-to-run-kubernetes-workloads-on-aws-eks-and-aws-fargate-serverless-part-1/

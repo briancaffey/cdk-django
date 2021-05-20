@@ -33,6 +33,7 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-elasticloadbalancingv2',
     '@aws-cdk/aws-ecs',
     '@aws-cdk/aws-ecs-patterns',
+    '@aws-cdk/aws-eks',
     '@aws-cdk/aws-autoscaling',
     '@aws-cdk/aws-rds',
   ],

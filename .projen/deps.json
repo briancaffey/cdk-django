@@ -131,6 +131,11 @@
       "type": "peer"
     },
     {
+      "name": "@aws-cdk/aws-eks",
+      "version": "^1.104.0",
+      "type": "peer"
+    },
+    {
       "name": "@aws-cdk/aws-elasticache",
       "version": "^1.104.0",
       "type": "peer"
@@ -252,6 +257,11 @@
     },
     {
       "name": "@aws-cdk/aws-ecs",
+      "version": "^1.104.0",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-cdk/aws-eks",
       "version": "^1.104.0",
       "type": "runtime"
     },

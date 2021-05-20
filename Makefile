@@ -17,6 +17,20 @@ build:
 
 build-deploy: build	deploy
 
+## -- EKS Targets --
+
+synth-eks:
+	cdk synth --app='./lib/integ.django-eks.js';
+
+deploy-eks:
+	cdk deploy --app='./lib/integ.django-eks.js';
+
+destroy-eks:
+	cdk destroy --app='./lib/integ.django-eks.js';
+
+diff-eks:
+	cdk diff --app='./lib/integ.django-eks.js';
+
 test:
 	npm run test
 
