@@ -241,10 +241,10 @@ export class DjangoEks extends cdk.Construct {
       }
     };
 
-    this.cluster.addManifest('nginx-deployment', nginxDeployment);
-    this.cluster.addManifest('nginx-service', nginxSvc);
+    // this.cluster.addManifest('nginx-deployment', nginxDeployment);
+    // this.cluster.addManifest('nginx-service', nginxSvc);
 
-    this.cluster.addManifest('api-deployment', apiDeployment);
+    // this.cluster.addManifest('api-deployment', apiDeployment);
 
     // or, option2: use `addHelmChart`
     // cluster.addHelmChart('NginxIngress', {
