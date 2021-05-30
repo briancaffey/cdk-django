@@ -49,4 +49,19 @@ cdk deploy --app="./lib/integ.default.js
 cdk destroy --app="./lib/integ.default.js
 ```
 
+## Notes on using AWS Load Balancer Controller in EKS
+
+[https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/)
+
+[https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_eks/FargateCluster.html](https://docs.aws.amazon.com/cdk/api/latest/python/aws_cdk.aws_eks/FargateCluster.html)
+
+> The cluster is created with a default Fargate Profile that matches the “default” and “kube-system” namespaces. You can add additional profiles using addFargateProfile.
+
+GitHub issue about CDK support for AWS Load Balancer Controller: [https://github.com/aws/aws-cdk/issues/8836](https://github.com/aws/aws-cdk/issues/8836)
+
 # https://www.stacksimplify.com/aws-eks/aws-fargate/learn-to-run-kubernetes-workloads-on-aws-eks-and-aws-fargate-serverless-part-1/
+
+
+## EKS Best Practices
+
+[https://aws.github.io/aws-eks-best-practices/](https://aws.github.io/aws-eks-best-practices/)

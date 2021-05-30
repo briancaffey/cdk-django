@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { DjangoCdk, DjangoCdkProps } from '../src/index';
 import '@aws-cdk/assert/jest';
 
-test('create app', () => {
+test.skip('create app', () => {
   const env = {
     region: 'us-east-1',
     account: '12345678',
@@ -21,7 +21,7 @@ test('create app', () => {
   expect(stack).toHaveResource('AWS::ElasticLoadBalancingV2::LoadBalancer');
 });
 
-test('create app with default bucket name', () => {
+test.skip('create app with default bucket name', () => {
   const env = {
     region: 'us-east-1',
     account: '12345678',

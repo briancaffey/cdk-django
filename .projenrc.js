@@ -37,6 +37,7 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-eks',
     '@aws-cdk/aws-autoscaling',
     '@aws-cdk/aws-rds',
+    '@aws-cdk/aws-iam',
   ],
 
   python: {
@@ -54,7 +55,9 @@ const project = new AwsCdkConstructLibrary({
   /* JsiiProjectOptions */
   // compat: false,                                                            /* Automatically run API compatibility test against the latest version published to npm after compilation. */
   // compatIgnore: '.compatignore',                                            /* Name of the ignore file for API compatibility tests. */
-  // excludeTypescript: undefined,                                             /* Accepts a list of glob patterns. */
+  excludeTypescript: [
+    './test/django-step-by-step/*',
+  ], /* Accepts a list of glob patterns. */
   // publishToGo: undefined,                                                   /* Publish Go bindings to a git repository. */
   // publishToMaven: undefined,                                                /* Publish to maven. */
   // publishToNuget: undefined,                                                /* Publish to NuGet. */
@@ -69,12 +72,20 @@ const project = new AwsCdkConstructLibrary({
   // authorUrl: undefined,                                                     /* Author's URL / Website. */
   // autoDetectBin: true,                                                      /* Automatically add all executables under the `bin` directory to your `package.json` file under the `bin` section. */
   // bin: undefined,                                                           /* Binary programs vended with your module. */
-  // bundledDeps: undefined,                                                   /* List of dependencies to bundle into this module. */
+  bundledDeps: [
+    'sync-request@^6.1.0',
+  ], /* List of dependencies to bundle into this module. */
   deps: [
+    /**
+     * Used for loading policy document
+     */
+    // 'sync-request@^6.1.0',
+    'cdk8s@^1.0.0-beta.11',
+    // 'sync-request@^6.1.0',
     // "cdk8s@^1.0.0-beta.11",
     // "cdk8s-plus-17@^1.0.0-beta.11",
     // "constructs@^3.3.75"
-  ],                                                                 /* Runtime dependencies of this module. */
+  ], /* Runtime dependencies of this module. */
   // description: undefined,                                                   /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                                                              /* Build dependencies for this module. */
   // entrypoint: 'lib/index.js',                                               /* Module entrypoint (`main` in `package.json`). */
@@ -92,7 +103,10 @@ const project = new AwsCdkConstructLibrary({
   // packageManager: NodePackageManager.YARN,                                  /* The Node Package Manager used to execute scripts. */
   // packageName: undefined,                                                   /* The "name" in package.json. */
   // peerDependencyOptions: undefined,                                         /* Options for `peerDeps`. */
-  // peerDeps: [],                                                             /* Peer dependencies for this module. */
+  peerDeps: [
+    // 'sync-request@^6.1.0',
+    'cdk8s@^1.0.0-beta.11',
+  ], /* Peer dependencies for this module. */
   // projenCommand: 'npx projen',                                              /* The shell command to use in order to run the projen CLI. */
   // repository: undefined,                                                    /* The repository is the location where the actual code for your package lives. */
   // repositoryDirectory: undefined,                                           /* If the package.json for your package is not in the root directory (for example if it is part of a monorepo), you can specify the directory in which it lives. */
@@ -161,7 +175,11 @@ const project = new AwsCdkConstructLibrary({
   // sampleCode: true,                                                         /* Generate one-time sample in `src/` and `test/` if there are no files there. */
   // srcdir: 'src',                                                            /* Typescript sources directory. */
   // testdir: 'test',                                                          /* Jest tests directory. Tests files should be named `xxx.test.ts`. */
-  // tsconfig: undefined,                                                      /* Custom TSConfig. */
+  tsconfig: {
+    exclude: [
+      'test/django-step-by-step/**/*.ts',
+    ],
+  }, /* Custom TSConfig. */
   // typescriptVersion: 'latest',                                              /* TypeScript version to use. */
 });
 

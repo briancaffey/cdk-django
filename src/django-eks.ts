@@ -1,6 +1,6 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as eks from '@aws-cdk/aws-eks';
-import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
+// import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 // import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -8,10 +8,9 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 // import { RdsPostgresInstance } from './database';
 // import { ElastiCacheCluster } from './elasticache';
-import {
-  ApplicationVpc
-} from './vpc';
-
+import { ApplicationVpc } from './vpc';
+// eslint-disable-next-line
+const request = require('sync-request');
 
 export interface DjangoEksProps {
   /**
@@ -95,14 +94,14 @@ export class DjangoEks extends cdk.Construct {
     /**
      * EKS cluster
      */
-    this.cluster = new eks.Cluster(this, "MyEksCluster", {
+    this.cluster = new eks.Cluster(this, 'MyEksCluster', {
       version: eks.KubernetesVersion.V1_19,
       vpc: this.vpc,
       mastersRole,
-      defaultCapacity: 0,
+      defaultCapacity: 2,
     });
 
-    this.cluster.addManifest('nginx-namespace', {
+    this.cluster.addManifest('app-namespace', {
       apiVersion: 'v1',
       kind: 'Namespace',
       metadata: {
@@ -110,136 +109,178 @@ export class DjangoEks extends cdk.Construct {
       },
     });
 
-    this.cluster.addFargateProfile('fargateProfileApp', {
-      selectors: [{
-        namespace: 'app'
-      }],
+    // this.cluster.addFargateProfile('fargateProfileApp', {
+    //   selectors: [{
+    //     namespace: 'app'
+    //   }],
+    // });
+
+    // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
+    // Adopted from comments in this issue: https://github.com/aws/aws-cdk/issues/8836
+    // service account (creates OpenIDConnect resources)
+
+    const albServiceAccount = this.cluster.addServiceAccount('aws-alb-ingress-controller-sa', {
+      name: 'aws-load-balancer-controller',
+      namespace: 'kube-system',
     });
-    
+
+
+    // TODO: update this manually for now since it does not support manual updates
+
+    const awsAlbControllerPolicyUrl = 'https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json';
+    const policyJson = request('GET', awsAlbControllerPolicyUrl).getBody('utf8');
+    ((JSON.parse(policyJson)).Statement as any[]).forEach(statement => {
+      albServiceAccount.addToPrincipalPolicy(iam.PolicyStatement.fromJson(statement));
+    });
+
+    // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/#summary
+
+    // Helm
+    // helm repo add eks https://aws.github.io/eks-charts
+    // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+
+    // kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+
+
+    this.cluster.addHelmChart('aws-load-balancer-controller-helm-chart', {
+      repository: 'https://aws.github.io/eks-charts',
+      chart: 'eks/aws-load-balancer-controller',
+      release: 'aws-load-balancer-controller',
+      version: '2.2.0',
+      namespace: 'kube-system',
+      values: {
+        clusterName: this.cluster.clusterName,
+        serviceAccount: {
+          create: false,
+          name: 'aws-load-balancer-controller',
+        },
+      },
+    });
+
     // https://stackoverflow.com/a/63787574/6084948
-    const containerImage = new ecrAssets.DockerImageAsset(scope, 'backendImage', {
-      directory: props.imageDirectory,
-    });
+    // const containerImage = new ecrAssets.DockerImageAsset(scope, 'backendImage', {
+    //   directory: props.imageDirectory,
+    // });
 
     // this.cluster.addHelmChart('awsLoadBalancerController', {
     //   namespace: 'kube-system',
     //   chart: 'aws-load-balancer-controller',
     // });
 
-    const nginxDeployment = {
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
-      metadata: {
-        namespace: 'app',
-        name: 'nginx-deployment',
-        labels: {
-          app: 'nginx',
-        },
-      },
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: 'nginx',
-          },
-        },
-        template: {
-          metadata: {
-            labels: {
-              app: 'nginx',
-            },
-          },
-          spec: {
-            containers: [{
-              name: 'nginx',
-              image: 'nginx:1.14.2',
-              resources: {
-                requests: {
-                  memory: "64Mi",
-                  cpu: "250m"
-                },
-                limits: {
-                  memory: "128Mi",
-                  cpu: "500m",
-                }
-              },
-              ports: [{
-                containerPort: 80,
-              }]
-            }]
-          }
-        }
-      }
-    };
+    // const nginxDeployment = {
+    //   apiVersion: 'apps/v1',
+    //   kind: 'Deployment',
+    //   metadata: {
+    //     namespace: 'app',
+    //     name: 'nginx-deployment',
+    //     labels: {
+    //       app: 'nginx',
+    //     },
+    //   },
+    //   spec: {
+    //     replicas: 1,
+    //     selector: {
+    //       matchLabels: {
+    //         app: 'nginx',
+    //       },
+    //     },
+    //     template: {
+    //       metadata: {
+    //         labels: {
+    //           app: 'nginx',
+    //         },
+    //       },
+    //       spec: {
+    //         containers: [{
+    //           name: 'nginx',
+    //           image: 'nginx:1.14.2',
+    //           resources: {
+    //             requests: {
+    //               memory: "64Mi",
+    //               cpu: "250m"
+    //             },
+    //             limits: {
+    //               memory: "128Mi",
+    //               cpu: "500m",
+    //             }
+    //           },
+    //           ports: [{
+    //             containerPort: 80,
+    //           }]
+    //         }]
+    //       }
+    //     }
+    //   }
+    // };
 
-    const nginxSvc = {
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: 'nginx-service',
-        namespace: 'app',
-      },
-      spec: {
-        type: 'NodePort',
-        selector: {
-          app: 'nginx',
-        },
-        ports: [
-          {
-            port: 80,
-            targetPort: 80,
-            nodePort: 30008,
-          }
-        ]
-      },
-    };
+    // const nginxSvc = {
+    //   apiVersion: 'v1',
+    //   kind: 'Service',
+    //   metadata: {
+    //     name: 'nginx-service',
+    //     namespace: 'app',
+    //   },
+    //   spec: {
+    //     type: 'NodePort',
+    //     selector: {
+    //       app: 'nginx',
+    //     },
+    //     ports: [
+    //       {
+    //         port: 80,
+    //         targetPort: 80,
+    //         nodePort: 30008,
+    //       }
+    //     ]
+    //   },
+    // };
 
-    const apiDeployment = {
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
-      metadata: {
-        namespace: 'app',
-        name: 'api',
-        labels: {
-          app: 'api',
-        },
-      },
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: 'api',
-          },
-        },
-        template: {
-          metadata: {
-            labels: {
-              app: 'api',
-            },
-          },
-          spec: {
-            containers: [{
-              image: containerImage.imageUri,
-              args: props.webCommand,
-              name: 'backend-image',
-              resources: {
-                requests: {
-                  memory: "64Mi",
-                  cpu: "250m"
-                },
-                limits: {
-                  memory: "128Mi",
-                  cpu: "500m",
-                }
-              },
-              ports: [{
-                containerPort: 8000,
-              }]
-            }]
-          }
-        }
-      }
-    };
+    // const apiDeployment = {
+    //   apiVersion: 'apps/v1',
+    //   kind: 'Deployment',
+    //   metadata: {
+    //     namespace: 'app',
+    //     name: 'api',
+    //     labels: {
+    //       app: 'api',
+    //     },
+    //   },
+    //   spec: {
+    //     replicas: 1,
+    //     selector: {
+    //       matchLabels: {
+    //         app: 'api',
+    //       },
+    //     },
+    //     template: {
+    //       metadata: {
+    //         labels: {
+    //           app: 'api',
+    //         },
+    //       },
+    //       spec: {
+    //         containers: [{
+    //           image: containerImage.imageUri,
+    //           args: props.webCommand,
+    //           name: 'backend-image',
+    //           resources: {
+    //             requests: {
+    //               memory: "64Mi",
+    //               cpu: "250m"
+    //             },
+    //             limits: {
+    //               memory: "128Mi",
+    //               cpu: "500m",
+    //             }
+    //           },
+    //           ports: [{
+    //             containerPort: 8000,
+    //           }]
+    //         }]
+    //       }
+    //     }
+    //   }
+    // };
 
     // this.cluster.addManifest('nginx-deployment', nginxDeployment);
     // this.cluster.addManifest('nginx-service', nginxSvc);
