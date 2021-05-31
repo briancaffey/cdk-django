@@ -3,7 +3,7 @@ const { AwsCdkConstructLibrary } = require('projen');
 const project = new AwsCdkConstructLibrary({
   author: 'Brian Caffey',
   authorAddress: 'briancaffey2010@gmail.com',
-  cdkVersion: '1.105.0',
+  cdkVersion: '1.106.0',
   defaultReleaseBranch: 'main',
   name: 'django-cdk',
   repositoryUrl: 'https://github.com/briancaffey/django-cdk.git',
@@ -74,6 +74,7 @@ const project = new AwsCdkConstructLibrary({
   // bin: undefined,                                                           /* Binary programs vended with your module. */
   bundledDeps: [
     'sync-request@^6.1.0',
+    'js-yaml@^4.1.0',
   ], /* List of dependencies to bundle into this module. */
   deps: [
     /**

@@ -11,6 +11,8 @@ import * as cdk from '@aws-cdk/core';
 import { ApplicationVpc } from './vpc';
 // eslint-disable-next-line
 const request = require('sync-request');
+// eslint-disable-next-line
+const yaml = require('js-yaml');
 
 export interface DjangoEksProps {
   /**
@@ -109,23 +111,14 @@ export class DjangoEks extends cdk.Construct {
       },
     });
 
-    // this.cluster.addFargateProfile('fargateProfileApp', {
-    //   selectors: [{
-    //     namespace: 'app'
-    //   }],
-    // });
-
+    // Installation of AWS Load Balancer Controller
     // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
     // Adopted from comments in this issue: https://github.com/aws/aws-cdk/issues/8836
-    // service account (creates OpenIDConnect resources)
 
     const albServiceAccount = this.cluster.addServiceAccount('aws-alb-ingress-controller-sa', {
       name: 'aws-load-balancer-controller',
       namespace: 'kube-system',
     });
-
-
-    // TODO: update this manually for now since it does not support manual updates
 
     const awsAlbControllerPolicyUrl = 'https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json';
     const policyJson = request('GET', awsAlbControllerPolicyUrl).getBody('utf8');
@@ -133,19 +126,41 @@ export class DjangoEks extends cdk.Construct {
       albServiceAccount.addToPrincipalPolicy(iam.PolicyStatement.fromJson(statement));
     });
 
+    // AWS Load Balancer Controller Helm Chart
     // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/#summary
 
-    // Helm
-    // helm repo add eks https://aws.github.io/eks-charts
-    // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
-
+    // AWS Application Load Balancer Controller Helm Chart CRDs
+    // These must be installed before installing the Helm Chart because CDK
+    // installs the Helm chart with `helm upgrade` which does not
+    // automatically install CRDs
+    // This should be equivalent to Step 2:
     // kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
 
+    const awslbcCrdsUrl = 'https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml';
+    const awslbcCrdsYaml = request('GET', awslbcCrdsUrl).getBody('utf8');
+    const awslbcCrdsObjects = yaml.loadAll(awslbcCrdsYaml);
 
-    this.cluster.addHelmChart('aws-load-balancer-controller-helm-chart', {
-      repository: 'https://aws.github.io/eks-charts',
-      chart: 'eks/aws-load-balancer-controller',
+    new eks.KubernetesManifest(this, 'alb-custom-resource-definition', {
+      cluster: this.cluster,
+      manifest: awslbcCrdsObjects,
+      overwrite: true,
+      prune: true,
+    });
+
+    // The following is basically trying to do: 
+    // helm repo add eks https://aws.github.io/eks-charts
+    // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+    // but it is failing saying that the version and release cannot be found in
+    // the repository (https://aws.github.io/eks-chart)
+    // TODO: Fix this
+    new eks.HelmChart(scope, 'alb-ingress-controller', {
+      cluster: this.cluster,
+      wait: true,
+      // Not sure if this value is needed
       release: 'aws-load-balancer-controller',
+      // I'm not sure if the `eks/` prefix is needed here
+      chart: 'eks/aws-load-balancer-controller',
+      repository: 'https://aws.github.io/eks-charts',
       version: '2.2.0',
       namespace: 'kube-system',
       values: {
@@ -156,200 +171,5 @@ export class DjangoEks extends cdk.Construct {
         },
       },
     });
-
-    // https://stackoverflow.com/a/63787574/6084948
-    // const containerImage = new ecrAssets.DockerImageAsset(scope, 'backendImage', {
-    //   directory: props.imageDirectory,
-    // });
-
-    // this.cluster.addHelmChart('awsLoadBalancerController', {
-    //   namespace: 'kube-system',
-    //   chart: 'aws-load-balancer-controller',
-    // });
-
-    // const nginxDeployment = {
-    //   apiVersion: 'apps/v1',
-    //   kind: 'Deployment',
-    //   metadata: {
-    //     namespace: 'app',
-    //     name: 'nginx-deployment',
-    //     labels: {
-    //       app: 'nginx',
-    //     },
-    //   },
-    //   spec: {
-    //     replicas: 1,
-    //     selector: {
-    //       matchLabels: {
-    //         app: 'nginx',
-    //       },
-    //     },
-    //     template: {
-    //       metadata: {
-    //         labels: {
-    //           app: 'nginx',
-    //         },
-    //       },
-    //       spec: {
-    //         containers: [{
-    //           name: 'nginx',
-    //           image: 'nginx:1.14.2',
-    //           resources: {
-    //             requests: {
-    //               memory: "64Mi",
-    //               cpu: "250m"
-    //             },
-    //             limits: {
-    //               memory: "128Mi",
-    //               cpu: "500m",
-    //             }
-    //           },
-    //           ports: [{
-    //             containerPort: 80,
-    //           }]
-    //         }]
-    //       }
-    //     }
-    //   }
-    // };
-
-    // const nginxSvc = {
-    //   apiVersion: 'v1',
-    //   kind: 'Service',
-    //   metadata: {
-    //     name: 'nginx-service',
-    //     namespace: 'app',
-    //   },
-    //   spec: {
-    //     type: 'NodePort',
-    //     selector: {
-    //       app: 'nginx',
-    //     },
-    //     ports: [
-    //       {
-    //         port: 80,
-    //         targetPort: 80,
-    //         nodePort: 30008,
-    //       }
-    //     ]
-    //   },
-    // };
-
-    // const apiDeployment = {
-    //   apiVersion: 'apps/v1',
-    //   kind: 'Deployment',
-    //   metadata: {
-    //     namespace: 'app',
-    //     name: 'api',
-    //     labels: {
-    //       app: 'api',
-    //     },
-    //   },
-    //   spec: {
-    //     replicas: 1,
-    //     selector: {
-    //       matchLabels: {
-    //         app: 'api',
-    //       },
-    //     },
-    //     template: {
-    //       metadata: {
-    //         labels: {
-    //           app: 'api',
-    //         },
-    //       },
-    //       spec: {
-    //         containers: [{
-    //           image: containerImage.imageUri,
-    //           args: props.webCommand,
-    //           name: 'backend-image',
-    //           resources: {
-    //             requests: {
-    //               memory: "64Mi",
-    //               cpu: "250m"
-    //             },
-    //             limits: {
-    //               memory: "128Mi",
-    //               cpu: "500m",
-    //             }
-    //           },
-    //           ports: [{
-    //             containerPort: 8000,
-    //           }]
-    //         }]
-    //       }
-    //     }
-    //   }
-    // };
-
-    // this.cluster.addManifest('nginx-deployment', nginxDeployment);
-    // this.cluster.addManifest('nginx-service', nginxSvc);
-
-    // this.cluster.addManifest('api-deployment', apiDeployment);
-
-    // or, option2: use `addHelmChart`
-    // cluster.addHelmChart('NginxIngress', {
-    //   chart: 'nginx-ingress',
-    //   repository: 'https://helm.nginx.com/stable',
-    //   namespace: 'kube-system'
-    // });
-
-    //   this.cluster.addFargateProfile('')
-
-    /**
-     * Secret used for RDS postgres password
-     */
-    //   this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
-    //     secretName: 'dbSecret',
-    //     description: 'secret for rds',
-    //   });
-
-    /**
-     * Container image used in web API, celery worker and management task containers
-     */
-    //   this.image = new ecs.AssetImage(props.imageDirectory);
-
-    //   const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
-    //     vpc: this.vpc,
-    //     secret: this.secret,
-    //   });
-
-
-    /**
-     * A security group in the VPC for our application (ECS Fargate services and tasks)
-     * Allow the application services to access the RDS security group
-     */
-    //   const appSecurityGroup = new ec2.SecurityGroup(scope, 'appSecurityGroup', {
-    //     vpc: this.vpc,
-    //   });
-
-    //   const elastiCacheRedis = new ElastiCacheCluster(scope, 'ElastiCacheCluster', {
-    //     vpc: this.vpc,
-    //     appSecurityGroup,
-    //   });
-
-    //   const environment: { [key: string]: string } = {
-    //     AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
-    //     POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
-    //     POSTGRES_PASSWORD: this.secret.secretValue.toString(),
-    //     DEBUG: '0',
-    //     DJANGO_SETTINGS_MODULE: 'backend.settings.production',
-    //     REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,
-    //   };
-
-    // TODO see how ALB logs work for EKS when the ALB is created through an ingress resource
-    //   const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
-
-    //   albfs.loadBalancer.logAccessLogs(albLogsBucket);
-
-    /**
-     * Allows the app security group to communicate with the RDS security group
-     */
-    //   database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
-
-    /**
-     * Grant the task defintion read-write access to static files bucket
-     */
-    //   staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
   }
 }
