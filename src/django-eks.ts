@@ -8,7 +8,13 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 // import { RdsPostgresInstance } from './database';
 // import { ElastiCacheCluster } from './elasticache';
+
+// k8s manifests
+import { appIngress } from './ingress';
+import { nginxDeployment, nginxService } from './nginx';
 import { ApplicationVpc } from './vpc';
+
+
 // eslint-disable-next-line
 const request = require('sync-request');
 // eslint-disable-next-line
@@ -147,21 +153,18 @@ export class DjangoEks extends cdk.Construct {
       prune: true,
     });
 
-    // The following is basically trying to do:
+    // The following is equivalent to:
     // helm repo add eks https://aws.github.io/eks-charts
     // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
-    // but it is failing saying that the version and release cannot be found in
-    // the repository (https://aws.github.io/eks-chart)
-    // TODO: Fix this
+
     new eks.HelmChart(scope, 'alb-ingress-controller', {
       cluster: this.cluster,
       wait: true,
-      // Not sure if this value is needed
-      release: 'aws-load-balancer-controller',
-      // I'm not sure if the `eks/` prefix is needed here
-      chart: 'eks/aws-load-balancer-controller',
+      chart: 'aws-load-balancer-controller',
       repository: 'https://aws.github.io/eks-charts',
-      version: '2.2.0',
+      // Note: the chart version 1.2.0 will install version 2.2.0 of the Helm Chart
+      // https://github.com/aws/eks-charts/blob/master/stable/aws-load-balancer-controller/Chart.yaml
+      version: '1.2.0',
       namespace: 'kube-system',
       values: {
         clusterName: this.cluster.clusterName,
@@ -171,5 +174,10 @@ export class DjangoEks extends cdk.Construct {
         },
       },
     });
+
+    // sample nginx deployment and service for demonstration
+    this.cluster.addManifest('nginx-deployment', nginxDeployment);
+    this.cluster.addManifest('nginx-service', nginxService);
+    this.cluster.addManifest('app-ingresss', appIngress);
   }
 }
