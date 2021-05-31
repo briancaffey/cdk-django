@@ -147,7 +147,7 @@ export class DjangoEks extends cdk.Construct {
       prune: true,
     });
 
-    // The following is basically trying to do: 
+    // The following is basically trying to do:
     // helm repo add eks https://aws.github.io/eks-charts
     // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
     // but it is failing saying that the version and release cannot be found in
