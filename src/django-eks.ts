@@ -4,9 +4,9 @@ import * as eks from '@aws-cdk/aws-eks';
 // import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
-// import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-// import { RdsPostgresInstance } from './database';
+import { RdsPostgresInstance } from './database';
 // import { ElastiCacheCluster } from './elasticache';
 
 // k8s manifests
@@ -68,6 +68,7 @@ export class DjangoEks extends cdk.Construct {
   public staticFileBucket: s3.Bucket;
   public vpc: ec2.IVpc;
   public cluster: eks.Cluster;
+  private secret: secretsmanager.ISecret;
 
 
   constructor(scope: cdk.Construct, id: string, props: DjangoEksProps) {
@@ -116,6 +117,40 @@ export class DjangoEks extends cdk.Construct {
         name: 'app',
       },
     });
+
+    /**
+     * Secret used for RDS postgres password
+     */
+    this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
+      secretName: 'dbSecret',
+      description: 'secret for rds',
+    });
+
+    /**
+     * RDS instance
+     */
+    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
+      vpc: this.vpc,
+      secret: this.secret,
+    });
+
+    /**
+     * Security Group for worker nodes
+     */
+    const appSecurityGroup = new ec2.SecurityGroup(scope, 'appSecurityGroup', {
+      vpc: this.vpc,
+    });
+
+    /**
+     * cluster.defaultCapactiy is the autoScalingGroup (the cluster's default node group)
+     * Here the appSecurityGroup created above is added to that ASG
+     */
+    this.cluster.defaultCapacity?.addSecurityGroup(appSecurityGroup);
+
+    /**
+     * Allow th ASG to accesss the database
+     */
+    database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
     // Installation of AWS Load Balancer Controller
     // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
