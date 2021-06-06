@@ -151,10 +151,10 @@ export class DjangoEks extends cdk.Construct {
         StringEquals: new cdk.CfnJson(scope, 'FederatedPrincipalCondition', {
           value: {
             [`${oidcProviderId}:aud`]: 'sts.amazonaws.com',
-            [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`
-          }
-        })
-      }, 'sts:AssumeRoleWithWebIdentity'
+            [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`,
+          },
+        }),
+      }, 'sts:AssumeRoleWithWebIdentity',
     );
 
     /**
