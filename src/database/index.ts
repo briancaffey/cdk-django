@@ -13,7 +13,6 @@ export class RdsPostgresInstance extends cdk.Construct {
 
   public rdsPostgresInstance: rds.IDatabaseInstance;
   public rdsSecurityGroup: ec2.ISecurityGroup;
-  // public databaseUsername:
 
   constructor(scope: cdk.Construct, id: string, props: RdsPostgresInstanceProps) {
     super(scope, id);
@@ -35,10 +34,7 @@ export class RdsPostgresInstance extends cdk.Construct {
       vpcPlacement: { subnetType: ec2.SubnetType.ISOLATED },
       port: 5432,
       securityGroups: [rdsSecurityGroup],
-      credentials: {
-        username: 'postgres',
-        password: props.secret.secretValue,
-      },
+      credentials: rds.Credentials.fromSecret(props.secret),
     });
     this.rdsPostgresInstance = rdsPostgresInstance;
   }

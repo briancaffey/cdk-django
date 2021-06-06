@@ -1,5 +1,5 @@
 export const appIngress = {
-  apiVersion: 'extensions/v1beta1',
+  apiVersion: 'networking.k8s.io/v1',
   kind: 'Ingress',
   metadata: {
     name: 'app-ingress',
@@ -19,8 +19,12 @@ export const appIngress = {
               path: '/',
               pathType: 'Prefix',
               backend: {
-                serviceName: 'nginx-service',
-                servicePort: 80,
+                service: {
+                  name: 'api-http',
+                  port: {
+                    number: 80,
+                  },
+                },
               },
             },
           ],

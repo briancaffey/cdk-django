@@ -36,6 +36,10 @@ destroy-eks:
 diff-eks:
 	cdk diff --app='./lib/integ.django-eks.js';
 
+## watch
+watch:
+	npm run watch
+
 ## run all tests for projen project
 test:
 	npm run test

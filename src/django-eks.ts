@@ -1,17 +1,20 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as eks from '@aws-cdk/aws-eks';
-// import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 // import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
+import { CfnJson } from '@aws-cdk/core';
 import { RdsPostgresInstance } from './database';
 // import { ElastiCacheCluster } from './elasticache';
 
 // k8s manifests
-import { appIngress } from './ingress';
-import { nginxDeployment, nginxService } from './nginx';
+// import { nginxDeployment, nginxService } from './nginx';
+import { MigrateJob } from './eks/resources/migrate';
+// import { WebResources } from './eks/resources/web';
+// import { appIngress } from './ingress';
 import { ApplicationVpc } from './vpc';
 
 
@@ -110,6 +113,9 @@ export class DjangoEks extends cdk.Construct {
       defaultCapacity: 2,
     });
 
+    /**
+     * Namespace for application
+     */
     this.cluster.addManifest('app-namespace', {
       apiVersion: 'v1',
       kind: 'Namespace',
@@ -118,13 +124,72 @@ export class DjangoEks extends cdk.Construct {
       },
     });
 
+    const DB_SECRET_NAME = 'dbSecret';
     /**
      * Secret used for RDS postgres password
      */
     this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
-      secretName: 'dbSecret',
+      secretName: DB_SECRET_NAME,
       description: 'secret for rds',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'postgres' }),
+        generateStringKey: 'password',
+        excludePunctuation: true,
+        includeSpace: false,
+      },
     });
+
+
+    const POD_SERVICE_ACCOUNT_NAME = 'pod-service-account';
+    const oidcProviderId = this.cluster.openIdConnectProvider.openIdConnectProviderIssuer;
+
+    /**
+     * The Principal that will assume the podRole
+     */
+    const federatedPrincipal = new iam.FederatedPrincipal(
+      this.cluster.openIdConnectProvider.openIdConnectProviderArn,
+      {
+        StringEquals: new CfnJson(scope, "FederatedPrincipalCondition", {
+          value: {
+            [`${oidcProviderId}:aud`]: "sts.amazonaws.com",
+            [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`
+          }
+        })
+      }, "sts:AssumeRoleWithWebIdentity"
+    );
+
+    /**
+     * Setup a new IAM Role that will be used by Pods to access the secret and S3 bucket
+     *
+     * This role is assumed by the Principal defined above
+     */
+    const podRole = new iam.Role(scope, 'podRole', {
+      assumedBy: federatedPrincipal,
+    });
+
+    const podServiceAccount = {
+      apiVersion: 'v1',
+      kind: 'ServiceAccount',
+      metadata: {
+        name: POD_SERVICE_ACCOUNT_NAME,
+        namespace: 'app',
+        annotations: {
+          'eks.amazonaws.com/role-arn': podRole.roleArn,
+        },
+      },
+    };
+
+    /**
+     * Give the podRole read access to the bucket and read/write access to the S3 bucket
+     */
+    this.secret.grantRead(podRole);
+    this.staticFileBucket.grantReadWrite(podRole);
+
+    /**
+     * Create a service account manfiest that will be used by pods
+     * The ARN will be passed into the templates
+     */
+    this.cluster.addManifest('pod-service-account', podServiceAccount);
 
     /**
      * RDS instance
@@ -146,6 +211,7 @@ export class DjangoEks extends cdk.Construct {
      * Here the appSecurityGroup created above is added to that ASG
      */
     this.cluster.defaultCapacity?.addSecurityGroup(appSecurityGroup);
+    // this.secret.grantRead(this.cluster.def);
 
     /**
      * Allow th ASG to accesss the database
@@ -211,8 +277,94 @@ export class DjangoEks extends cdk.Construct {
     });
 
     // sample nginx deployment and service for demonstration
-    this.cluster.addManifest('nginx-deployment', nginxDeployment);
-    this.cluster.addManifest('nginx-service', nginxService);
-    this.cluster.addManifest('app-ingresss', appIngress);
+    // this.cluster.addManifest('nginx-deployment', nginxDeployment);
+    // this.cluster.addManifest('nginx-service', nginxService);
+
+    // backend docker image
+
+    const backendImage = new ecrAssets.DockerImageAsset(scope, 'backendImage', {
+      directory: props.imageDirectory,
+    });
+
+    // TODO: use https://github.com/aws/aws-secretsmanager-caching-python/blob/master/test/integ/test_aws_secretsmanager_caching.py
+    // instead of passing password string to environment variable
+
+    /**
+     * Common environment variables for Jobs and Deployments
+     */
+    const env = [
+      {
+        name: 'DEBUG',
+        value: '0',
+      },
+      {
+        // this is used in the application to fetch the secret value
+        name: 'DB_SECRET_NAME',
+        value: DB_SECRET_NAME,
+
+      },
+      {
+        name: 'POSTGRES_SERVICE_HOST',
+        value: database.rdsPostgresInstance.dbInstanceEndpointAddress,
+      },
+      {
+        name: 'DJANGO_SETTINGS_MODULE',
+        value: 'backend.settings.production',
+      },
+    ];
+
+    // Django K8s resources
+
+    const migrateJob = new MigrateJob(scope, 'django-migrate-job', {
+      cluster: this.cluster,
+      backendImage,
+      namespace: 'app',
+      env,
+    });
+
+    /**
+     * Job that runs Django migrations
+     */
+    this.cluster.addManifest('migrate-job', migrateJob.manifest);
+
+    // web service and deployment
+    // const webResources = new WebResources(scope, 'web-resources', {
+    //   env,
+    //   cluster: this.cluster,
+    //   webCommand: props.webCommand ?? ['./scripts/start_prod.sh'],
+    //   backendImage,
+    //   namespace: 'app',
+    // });
+
+    /**
+     * Add deployment and service manifests for web to the cluster
+     */
+    // this.cluster.addManifest('app-ingresss', appIngress);
+    // this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
+    // this.cluster.addManifest('web-service', webResources.serviceManifest);
+
+
+    /**
+     * Get the ALB address using KubernetesObjectValue as a String
+     */
+
+    // const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
+    //   cluster: this.cluster,
+    //   objectType: 'ingress',
+    //   objectNamespace: 'app',
+    //   objectName: 'app-ingress',
+    //   jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
+    // });
+
+    /**
+     * Route53 A Record pointing to ALB that is created by AWS Application Load Balancer Controller
+     */
+
+
+    /**
+     * Output the Load Balancer URL as a CfnOutput
+     */
+    // new cdk.CfnOutput(this, 'apiUrl', { value: albAddress.value });
+
   }
 }
