@@ -6,7 +6,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import { CfnJson } from '@aws-cdk/core';
 import { RdsPostgresInstance } from './database';
 // import { ElastiCacheCluster } from './elasticache';
 
@@ -149,7 +148,7 @@ export class DjangoEks extends cdk.Construct {
     const federatedPrincipal = new iam.FederatedPrincipal(
       this.cluster.openIdConnectProvider.openIdConnectProviderArn,
       {
-        StringEquals: new CfnJson(scope, "FederatedPrincipalCondition", {
+        StringEquals: new cdk.CfnJson(scope, "FederatedPrincipalCondition", {
           value: {
             [`${oidcProviderId}:aud`]: "sts.amazonaws.com",
             [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`
