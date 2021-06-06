@@ -148,13 +148,13 @@ export class DjangoEks extends cdk.Construct {
     const federatedPrincipal = new iam.FederatedPrincipal(
       this.cluster.openIdConnectProvider.openIdConnectProviderArn,
       {
-        StringEquals: new cdk.CfnJson(scope, "FederatedPrincipalCondition", {
+        StringEquals: new cdk.CfnJson(scope, 'FederatedPrincipalCondition', {
           value: {
-            [`${oidcProviderId}:aud`]: "sts.amazonaws.com",
+            [`${oidcProviderId}:aud`]: 'sts.amazonaws.com',
             [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`
           }
         })
-      }, "sts:AssumeRoleWithWebIdentity"
+      }, 'sts:AssumeRoleWithWebIdentity'
     );
 
     /**
