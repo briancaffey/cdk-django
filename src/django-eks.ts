@@ -12,8 +12,8 @@ import { RdsPostgresInstance } from './database';
 // k8s manifests
 // import { nginxDeployment, nginxService } from './nginx';
 import { MigrateJob } from './eks/resources/migrate';
-// import { WebResources } from './eks/resources/web';
-// import { appIngress } from './ingress';
+import { WebResources } from './eks/resources/web';
+import { appIngress } from './ingress';
 import { ApplicationVpc } from './vpc';
 
 
@@ -327,33 +327,32 @@ export class DjangoEks extends cdk.Construct {
     this.cluster.addManifest('migrate-job', migrateJob.manifest);
 
     // web service and deployment
-    // const webResources = new WebResources(scope, 'web-resources', {
-    //   env,
-    //   cluster: this.cluster,
-    //   webCommand: props.webCommand ?? ['./scripts/start_prod.sh'],
-    //   backendImage,
-    //   namespace: 'app',
-    // });
+    const webResources = new WebResources(scope, 'web-resources', {
+      env,
+      cluster: this.cluster,
+      webCommand: props.webCommand ?? ['./scripts/start_prod.sh'],
+      backendImage,
+      namespace: 'app',
+    });
 
     /**
      * Add deployment and service manifests for web to the cluster
      */
-    // this.cluster.addManifest('app-ingresss', appIngress);
-    // this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
-    // this.cluster.addManifest('web-service', webResources.serviceManifest);
-
+    this.cluster.addManifest('app-ingresss', appIngress);
+    this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
+    this.cluster.addManifest('web-service', webResources.serviceManifest);
 
     /**
      * Get the ALB address using KubernetesObjectValue as a String
      */
 
-    // const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
-    //   cluster: this.cluster,
-    //   objectType: 'ingress',
-    //   objectNamespace: 'app',
-    //   objectName: 'app-ingress',
-    //   jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
-    // });
+    const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
+      cluster: this.cluster,
+      objectType: 'ingress',
+      objectNamespace: 'app',
+      objectName: 'app-ingress',
+      jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
+    });
 
     /**
      * Route53 A Record pointing to ALB that is created by AWS Application Load Balancer Controller
@@ -363,7 +362,7 @@ export class DjangoEks extends cdk.Construct {
     /**
      * Output the Load Balancer URL as a CfnOutput
      */
-    // new cdk.CfnOutput(this, 'apiUrl', { value: albAddress.value });
+    new cdk.CfnOutput(this, 'apiUrl', { value: albAddress.value });
 
   }
 }

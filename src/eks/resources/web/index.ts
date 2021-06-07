@@ -46,6 +46,7 @@ export class WebResources extends cdk.Construct {
             labels: selector,
           },
           spec: {
+            serviceAccountName: 'pod-service-account',
             containers: [
               {
                 name,
@@ -76,6 +77,7 @@ export class WebResources extends cdk.Construct {
       },
       spec: {
         selector,
+        type: 'NodePort',
         ports: [
           {
             port: 80,
