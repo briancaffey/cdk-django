@@ -6,15 +6,15 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import { RdsPostgresInstance } from './database';
+import { RdsPostgresInstance } from './common/database';
 // import { ElastiCacheCluster } from './elasticache';
 
 // k8s manifests
 // import { nginxDeployment, nginxService } from './nginx';
 import { MigrateJob } from './eks/resources/migrate';
 import { WebResources } from './eks/resources/web';
-import { appIngress } from './ingress';
-import { ApplicationVpc } from './vpc';
+import { appIngress } from './eks/resources/ingress';
+import { ApplicationVpc } from './common/vpc';
 
 
 // eslint-disable-next-line

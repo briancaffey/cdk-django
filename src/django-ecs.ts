@@ -5,18 +5,18 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import { CeleryBeat } from './celery/beat';
-import { CeleryWorker } from './celery/worker';
-import { RdsPostgresInstance } from './database';
-import { ElastiCacheCluster } from './elasticache';
-import { managementCommandTask } from './tasks';
-import { ApplicationVpc } from './vpc';
+import { CeleryBeat } from './ecs/celery/beat';
+import { CeleryWorker } from './ecs/celery/worker';
+import { RdsPostgresInstance } from './common/database';
+import { ElastiCacheCluster } from './common/elasticache';
+import { managementCommandTask } from './ecs/tasks';
+import { ApplicationVpc } from './common/vpc';
 
 
-export interface DjangoCdkProps {
-  /**
-   * Options to configure a Django CDK project
-   */
+/**
+ * Options to configure a Django ECS project
+ */
+export interface DjangoEcsProps {
 
   /**
    * Name of existing bucket to use for media files
@@ -55,8 +55,10 @@ export interface DjangoCdkProps {
 
 }
 
-
-export class DjangoCdk extends cdk.Construct {
+/**
+ * Configures a Django project using ECS Fargate
+ */
+export class DjangoEcs extends cdk.Construct {
 
   public staticFileBucket: s3.Bucket;
   public vpc: ec2.IVpc;
@@ -64,7 +66,7 @@ export class DjangoCdk extends cdk.Construct {
   public image: ecs.ContainerImage;
   private secret: secretsmanager.ISecret;
 
-  constructor(scope: cdk.Construct, id: string, props: DjangoCdkProps) {
+  constructor(scope: cdk.Construct, id: string, props: DjangoEcsProps) {
     super(scope, id);
 
     /**
@@ -115,6 +117,9 @@ export class DjangoCdk extends cdk.Construct {
      */
     this.image = new ecs.AssetImage(props.imageDirectory);
 
+    /**
+     * RDS managed database using PostgreSQL
+     */
     const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
       vpc: this.vpc,
       secret: this.secret,
@@ -129,10 +134,14 @@ export class DjangoCdk extends cdk.Construct {
       vpc: this.vpc,
     });
 
+    /**
+     * ElastiCache Redis Cluster for caching, celery message brokering
+     */
     const elastiCacheRedis = new ElastiCacheCluster(scope, 'ElastiCacheCluster', {
       vpc: this.vpc,
       appSecurityGroup,
     });
+
 
     const environment: { [key: string]: string } = {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,

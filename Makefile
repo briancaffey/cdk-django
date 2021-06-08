@@ -1,40 +1,45 @@
-.PHONY: synth	test	deploy	diff	coverage
+.PHONY: test	coverage	watch
+.PHONY: ecs-synth	ecs-deploy	ecs-destroy	ecs-diff
+.PHONY: eks-synth	eks-deploy	eks-destroy	eks-diff
+
+# These Makefile targets are for common development tasks and testing constructs
+# Run `make watch` before running these commands
 
 ## -- ECS Targets --
 
 ## synthesize ECS project
-synth:
-	cdk synth --app='./lib/integ.default.js'
+ecs-synth:
+	cdk synth --app='./lib/integ/integ.django-ecs.js'
 
 ## deploy ECS project
-deploy-ecs:
-	cdk deploy --app='./lib/integ.default.js' --force
+ecs-deploy:
+	cdk deploy --app='./lib/integ/integ.django-ecs.js'
 
 ## destroy ECS project
-destroy-ecs:
-	cdk destroy --app='./lib/integ.default.js'
+ecs-destroy:
+	cdk destroy --app='./lib/integ/integ.django-ecs.js'
 
 ## diff ECS project
-diff-ecs:
-	cdk diff --app='./lib/integ.default.js'
+ecs-diff:
+	cdk diff --app='./lib/integ/integ.django-ecs.js'
 
 ## -- EKS Targets --
 
 ## synthesize EKS project
-synth-eks:
-	cdk synth --app='./lib/integ.django-eks.js';
+eks-synth:
+	cdk synth --app='./lib/integ/integ.django-eks.js';
 
 ## deploy EKS project
-deploy-eks:
-	cdk deploy --app='./lib/integ.django-eks.js';
+eks-deploy:
+	cdk deploy --app='./lib/integ/integ.django-eks.js';
 
 ## destroy EKS project
-destroy-eks:
-	cdk destroy --app='./lib/integ.django-eks.js';
+eks-destroy:
+	cdk destroy --app='./lib/integ/integ.django-eks.js';
 
 ## diff for EKS project
-diff-eks:
-	cdk diff --app='./lib/integ.django-eks.js';
+eks-diff:
+	cdk diff --app='./lib/integ/integ.django-eks.js';
 
 ## watch
 watch:

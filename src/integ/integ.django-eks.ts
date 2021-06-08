@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { DjangoEks } from './index';
+import { DjangoEks } from '../index';
 
 const env = {
   region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
@@ -7,9 +7,9 @@ const env = {
 };
 
 const app = new cdk.App();
-const stack = new cdk.Stack(app, 'DjangoEks', { env });
+const stack = new cdk.Stack(app, 'DjangoEksStack', { env });
 
-const construct = new DjangoEks(stack, 'Cdk-Sample-Lib', {
+const construct = new DjangoEks(stack, 'DjangoEksSample', {
   imageDirectory: './test/django-step-by-step/backend',
   webCommand: [
     './scripts/start_prod.sh',
@@ -19,5 +19,5 @@ const construct = new DjangoEks(stack, 'Cdk-Sample-Lib', {
 /**
  * Add tagging for this construct and all child constructs
  */
-cdk.Tags.of(construct).add('stack', 'MyStack');
+cdk.Tags.of(construct).add('stack', 'DjangoEksStack');
 

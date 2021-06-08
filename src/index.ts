@@ -1,2 +1,2 @@
-export * from './django-cdk';
+export * from './django-ecs';
 export * from './django-eks';

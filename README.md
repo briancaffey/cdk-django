@@ -16,7 +16,7 @@ To use one of the constructs you need to provide:
     - web server process (required)
     - celery (optional)
     - celery beat (optional)
-- Options for how to run the application and which additional services your application requires 
+- Options for how to run the application and which additional services your application requires
 
 This project uses the AWS CDK and is written in TypeScript, so the options for each construct are defined by TypeScript Interfaces. See [API.md](/API.md) for automatically-generated documentation on the interfaces for each construct.
 
@@ -24,7 +24,7 @@ The construct library is published both to `npm` and `PyPI`, so you can use it i
 
 ## Features
 
-The constructs provides everything you will need for your backend including: 
+The constructs provides everything you will need for your backend including:
 
 - VPC (Subnets, Security Groups, AZs, NAT Gateway)
 - Load Balancer
@@ -35,7 +35,7 @@ The constructs provides everything you will need for your backend including:
 
 ## Using the constructs
 
-This repository includes sample CDK applications that use the libraries. 
+This repository includes sample CDK applications that use the libraries.
 
 ### EKS
 
@@ -73,7 +73,7 @@ npm run build
 make deploy-eks
 ```
 
-Destroy the application with: 
+Destroy the application with:
 
 ```
 make destroy-eks
@@ -83,7 +83,7 @@ This assumes that you have credentials configured in your AWS CLI with sufficien
 
 ### ECS
 
-The ECS construct uses the `ApplicationLoadBalancedFargateService` construct from `@aws-cdk/aws-ecs-patterns`. This is a powerful abstraction that handles a lot of the networking requirements for the construct. 
+The ECS construct uses the `ApplicationLoadBalancedFargateService` construct from `@aws-cdk/aws-ecs-patterns`. This is a powerful abstraction that handles a lot of the networking requirements for the construct.
 
 ## Key differences between ECS and EKS constructs
 
@@ -97,9 +97,9 @@ The ECS constructs uses Amazon's proprietary, closed-source container orchestrat
 
 Another important difference from an infrastructure and Infrastructure as Code (IaC) perspective is the use of Application Load Balancers (ALBs).
 
-> The load balancer distributes incoming application traffic across multiple targets, such as EC2 instances, in multiple Availability Zones. 
+> The load balancer distributes incoming application traffic across multiple targets, such as EC2 instances, in multiple Availability Zones.
 
-The ECS and EKS constructs go about provisioning ALBs differently. In the ECS construct, the `ApplicationLoadBalancedFargateService` in the CDK code results in CloudFormation code that requests an application load balancer. 
+The ECS and EKS constructs go about provisioning ALBs differently. In the ECS construct, the `ApplicationLoadBalancedFargateService` in the CDK code results in CloudFormation code that requests an application load balancer.
 
 The EKS construct does not directly request an ALB. Instead, it installs the [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html), [an open source project](https://github.com/kubernetes-sigs/aws-load-balancer-controller), using a Helm chart. This controller satisfies Kubernetes Ingress resources by provisioning Application Load Balancers. The contruct defines a Kubernetes Ingress object which, when deployed to the EKS cluster, causes the AWS Load Balancer Controller to provision an ALB. You can read more about Kubernetes Controllers [here](https://kubernetes.io/docs/concepts/architecture/controller/#direct-control).
 
@@ -125,12 +125,11 @@ This project is under active development. Here are some of the things that I'm c
 
 - [x] Deploy sample nginx application to test AWS Load Balancer Controller
 - [ ] Pass ACM ARN to Ingress annotation
-- [ ] Use Fargate Profile to deploy application on Fargate
 - [ ] Configure the rest of the Django application components for the EKS construct (web, celery, RDS, ElastiCache, S3 buckets, permissions)
 - [ ] Split constructs into `eks`, `ecs` and `common` directories to keep code DRY
 - [ ] Build constructs for each component
-- [ ] Consider using managed DB services in production environments and in-cluster services for non-production environments (external services) 
-- [ ] Configure application secrets. 
+- [ ] Consider using managed DB services in production environments and in-cluster services for non-production environments (external services)
+- [ ] Configure application secrets.
 - [ ] Use secrets manager secrets (boto3) for accessing secrets in products
 - [ ] Look into logging and observability tools that can be used in the project (EFK, Jaeger, etc.)
 - [ ] Go over this Kubernetes checklist: [https://www.weave.works/blog/production-ready-checklist-kubernetes](https://www.weave.works/blog/production-ready-checklist-kubernetes)
@@ -139,4 +138,4 @@ This project is under active development. Here are some of the things that I'm c
 - [ ] Add unit tests
 - [ ] Consider using cdk8s or cdk8s+ for manifest declarations
 - [ ] User the `dockerImageAssets` construct to define the Django project image to be used in the sample application
-- [ ] 
+- [ ]
