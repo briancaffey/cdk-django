@@ -4,22 +4,22 @@
 
 Name|Description
 ----|-----------
-[DjangoCdk](#django-cdk-djangocdk)|*No description*
-[DjangoEks](#django-cdk-djangoeks)|*No description*
+[DjangoEcs](#django-cdk-djangoecs)|Configures a Django project using ECS Fargate.
+[DjangoEks](#django-cdk-djangoeks)|Configures a Django project using EKS.
 
 
 **Structs**
 
 Name|Description
 ----|-----------
-[DjangoCdkProps](#django-cdk-djangocdkprops)|*No description*
-[DjangoEksProps](#django-cdk-djangoeksprops)|*No description*
+[DjangoEcsProps](#django-cdk-djangoecsprops)|Options to configure a Django ECS project.
+[DjangoEksProps](#django-cdk-djangoeksprops)|Options to configure a Django EKS project.
 
 
 
-## class DjangoCdk  <a id="django-cdk-djangocdk"></a>
+## class DjangoEcs  <a id="django-cdk-djangoecs"></a>
 
-
+Configures a Django project using ECS Fargate.
 
 __Implements__: [IConstruct](#constructs-iconstruct), [IConstruct](#aws-cdk-core-iconstruct), [IConstruct](#constructs-iconstruct), [IDependable](#aws-cdk-core-idependable)
 __Extends__: [Construct](#aws-cdk-core-construct)
@@ -30,12 +30,12 @@ __Extends__: [Construct](#aws-cdk-core-construct)
 
 
 ```ts
-new DjangoCdk(scope: Construct, id: string, props: DjangoCdkProps)
+new DjangoEcs(scope: Construct, id: string, props: DjangoEcsProps)
 ```
 
 * **scope** (<code>[Construct](#aws-cdk-core-construct)</code>)  *No description*
 * **id** (<code>string</code>)  *No description*
-* **props** (<code>[DjangoCdkProps](#django-cdk-djangocdkprops)</code>)  *No description*
+* **props** (<code>[DjangoEcsProps](#django-cdk-djangoecsprops)</code>)  *No description*
   * **imageDirectory** (<code>string</code>)  The location of the Dockerfile used to create the main application image. 
   * **bucketName** (<code>string</code>)  Name of existing bucket to use for media files. __*Optional*__
   * **useCeleryBeat** (<code>boolean</code>)  Used to enable the celery beat service. __*Default*__: false
@@ -58,7 +58,7 @@ Name | Type | Description
 
 ## class DjangoEks  <a id="django-cdk-djangoeks"></a>
 
-
+Configures a Django project using EKS.
 
 __Implements__: [IConstruct](#constructs-iconstruct), [IConstruct](#aws-cdk-core-iconstruct), [IConstruct](#constructs-iconstruct), [IDependable](#aws-cdk-core-idependable)
 __Extends__: [Construct](#aws-cdk-core-construct)
@@ -94,10 +94,10 @@ Name | Type | Description
 
 
 
-## struct DjangoCdkProps  <a id="django-cdk-djangocdkprops"></a>
+## struct DjangoEcsProps  <a id="django-cdk-djangoecsprops"></a>
 
 
-
+Options to configure a Django ECS project.
 
 
 
@@ -114,7 +114,7 @@ Name | Type | Description
 ## struct DjangoEksProps  <a id="django-cdk-djangoeksprops"></a>
 
 
-
+Options to configure a Django EKS project.
 
 
 

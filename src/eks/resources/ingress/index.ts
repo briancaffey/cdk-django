@@ -1,6 +1,5 @@
 export const appIngress = {
-  // TODO: update this after upgrading to kubernetes version 1.22
-  apiVersion: 'networking.k8s.io/v1beta1',
+  apiVersion: 'networking.k8s.io/v1',
   kind: 'Ingress',
   metadata: {
     name: 'app-ingress',
@@ -20,8 +19,15 @@ export const appIngress = {
               path: '/',
               pathType: 'Prefix',
               backend: {
-                serviceName: 'api-http',
-                servicePort: 80,
+                service: {
+                  name: 'api-http',
+                  port: {
+                    number: 80,
+                  },
+                },
+                // for v1beta1, use the following
+                // serviceName: 'api-http',
+                // servicePort: 80,
               },
             },
           ],

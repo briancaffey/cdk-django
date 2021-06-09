@@ -10,7 +10,7 @@ interface MigrateJobProps {
 }
 
 export class MigrateJob extends cdk.Construct {
-  public manifest: any;
+
   constructor(scope: cdk.Construct, id: string, props: MigrateJobProps) {
     super(scope, id);
 
@@ -39,9 +39,7 @@ export class MigrateJob extends cdk.Construct {
       },
     };
 
-    this.manifest = migrateJobManifest;
-
-    // props.cluster.addManifest('migrate-job', migrateJobManifest);
+    props.cluster.addManifest('migrate-job', migrateJobManifest);
 
   }
 }

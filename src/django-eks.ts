@@ -6,26 +6,21 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import { RdsPostgresInstance } from './common/database';
+import { ApplicationVpc } from './common/vpc';
+import { AwsLoadBalancerController } from './eks/awslbc';
 // import { ElastiCacheCluster } from './elasticache';
-
-// k8s manifests
-// import { nginxDeployment, nginxService } from './nginx';
+import { Irsa } from './eks/irsa';
+import { appIngress } from './eks/resources/ingress';
 import { MigrateJob } from './eks/resources/migrate';
 import { WebResources } from './eks/resources/web';
-import { appIngress } from './eks/resources/ingress';
-import { ApplicationVpc } from './common/vpc';
 
 
-// eslint-disable-next-line
-const request = require('sync-request');
-// eslint-disable-next-line
-const yaml = require('js-yaml');
-
+/**
+ * Options to configure a Django EKS project
+ */
 export interface DjangoEksProps {
-  /**
-   * Options to configure a Django CDK project
-   */
 
   /**
    * Name of existing bucket to use for media files
@@ -64,7 +59,9 @@ export interface DjangoEksProps {
 
 }
 
-
+/**
+ * Configures a Django project using EKS
+ */
 export class DjangoEks extends cdk.Construct {
 
   public staticFileBucket: s3.Bucket;
@@ -93,7 +90,9 @@ export class DjangoEks extends cdk.Construct {
      * static files bucket name is derived from the Construct id if not provided
      */
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
-      bucketName: props?.bucketName,
+      bucketName: props.bucketName,
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
     this.staticFileBucket = staticFilesBucket;
 
@@ -115,7 +114,7 @@ export class DjangoEks extends cdk.Construct {
     /**
      * Namespace for application
      */
-    this.cluster.addManifest('app-namespace', {
+    const appNamespace = this.cluster.addManifest('app-namespace', {
       apiVersion: 'v1',
       kind: 'Namespace',
       metadata: {
@@ -138,57 +137,27 @@ export class DjangoEks extends cdk.Construct {
       },
     });
 
-
-    const POD_SERVICE_ACCOUNT_NAME = 'pod-service-account';
-    const oidcProviderId = this.cluster.openIdConnectProvider.openIdConnectProviderIssuer;
-
     /**
-     * The Principal that will assume the podRole
-     */
-    const federatedPrincipal = new iam.FederatedPrincipal(
-      this.cluster.openIdConnectProvider.openIdConnectProviderArn,
-      {
-        StringEquals: new cdk.CfnJson(scope, 'FederatedPrincipalCondition', {
-          value: {
-            [`${oidcProviderId}:aud`]: 'sts.amazonaws.com',
-            [`${oidcProviderId}:sub`]: `system:serviceaccount:app:${POD_SERVICE_ACCOUNT_NAME}`,
-          },
-        }),
-      }, 'sts:AssumeRoleWithWebIdentity',
-    );
-
-    /**
-     * Setup a new IAM Role that will be used by Pods to access the secret and S3 bucket
+     * Creates an IAM role with a trust relationship that is scoped to the cluster's OIDC provider
+     * https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html
      *
-     * This role is assumed by the Principal defined above
+     * The role (podRole) will be given access the Secrets Manager Secret, the S3 bucket and
+     * any other resources that are needed by pods that run the Django application
      */
-    const podRole = new iam.Role(scope, 'podRole', {
-      assumedBy: federatedPrincipal,
+    const irsa = new Irsa(scope, 'Irsa', {
+      cluster: this.cluster,
     });
 
-    const podServiceAccount = {
-      apiVersion: 'v1',
-      kind: 'ServiceAccount',
-      metadata: {
-        name: POD_SERVICE_ACCOUNT_NAME,
-        namespace: 'app',
-        annotations: {
-          'eks.amazonaws.com/role-arn': podRole.roleArn,
-        },
-      },
-    };
+    /**
+     * Make sure that the namespace has been deployed
+     */
+    irsa.node.addDependency(appNamespace);
 
     /**
-     * Give the podRole read access to the bucket and read/write access to the S3 bucket
+     * Give the IRSA podRole read access to the bucket and read/write access to the S3 bucket
      */
-    this.secret.grantRead(podRole);
-    this.staticFileBucket.grantReadWrite(podRole);
-
-    /**
-     * Create a service account manfiest that will be used by pods
-     * The ARN will be passed into the templates
-     */
-    this.cluster.addManifest('pod-service-account', podServiceAccount);
+    this.secret.grantRead(irsa.podRole);
+    this.staticFileBucket.grantReadWrite(irsa.podRole);
 
     /**
      * RDS instance
@@ -208,85 +177,31 @@ export class DjangoEks extends cdk.Construct {
     /**
      * cluster.defaultCapactiy is the autoScalingGroup (the cluster's default node group)
      * Here the appSecurityGroup created above is added to that ASG
+     *
+     * TODO: use a non-default node-group
      */
     this.cluster.defaultCapacity?.addSecurityGroup(appSecurityGroup);
-    // this.secret.grantRead(this.cluster.def);
 
     /**
      * Allow th ASG to accesss the database
      */
     database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
-    // Installation of AWS Load Balancer Controller
-    // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
-    // Adopted from comments in this issue: https://github.com/aws/aws-cdk/issues/8836
-
-    const albServiceAccount = this.cluster.addServiceAccount('aws-alb-ingress-controller-sa', {
-      name: 'aws-load-balancer-controller',
-      namespace: 'kube-system',
-    });
-
-    const awsAlbControllerPolicyUrl = 'https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json';
-    const policyJson = request('GET', awsAlbControllerPolicyUrl).getBody('utf8');
-    ((JSON.parse(policyJson)).Statement as any[]).forEach(statement => {
-      albServiceAccount.addToPrincipalPolicy(iam.PolicyStatement.fromJson(statement));
-    });
-
-    // AWS Load Balancer Controller Helm Chart
-    // https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/#summary
-
-    // AWS Application Load Balancer Controller Helm Chart CRDs
-    // These must be installed before installing the Helm Chart because CDK
-    // installs the Helm chart with `helm upgrade` which does not
-    // automatically install CRDs
-    // This should be equivalent to Step 2:
-    // kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-
-    const awslbcCrdsUrl = 'https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml';
-    const awslbcCrdsYaml = request('GET', awslbcCrdsUrl).getBody('utf8');
-    const awslbcCrdsObjects = yaml.loadAll(awslbcCrdsYaml);
-
-    new eks.KubernetesManifest(this, 'alb-custom-resource-definition', {
+    /**
+     * Installation of AWS Load Balancer Controller
+     * https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
+     */
+    new AwsLoadBalancerController(this, 'AwsLoadBalancerController', {
       cluster: this.cluster,
-      manifest: awslbcCrdsObjects,
-      overwrite: true,
-      prune: true,
     });
 
-    // The following is equivalent to:
-    // helm repo add eks https://aws.github.io/eks-charts
-    // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
-
-    new eks.HelmChart(scope, 'alb-ingress-controller', {
-      cluster: this.cluster,
-      wait: true,
-      chart: 'aws-load-balancer-controller',
-      repository: 'https://aws.github.io/eks-charts',
-      // Note: the chart version 1.2.0 will install version 2.2.0 of the Helm Chart
-      // https://github.com/aws/eks-charts/blob/master/stable/aws-load-balancer-controller/Chart.yaml
-      version: '1.2.0',
-      namespace: 'kube-system',
-      values: {
-        clusterName: this.cluster.clusterName,
-        serviceAccount: {
-          create: false,
-          name: 'aws-load-balancer-controller',
-        },
-      },
-    });
-
-    // sample nginx deployment and service for demonstration
-    // this.cluster.addManifest('nginx-deployment', nginxDeployment);
-    // this.cluster.addManifest('nginx-service', nginxService);
-
-    // backend docker image
-
+    /**
+     * Backend docker image using DockerImageAssets
+     * This image will be pushed to the ECR Registry created by `cdk bootstrap`
+     */
     const backendImage = new ecrAssets.DockerImageAsset(scope, 'backendImage', {
       directory: props.imageDirectory,
     });
-
-    // TODO: use https://github.com/aws/aws-secretsmanager-caching-python/blob/master/test/integ/test_aws_secretsmanager_caching.py
-    // instead of passing password string to environment variable
 
     /**
      * Common environment variables for Jobs and Deployments
@@ -314,17 +229,15 @@ export class DjangoEks extends cdk.Construct {
 
     // Django K8s resources
 
-    const migrateJob = new MigrateJob(scope, 'django-migrate-job', {
+    /**
+     * Kubernetes Job that runs database migrations
+     */
+    new MigrateJob(scope, 'django-migrate-job', {
       cluster: this.cluster,
       backendImage,
       namespace: 'app',
       env,
     });
-
-    /**
-     * Job that runs Django migrations
-     */
-    this.cluster.addManifest('migrate-job', migrateJob.manifest);
 
     // web service and deployment
     const webResources = new WebResources(scope, 'web-resources', {
@@ -335,34 +248,45 @@ export class DjangoEks extends cdk.Construct {
       namespace: 'app',
     });
 
-    /**
-     * Add deployment and service manifests for web to the cluster
-     */
-    this.cluster.addManifest('app-ingresss', appIngress);
+    // webResources.node.addDependency(appNamespace);
     this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
     this.cluster.addManifest('web-service', webResources.serviceManifest);
 
     /**
+     * Add deployment and service manifests for web to the cluster
+     */
+    this.cluster.addManifest('app-ingresss', appIngress);
+    // ingress.node.addDependency(webService);
+
+    /**
      * Get the ALB address using KubernetesObjectValue as a String
      */
-
-    const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
-      cluster: this.cluster,
-      objectType: 'ingress',
-      objectNamespace: 'app',
-      objectName: 'app-ingress',
-      jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
-    });
+    // https://github.com/aws/aws-cdk/issues/14933
+    // const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
+    //   cluster: this.cluster,
+    //   objectType: 'ingress',
+    //   objectNamespace: 'app',
+    //   objectName: 'app-ingress',
+    //   jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
+    // });
 
     /**
      * Route53 A Record pointing to ALB that is created by AWS Application Load Balancer Controller
+     *
+     * TODO: fix this, since KubernetesObjectValue is not giving the ALB Public DNS URL
      */
+
+    const alb = elbv2.ApplicationLoadBalancer.fromLookup(this, 'appAlb', {
+      loadBalancerTags: {
+        Environment: 'test'
+      },
+    });
 
 
     /**
      * Output the Load Balancer URL as a CfnOutput
      */
-    new cdk.CfnOutput(this, 'apiUrl', { value: albAddress.value });
+    new cdk.CfnOutput(this, 'apiUrl', { value: alb.loadBalancerDnsName });
 
   }
 }

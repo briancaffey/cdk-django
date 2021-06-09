@@ -5,12 +5,12 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import { CeleryBeat } from './ecs/celery/beat';
-import { CeleryWorker } from './ecs/celery/worker';
 import { RdsPostgresInstance } from './common/database';
 import { ElastiCacheCluster } from './common/elasticache';
-import { managementCommandTask } from './ecs/tasks';
 import { ApplicationVpc } from './common/vpc';
+import { CeleryBeat } from './ecs/celery/beat';
+import { CeleryWorker } from './ecs/celery/worker';
+import { managementCommandTask } from './ecs/tasks';
 
 
 /**
