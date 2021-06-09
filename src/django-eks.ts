@@ -2,11 +2,11 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as eks from '@aws-cdk/aws-eks';
 // import * as logs from '@aws-cdk/aws-logs';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import { RdsPostgresInstance } from './common/database';
 import { ApplicationVpc } from './common/vpc';
 import { AwsLoadBalancerController } from './eks/awslbc';
@@ -278,7 +278,7 @@ export class DjangoEks extends cdk.Construct {
 
     const alb = elbv2.ApplicationLoadBalancer.fromLookup(this, 'appAlb', {
       loadBalancerTags: {
-        Environment: 'test'
+        Environment: 'test',
       },
     });
 
