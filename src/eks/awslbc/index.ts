@@ -13,6 +13,9 @@ export interface AwsLoadBalancerControllerProps {
 }
 
 export class AwsLoadBalancerController extends cdk.Construct {
+
+  public chart: eks.HelmChart;
+
   constructor(scope: cdk.Construct, id: string, props: AwsLoadBalancerControllerProps) {
     super(scope, id);
 
@@ -53,7 +56,7 @@ export class AwsLoadBalancerController extends cdk.Construct {
     // helm repo add eks https://aws.github.io/eks-charts
     // helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=<cluster-name> --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
 
-    new eks.HelmChart(scope, 'alb-ingress-controller', {
+    this.chart = new eks.HelmChart(scope, 'alb-ingress-controller', {
       cluster: props.cluster,
       wait: true,
       chart: 'aws-load-balancer-controller',

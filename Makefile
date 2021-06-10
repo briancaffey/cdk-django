@@ -1,6 +1,6 @@
-.PHONY: test	coverage	watch
+.PHONY: test	coverage	watch	describe-stacks
 .PHONY: ecs-synth	ecs-deploy	ecs-destroy	ecs-diff
-.PHONY: eks-synth	eks-deploy	eks-destroy	eks-diff
+.PHONY: eks-synth	eks-deploy	eks-destroy	eks-diff	eks-delete-stack
 
 # These Makefile targets are for common development tasks and testing constructs
 # Run `make watch` before running these commands
@@ -40,6 +40,14 @@ eks-destroy:
 ## diff for EKS project
 eks-diff:
 	cdk diff --app='./lib/integ/integ.django-eks.js';
+
+## useful for deleting the stack if it rolls back the stack cannot be automatically deleted by CDK
+eks-delete-stack:
+	aws cloudformation delete-stack --stack-name DjangoEksStack
+
+## describe CloudFormation stacks in the AWS account
+describe-stacks:
+	aws cloudformation describe-stacks | jq
 
 ## watch
 watch:

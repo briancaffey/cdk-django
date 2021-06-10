@@ -147,6 +147,7 @@ export class DjangoEks extends cdk.Construct {
     const irsa = new Irsa(scope, 'Irsa', {
       cluster: this.cluster,
     });
+    irsa.node.addDependency(appNamespace);
 
     /**
      * Make sure that the namespace has been deployed
@@ -191,7 +192,7 @@ export class DjangoEks extends cdk.Construct {
      * Installation of AWS Load Balancer Controller
      * https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/installation/
      */
-    new AwsLoadBalancerController(this, 'AwsLoadBalancerController', {
+    const awslbc = new AwsLoadBalancerController(this, 'AwsLoadBalancerController', {
       cluster: this.cluster,
     });
 
@@ -227,17 +228,16 @@ export class DjangoEks extends cdk.Construct {
       },
     ];
 
-    // Django K8s resources
-
     /**
      * Kubernetes Job that runs database migrations
      */
-    new MigrateJob(scope, 'django-migrate-job', {
+    const migrateJob = new MigrateJob(scope, 'django-migrate-job', {
       cluster: this.cluster,
       backendImage,
       namespace: 'app',
       env,
     });
+    migrateJob.node.addDependency(appNamespace);
 
     // web service and deployment
     const webResources = new WebResources(scope, 'web-resources', {
@@ -247,19 +247,34 @@ export class DjangoEks extends cdk.Construct {
       backendImage,
       namespace: 'app',
     });
+    webResources.node.addDependency(appNamespace);
 
-    // webResources.node.addDependency(appNamespace);
-    this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
-    this.cluster.addManifest('web-service', webResources.serviceManifest);
+    const webDeployment = this.cluster.addManifest('web-deployment', webResources.deploymentManifest);
+    const webService = this.cluster.addManifest('web-service', webResources.serviceManifest);
+    /**
+     * This may not be necessary, but sometimes the namespace
+     * is not found when deploying k8s resources
+     */
+    webDeployment.node.addDependency(appNamespace);
+    webService.node.addDependency(appNamespace);
 
     /**
      * Add deployment and service manifests for web to the cluster
      */
-    this.cluster.addManifest('app-ingresss', appIngress);
-    // ingress.node.addDependency(webService);
+    const ingress = this.cluster.addManifest('app-ingresss', appIngress);
+    /**
+     * Make sure that the Chart has been fully deployed before deploying the ingress,
+     * otherwise there may be errors stating: no endpoints available for service "aws-load-balancer-webhook-service"
+     */
+    ingress.node.addDependency(appNamespace);
+    ingress.node.addDependency(awslbc.chart);
+    ingress.node.addDependency(awslbc);
+    ingress.node.addDependency(webResources);
 
     /**
      * Get the ALB address using KubernetesObjectValue as a String
+     *
+     * This currently is not working, use .fromLookup instead (see below)
      */
     // https://github.com/aws/aws-cdk/issues/14933
     // const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
@@ -273,14 +288,23 @@ export class DjangoEks extends cdk.Construct {
     /**
      * Route53 A Record pointing to ALB that is created by AWS Application Load Balancer Controller
      *
-     * TODO: fix this, since KubernetesObjectValue is not giving the ALB Public DNS URL
      */
 
+
+    /**
+     * Get the ALB created by the AWS Load Balancer Controller using by Tag
+     */
     const alb = elbv2.ApplicationLoadBalancer.fromLookup(this, 'appAlb', {
       loadBalancerTags: {
         Environment: 'test',
       },
     });
+
+    /**
+     * This might not be necessary, but the ingress needs to be created before looking up the ALB
+     * that it creates
+     */
+    alb.node.addDependency(ingress);
 
 
     /**
