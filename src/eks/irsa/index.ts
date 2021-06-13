@@ -14,6 +14,7 @@ export interface IrsaProps {
 export class Irsa extends cdk.Construct {
 
   public podRole: iam.Role;
+  public chart: eks.HelmChart;
 
   constructor(scope: cdk.Construct, id: string, props: IrsaProps) {
     super(scope, id);
@@ -58,7 +59,7 @@ export class Irsa extends cdk.Construct {
     /**
      * Apply the service account manfiest that will be used by pods running the application
      */
-    props.cluster.addManifest('pod-service-account', podServiceAccount);
+    this.chart = props.cluster.addManifest('pod-service-account', podServiceAccount);
 
   }
 }

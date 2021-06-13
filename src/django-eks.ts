@@ -2,10 +2,8 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as eks from '@aws-cdk/aws-eks';
 // import * as logs from '@aws-cdk/aws-logs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './common/database';
 import { ApplicationVpc } from './common/vpc';
@@ -67,8 +65,6 @@ export class DjangoEks extends cdk.Construct {
   public staticFileBucket: s3.Bucket;
   public vpc: ec2.IVpc;
   public cluster: eks.Cluster;
-  private secret: secretsmanager.ISecret;
-
 
   constructor(scope: cdk.Construct, id: string, props: DjangoEksProps) {
     super(scope, id);
@@ -122,21 +118,6 @@ export class DjangoEks extends cdk.Construct {
       },
     });
 
-    const DB_SECRET_NAME = 'dbSecret';
-    /**
-     * Secret used for RDS postgres password
-     */
-    this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
-      secretName: DB_SECRET_NAME,
-      description: 'secret for rds',
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: 'postgres' }),
-        generateStringKey: 'password',
-        excludePunctuation: true,
-        includeSpace: false,
-      },
-    });
-
     /**
      * Creates an IAM role with a trust relationship that is scoped to the cluster's OIDC provider
      * https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-technical-overview.html
@@ -147,26 +128,26 @@ export class DjangoEks extends cdk.Construct {
     const irsa = new Irsa(scope, 'Irsa', {
       cluster: this.cluster,
     });
-    irsa.node.addDependency(appNamespace);
-
     /**
      * Make sure that the namespace has been deployed
      */
     irsa.node.addDependency(appNamespace);
-
-    /**
-     * Give the IRSA podRole read access to the bucket and read/write access to the S3 bucket
-     */
-    this.secret.grantRead(irsa.podRole);
-    this.staticFileBucket.grantReadWrite(irsa.podRole);
+    irsa.chart.node.addDependency(appNamespace);
 
     /**
      * RDS instance
      */
-    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
+     const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
       vpc: this.vpc,
-      secret: this.secret,
+      // TODO: base dbSecret on environment name
+      dbSecretName: 'dbSecret',
     });
+
+    /**
+     * Give the IRSA podRole read access to the bucket and read/write access to the S3 bucket
+     */
+    database.secret.grantRead(irsa.podRole);
+    this.staticFileBucket.grantReadWrite(irsa.podRole);
 
     /**
      * Security Group for worker nodes
@@ -215,7 +196,7 @@ export class DjangoEks extends cdk.Construct {
       {
         // this is used in the application to fetch the secret value
         name: 'DB_SECRET_NAME',
-        value: DB_SECRET_NAME,
+        value: database.dbSecretName,
 
       },
       {
@@ -270,47 +251,6 @@ export class DjangoEks extends cdk.Construct {
     ingress.node.addDependency(awslbc.chart);
     ingress.node.addDependency(awslbc);
     ingress.node.addDependency(webResources);
-
-    /**
-     * Get the ALB address using KubernetesObjectValue as a String
-     *
-     * This currently is not working, use .fromLookup instead (see below)
-     */
-    // https://github.com/aws/aws-cdk/issues/14933
-    // const albAddress = new eks.KubernetesObjectValue(scope, 'AlbAddress', {
-    //   cluster: this.cluster,
-    //   objectType: 'ingress',
-    //   objectNamespace: 'app',
-    //   objectName: 'app-ingress',
-    //   jsonPath: '.items[0].status.loadBalancer.ingress[0].hostname',
-    // });
-
-    /**
-     * Route53 A Record pointing to ALB that is created by AWS Application Load Balancer Controller
-     *
-     */
-
-
-    /**
-     * Get the ALB created by the AWS Load Balancer Controller using by Tag
-     */
-    const alb = elbv2.ApplicationLoadBalancer.fromLookup(this, 'appAlb', {
-      loadBalancerTags: {
-        Environment: 'test',
-      },
-    });
-
-    /**
-     * This might not be necessary, but the ingress needs to be created before looking up the ALB
-     * that it creates
-     */
-    alb.node.addDependency(ingress);
-
-
-    /**
-     * Output the Load Balancer URL as a CfnOutput
-     */
-    new cdk.CfnOutput(this, 'apiUrl', { value: alb.loadBalancerDnsName });
 
   }
 }

@@ -3,7 +3,6 @@ import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as logs from '@aws-cdk/aws-logs';
 import * as s3 from '@aws-cdk/aws-s3';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './common/database';
 import { ElastiCacheCluster } from './common/elasticache';
@@ -64,7 +63,6 @@ export class DjangoEcs extends cdk.Construct {
   public vpc: ec2.IVpc;
   public cluster: ecs.Cluster;
   public image: ecs.ContainerImage;
-  private secret: secretsmanager.ISecret;
 
   constructor(scope: cdk.Construct, id: string, props: DjangoEcsProps) {
     super(scope, id);
@@ -105,14 +103,6 @@ export class DjangoEcs extends cdk.Construct {
     });
 
     /**
-     * Secret used for RDS postgres password
-     */
-    this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
-      secretName: 'dbSecret',
-      description: 'secret for rds',
-    });
-
-    /**
      * Container image used in web API, celery worker and management task containers
      */
     this.image = new ecs.AssetImage(props.imageDirectory);
@@ -122,7 +112,7 @@ export class DjangoEcs extends cdk.Construct {
      */
     const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
       vpc: this.vpc,
-      secret: this.secret,
+      dbSecretName: 'dbSecret',
     });
 
 
@@ -146,7 +136,7 @@ export class DjangoEcs extends cdk.Construct {
     const environment: { [key: string]: string } = {
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
-      POSTGRES_PASSWORD: this.secret.secretValue.toString(),
+      DB_SECRET_NAME: database.dbSecretName,
       DEBUG: '0',
       DJANGO_SETTINGS_MODULE: 'backend.settings.production',
       REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,

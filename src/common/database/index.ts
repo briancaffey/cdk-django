@@ -6,16 +6,32 @@ import * as cdk from '@aws-cdk/core';
 
 export interface RdsPostgresInstanceProps {
   readonly vpc: ec2.IVpc;
-  readonly secret: secretsmanager.ISecret;
+  readonly dbSecretName: string;
 }
 
 export class RdsPostgresInstance extends cdk.Construct {
 
   public rdsPostgresInstance: rds.IDatabaseInstance;
   public rdsSecurityGroup: ec2.ISecurityGroup;
+  public secret: secretsmanager.ISecret;
+  public dbSecretName: string;
 
   constructor(scope: cdk.Construct, id: string, props: RdsPostgresInstanceProps) {
     super(scope, id);
+
+    /**
+     * Secret used for RDS postgres password
+     */
+    this.secret = new secretsmanager.Secret(scope, 'dbSecret', {
+      secretName: props.dbSecretName,
+      description: 'secret for rds',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'postgres' }),
+        generateStringKey: 'password',
+        excludePunctuation: true,
+        includeSpace: false,
+      },
+    });
 
     const rdsSecurityGroup = new ec2.SecurityGroup(scope, 'RdsSecurityGroup', {
       vpc: props.vpc,
@@ -34,8 +50,9 @@ export class RdsPostgresInstance extends cdk.Construct {
       vpcPlacement: { subnetType: ec2.SubnetType.ISOLATED },
       port: 5432,
       securityGroups: [rdsSecurityGroup],
-      credentials: rds.Credentials.fromSecret(props.secret),
+      credentials: rds.Credentials.fromSecret(this.secret),
     });
     this.rdsPostgresInstance = rdsPostgresInstance;
+    this.dbSecretName = props.dbSecretName;
   }
 }
