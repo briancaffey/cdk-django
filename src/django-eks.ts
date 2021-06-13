@@ -10,7 +10,7 @@ import { ApplicationVpc } from './common/vpc';
 import { AwsLoadBalancerController } from './eks/awslbc';
 // import { ElastiCacheCluster } from './elasticache';
 import { Irsa } from './eks/irsa';
-import { appIngress } from './eks/resources/ingress';
+import { AppIngressResources } from './eks/resources/ingress';
 import { MigrateJob } from './eks/resources/migrate';
 import { WebResources } from './eks/resources/web';
 
@@ -197,7 +197,6 @@ export class DjangoEks extends cdk.Construct {
         // this is used in the application to fetch the secret value
         name: 'DB_SECRET_NAME',
         value: database.dbSecretName,
-
       },
       {
         name: 'POSTGRES_SERVICE_HOST',
@@ -242,15 +241,20 @@ export class DjangoEks extends cdk.Construct {
     /**
      * Add deployment and service manifests for web to the cluster
      */
-    const ingress = this.cluster.addManifest('app-ingresss', appIngress);
+    // const ingress = this.cluster.addManifest('app-ingresss', appIngress);
+    const ingressResources = new AppIngressResources(scope, 'AppIngressResources', {
+      cluster: this.cluster,
+      domainName: 'test',
+    });
+
     /**
      * Make sure that the Chart has been fully deployed before deploying the ingress,
      * otherwise there may be errors stating: no endpoints available for service "aws-load-balancer-webhook-service"
      */
-    ingress.node.addDependency(appNamespace);
-    ingress.node.addDependency(awslbc.chart);
-    ingress.node.addDependency(awslbc);
-    ingress.node.addDependency(webResources);
+    ingressResources.ingressManifest.node.addDependency(appNamespace);
+    ingressResources.ingressManifest.node.addDependency(awslbc.chart);
+    ingressResources.ingressManifest.node.addDependency(awslbc);
+    ingressResources.ingressManifest.node.addDependency(webResources);
 
   }
 }
