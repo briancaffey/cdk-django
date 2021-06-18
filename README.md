@@ -39,6 +39,62 @@ This repository includes sample CDK applications that use the libraries.
 
 ### EKS
 
+Overview of the EKS construct:
+
+![png](/django-cdk.png)
+
+1 - Resource in this diagram are defined by a CDK construct library called `django-eks` which is written in TypeScript and published to PyPi and npmjs.org. The project is managed by projen.
+
+2 - The project uses jsii to transpile Typescript to Python, and the project is published to both PyPI and npm.
+
+3 - The library is imported in a CDK application that is written in either TypeScript or Python.
+
+4 - The CDK application is synthesized into CloudFormation templates which are used to build a CloudFormation stack that will contain all of the resources defined in the contstruct.
+
+5 - An ECR registry is created when running `cdk bootstrap`, and it is used to store docker images that the application builds and later uses.
+
+6 - An S3 bucket is also created by the `cdk bootstrap` command. This bucket is used for storing assets needed by CDK.
+
+7 - The VPC is a the skeleton of the application. The CDK construct used for creating the VPC in our application sets up several resources including subnets, NAT gateways, internet gateway, route tables, etc.
+
+8 - The Route53 record points to the Application Load Balancer (ALB) that routes traffic to our application. The record is created indirectly by CDK; external-dns creates the A Record resource based on annotations on the ALB.
+
+9 - The Internet Gateway attached to our VPC
+
+10 - The Application Load Balancer that is created by the AWS Load Balancer Controller
+
+11 - EKS, the container orchestration layer in our application. AWS manages the control plane
+
+12 - OpenIDConnect Provider used for handling permissions between pods and other AWS resources
+
+13 - This is a node in the default node group of the EKS cluster
+
+14 - The app namespace is where our application's Kubernetes resources will be deployed
+
+15 - The Ingress that Routes traffic to the service for the Django application
+
+16 - The service for the Django application
+
+17 - The deployment/pods for the Django application. These pods have a service account that will give it access to other AWS resources through IRSA
+
+18 - The deployment/pods for the celery workers in the Django application
+
+19 - The IAM role and service account that are attached to the pods in our application. The service account is annotated with the IAM role's ARN (IRSA).
+
+20 - external-dns is installed in our cluster to a dedicated namespace called external-dns. It is responsible for creating the Route53 record that points to the ALB. In future version of AWS Load Balancer Controller, external-dns may not be necessary.
+
+21 - AWS Load Balancer Controller is installed into the kube-system namespace. This controller is responsible for provisioning an AWS Load Balancer when an Ingress object is deployed to the EKS cluster.
+
+22 - RDS Postgres Instance that is placed in an isolated subnet. The security group for the default node group has access to the security group where the RDS instance is placed in an isolated subnet.
+
+23 - Secrets Manager is used to provide the database password. The pods that run the Django application have access to the database secret in Secrets Manager, and they request it via a library that wraps boto3 calls and also caches secrets to reduce calls to secrets manager.
+
+24 - ElastiCache Redis instance handles application caching and serves as the message broker for celery.
+
+25 - Since the application runs in private subnets, outbound traffic is sent through NAT Gateways (Network Adress Translation) in public subnets that can be routed back to the public internet.
+
+26 - An S3 bucket that our application can use for storing media assets.
+
 Here's an example from `src/integ.django-eks.ts`:
 
 ```ts

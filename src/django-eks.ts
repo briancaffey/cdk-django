@@ -1,14 +1,17 @@
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as eks from '@aws-cdk/aws-eks';
 // import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
+import * as route53 from '@aws-cdk/aws-route53';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './common/database';
 import { ApplicationVpc } from './common/vpc';
 import { AwsLoadBalancerController } from './eks/awslbc';
 // import { ElastiCacheCluster } from './elasticache';
+import { ExternalDns } from './eks/external-dns';
 import { Irsa } from './eks/irsa';
 import { AppIngressResources } from './eks/resources/ingress';
 import { MigrateJob } from './eks/resources/migrate';
@@ -21,11 +24,21 @@ import { WebResources } from './eks/resources/web';
 export interface DjangoEksProps {
 
   /**
+   * Domain name for backend (including sub-domain)
+   */
+  readonly domainName?: string;
+
+  /**
+   * Certificate ARN
+   */
+  readonly certificateArn?: string;
+
+  /**
    * Name of existing bucket to use for media files
    *
    * This name will be auto-generated if not specified
    */
-  readonly bucketName ? : string;
+  readonly bucketName?: string;
 
   /**
    * The VPC to use for the application. It must contain
@@ -33,7 +46,7 @@ export interface DjangoEksProps {
    *
    * A VPC will be created if this is not specified
    */
-  readonly vpc ? : ec2.IVpc;
+  readonly vpc?: ec2.IVpc;
 
   /**
    * The location of the Dockerfile used to create the main
@@ -46,14 +59,14 @@ export interface DjangoEksProps {
   /**
    * The command used to run the API web service.
    */
-  readonly webCommand ? : string[];
+  readonly webCommand?: string[];
 
   /**
    * Used to enable the celery beat service.
    *
    * @default false
    */
-  readonly useCeleryBeat ? : boolean;
+  readonly useCeleryBeat?: boolean;
 
 }
 
@@ -78,8 +91,7 @@ export class DjangoEks extends cdk.Construct {
       const applicationVpc = new ApplicationVpc(scope, 'AppVpc');
       this.vpc = applicationVpc.vpc;
     } else {
-      const vpc = props.vpc;
-      this.vpc = vpc;
+      this.vpc = props.vpc;
     }
 
     /**
@@ -134,10 +146,42 @@ export class DjangoEks extends cdk.Construct {
     irsa.node.addDependency(appNamespace);
     irsa.chart.node.addDependency(appNamespace);
 
+
+    /**
+     * Lookup Certificate from ARN or generate
+     * Deploy external-dns and related IAM resource if a domain name is included
+     */
+    if (props.domainName) {
+
+      const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
+        domainName: props.domainName,
+      });
+
+      /**
+       * Lookup or request ACM certificate depending on value of certificateArn
+       */
+      if (props.certificateArn) {
+        // lookup ACM certificate from ACM certificate ARN
+        acm.Certificate.fromCertificateArn(scope, 'certificate', props.certificateArn);
+      } else {
+        // request a new certificate
+        new acm.Certificate(this, 'SSLCertificate', {
+          domainName: props.domainName,
+          validation: acm.CertificateValidation.fromDns(hostedZone),
+        });
+      }
+
+      new ExternalDns(scope, 'ExternalDns', {
+        hostedZone,
+        domainName: props.domainName,
+        cluster: this.cluster,
+      });
+    }
+
     /**
      * RDS instance
      */
-     const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
+    const database = new RdsPostgresInstance(scope, 'RdsPostgresInstance', {
       vpc: this.vpc,
       // TODO: base dbSecret on environment name
       dbSecretName: 'dbSecret',
@@ -245,6 +289,7 @@ export class DjangoEks extends cdk.Construct {
     const ingressResources = new AppIngressResources(scope, 'AppIngressResources', {
       cluster: this.cluster,
       domainName: 'test',
+      certificateArn: props.certificateArn,
     });
 
     /**

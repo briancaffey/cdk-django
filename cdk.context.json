@@ -81,5 +81,9 @@
   "security-group:account=733623710918:region=us-east-1:securityGroupId=sg-0b18d301c815cd8b5": {
     "securityGroupId": "sg-0b18d301c815cd8b5",
     "allowAllOutbound": false
+  },
+  "hosted-zone:account=733623710918:domainName=jamescaffey.com:region=us-east-1": {
+    "Id": "/hostedzone/Z1EJVU8DMBV0XG",
+    "Name": "jamescaffey.com."
   }
 }

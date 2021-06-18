@@ -14,6 +14,8 @@ const construct = new DjangoEks(stack, 'DjangoEksSample', {
   webCommand: [
     './scripts/start_prod.sh',
   ],
+  domainName: process.env.DOMAIN_NAME,
+  certificateArn: process.env.CERTIFICATE_ARN,
 });
 
 /**
