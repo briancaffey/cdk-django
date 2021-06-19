@@ -1,8 +1,8 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
-import * as cdk from '@aws-cdk/core';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import * as cdk from '@aws-cdk/core';
 
 export interface CeleryWorkerProps {
   readonly image: ecs.ContainerImage;
