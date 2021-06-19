@@ -2,6 +2,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
 import * as cdk from '@aws-cdk/core';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 export interface CeleryWorkerProps {
   readonly image: ecs.ContainerImage;
@@ -9,6 +10,7 @@ export interface CeleryWorkerProps {
   readonly environment: { [key: string]: string };
   readonly cluster: ecs.ICluster;
   readonly securityGroups: ec2.ISecurityGroup[];
+  readonly dbSecret: secretsmanager.ISecret;
 }
 
 export class CeleryWorker extends cdk.Construct {
@@ -21,6 +23,11 @@ export class CeleryWorker extends cdk.Construct {
       cpu: '256',
       memoryMiB: '512',
     });
+
+    /**
+     * Allow the task definition's role to read the database secret
+     */
+    props.dbSecret.grantRead(taskDefinition.taskRole);
 
     taskDefinition.addContainer(`TaskContainerFor${id}`, {
       image: props.image,

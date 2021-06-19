@@ -1,6 +1,7 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 
 export interface CeleryBeatProps {
@@ -9,6 +10,7 @@ export interface CeleryBeatProps {
   readonly environment: { [key: string]: string };
   readonly cluster: ecs.ICluster;
   readonly securityGroups: ec2.ISecurityGroup[];
+  readonly dbSecret: secretsmanager.ISecret;
 }
 
 export class CeleryBeat extends cdk.Construct {
@@ -21,6 +23,8 @@ export class CeleryBeat extends cdk.Construct {
       cpu: '256',
       memoryMiB: '512',
     });
+
+    props.dbSecret.grantRead(taskDefinition.taskRole);
 
     taskDefinition.addContainer(`TaskContainerFor${id}`, {
       image: props.image,

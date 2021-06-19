@@ -163,6 +163,7 @@ export class DjangoEcs extends cdk.Construct {
       command: ['python3', 'manage.py', 'migrate', '--no-input'],
       appSecurityGroup,
       environment,
+      dbSecret: database.secret,
     });
 
     new managementCommandTask(scope, 'collectstatic', {
@@ -170,6 +171,7 @@ export class DjangoEcs extends cdk.Construct {
       command: ['python3', 'manage.py', 'collectstatic', '--no-input'],
       appSecurityGroup,
       environment,
+      dbSecret: database.secret,
     });
 
     /**
@@ -177,6 +179,7 @@ export class DjangoEcs extends cdk.Construct {
      */
     if (props.useCeleryBeat ?? false) {
       new CeleryBeat(scope, 'CeleryBeat', {
+        dbSecret: database.secret,
         image: this.image,
         command: [
           'celery',
@@ -213,6 +216,7 @@ export class DjangoEcs extends cdk.Construct {
       environment,
       cluster: this.cluster,
       securityGroups: [appSecurityGroup],
+      dbSecret: database.secret,
     });
 
     /**
@@ -225,6 +229,8 @@ export class DjangoEcs extends cdk.Construct {
       desiredCount: 1,
       assignPublicIp: true,
     });
+
+    database.secret.grantRead(albfs.taskDefinition.taskRole);
 
     const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
 

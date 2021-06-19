@@ -2,6 +2,7 @@
 import { ISecurityGroup } from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as logs from '@aws-cdk/aws-logs';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
 
 export interface managementCommandTaskProps {
@@ -13,6 +14,7 @@ export interface managementCommandTaskProps {
   readonly appSecurityGroup: ISecurityGroup;
   readonly image: ecs.ContainerImage;
   readonly environment: { [key: string]: string };
+  readonly dbSecret: secretsmanager.ISecret;
 }
 
 export class managementCommandTask extends cdk.Construct {
@@ -26,6 +28,11 @@ export class managementCommandTask extends cdk.Construct {
       cpu: '256',
       memoryMiB: '512',
     });
+
+    /**
+     * Allow the task role to access the database
+     */
+    props.dbSecret.grantRead(taskDefinition.taskRole);
 
     taskDefinition.addContainer(`TaskContainer${id}`, {
       image: props.image,
