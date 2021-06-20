@@ -1,7 +1,10 @@
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as logs from '@aws-cdk/aws-logs';
+import * as route53 from '@aws-cdk/aws-route53';
+import * as route53targets from '@aws-cdk/aws-route53-targets';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './common/database';
@@ -16,6 +19,17 @@ import { managementCommandTask } from './ecs/tasks';
  * Options to configure a Django ECS project
  */
 export interface DjangoEcsProps {
+
+  /**
+   * Domain name for backend (including sub-domain)
+   */
+  readonly domainName?: string;
+
+  /**
+    * Certificate ARN
+    */
+  readonly certificateArn?: string;
+
 
   /**
    * Name of existing bucket to use for media files
@@ -220,41 +234,76 @@ export class DjangoEcs extends cdk.Construct {
     });
 
     /**
+     * Lookup Certificate from ARN or generate
+     * Deploy external-dns and related IAM resource if a domain name is included
+     */
+    let certificate = undefined;
+    if (props.domainName) {
+
+      const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
+        domainName: props.domainName,
+      });
+
+      /**
+       * Lookup or request ACM certificate depending on value of certificateArn
+       */
+      if (props.certificateArn) {
+        // lookup ACM certificate from ACM certificate ARN
+        certificate = acm.Certificate.fromCertificateArn(scope, 'certificate', props.certificateArn);
+      } else {
+        // request a new certificate
+        certificate = new acm.Certificate(this, 'SSLCertificate', {
+          domainName: props.domainName,
+          validation: acm.CertificateValidation.fromDns(hostedZone),
+        });
+      }
+
+      /**
      * ECS load-balanced fargate service
      */
-    const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
-      cluster: this.cluster,
-      taskDefinition,
-      securityGroups: [appSecurityGroup],
-      desiredCount: 1,
-      assignPublicIp: true,
-    });
+      const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
+        cluster: this.cluster,
+        taskDefinition,
+        securityGroups: [appSecurityGroup],
+        desiredCount: 1,
+        assignPublicIp: true,
+        redirectHTTP: true,
+        certificate: props.domainName ? certificate : undefined,
+      });
 
-    database.secret.grantRead(albfs.taskDefinition.taskRole);
+      database.secret.grantRead(albfs.taskDefinition.taskRole);
 
-    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+      const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
 
-    albfs.loadBalancer.logAccessLogs(albLogsBucket);
+      albfs.loadBalancer.logAccessLogs(albLogsBucket);
 
-    /**
+      /**
      * Health check for the application load balancer
      */
-    albfs.targetGroup.configureHealthCheck({
-      path: '/api/health-check/',
-    });
+      albfs.targetGroup.configureHealthCheck({
+        path: '/api/health-check/',
+      });
 
-    /**
+      /**
      * Allows the app security group to communicate with the RDS security group
      */
-    database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
+      database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
-    /**
+      /**
      * Grant the task defintion read-write access to static files bucket
      */
-    staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
+      staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
 
-    new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
-    new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
+      new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
+      new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
 
+      if (props.domainName) {
+        new route53.ARecord(scope, 'ARecord', {
+          target: route53.RecordTarget.fromAlias(new route53targets.LoadBalancerTarget(albfs.loadBalancer)),
+          zone: hostedZone,
+          recordName: props.domainName,
+        });
+      }
+    }
   }
 }
