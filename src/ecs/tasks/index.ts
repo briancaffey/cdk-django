@@ -1,9 +1,9 @@
 import { ISecurityGroup, IVpc } from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
+import * as iam from '@aws-cdk/aws-iam';
 import * as logs from '@aws-cdk/aws-logs';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
 import * as cr from '@aws-cdk/custom-resources';
 
 /**
@@ -89,7 +89,7 @@ export class managementCommandTask extends cdk.Construct {
           count: 1,
           launchType: 'FARGATE',
         },
-        physicalResourceId: cr.PhysicalResourceId.of(id)
+        physicalResourceId: cr.PhysicalResourceId.of(id),
       };
 
       /**
@@ -104,7 +104,7 @@ export class managementCommandTask extends cdk.Construct {
             resources: [
               taskDefinition.executionRole?.roleArn!,
               taskDefinition.taskRole.roleArn,
-            ]
+            ],
           }),
           new iam.PolicyStatement({
             actions: ['ecs:RunTask'],
