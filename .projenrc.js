@@ -3,7 +3,7 @@ const { AwsCdkConstructLibrary } = require('projen');
 const project = new AwsCdkConstructLibrary({
   author: 'Brian Caffey',
   authorAddress: 'briancaffey2010@gmail.com',
-  cdkVersion: '1.106.0',
+  cdkVersion: '1.110.0',
   defaultReleaseBranch: 'main',
   name: 'django-cdk',
   repositoryUrl: 'https://github.com/briancaffey/django-cdk.git',
@@ -38,6 +38,7 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-autoscaling',
     '@aws-cdk/aws-rds',
     '@aws-cdk/aws-iam',
+    '@aws-cdk/custom-resources',
   ],
 
   python: {

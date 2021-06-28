@@ -178,6 +178,9 @@ export class DjangoEcs extends cdk.Construct {
       appSecurityGroup,
       environment,
       dbSecret: database.secret,
+      cluster: this.cluster,
+      run: true,
+      vpc: this.vpc,
     });
 
     new managementCommandTask(scope, 'collectstatic', {
@@ -186,6 +189,8 @@ export class DjangoEcs extends cdk.Construct {
       appSecurityGroup,
       environment,
       dbSecret: database.secret,
+      cluster: this.cluster,
+      vpc: this.vpc,
     });
 
     /**

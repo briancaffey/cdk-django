@@ -179,19 +179,6 @@ For development of this library, a sample Django application is included as a gi
 
 This project is under active development. Here are some of the things that I'm curently working on:
 
-- [x] Deploy sample nginx application to test AWS Load Balancer Controller
-- [ ] Pass ACM ARN to Ingress annotation
-- [ ] Configure the rest of the Django application components for the EKS construct (web, celery, RDS, ElastiCache, S3 buckets, permissions)
-- [ ] Split constructs into `eks`, `ecs` and `common` directories to keep code DRY
-- [ ] Build constructs for each component
-- [ ] Consider using managed DB services in production environments and in-cluster services for non-production environments (external services)
-- [ ] Configure application secrets.
-- [ ] Use secrets manager secrets (boto3) for accessing secrets in products
-- [ ] Look into logging and observability tools that can be used in the project (EFK, Jaeger, etc.)
 - [ ] Go over this Kubernetes checklist: [https://www.weave.works/blog/production-ready-checklist-kubernetes](https://www.weave.works/blog/production-ready-checklist-kubernetes)
-- [ ] Add comments to EKS resources docgen
 - [ ] Add snapshot tests and refactor the application
 - [ ] Add unit tests
-- [ ] Consider using cdk8s or cdk8s+ for manifest declarations
-- [ ] User the `dockerImageAssets` construct to define the Django project image to be used in the sample application
-- [ ]
