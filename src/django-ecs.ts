@@ -179,6 +179,7 @@ export class DjangoEcs extends cdk.Construct {
       environment,
       dbSecret: database.secret,
       cluster: this.cluster,
+      // this command will run automatically on every deployment
       run: true,
       vpc: this.vpc,
     });
@@ -262,53 +263,53 @@ export class DjangoEcs extends cdk.Construct {
           validation: acm.CertificateValidation.fromDns(hostedZone),
         });
       }
+    }
 
-      /**
-     * ECS load-balanced fargate service
+    /**
+      * ECS load-balanced fargate service
      */
-      const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
-        cluster: this.cluster,
-        taskDefinition,
-        securityGroups: [appSecurityGroup],
-        desiredCount: 1,
-        assignPublicIp: true,
-        redirectHTTP: true,
-        certificate: props.domainName ? certificate : undefined,
-      });
+    const albfs = new patterns.ApplicationLoadBalancedFargateService(scope, 'AlbFargateService', {
+      cluster: this.cluster,
+      taskDefinition,
+      securityGroups: [appSecurityGroup],
+      desiredCount: 1,
+      assignPublicIp: true,
+      redirectHTTP: true,
+      certificate: props.domainName ? certificate : undefined,
+    });
 
-      database.secret.grantRead(albfs.taskDefinition.taskRole);
+    database.secret.grantRead(albfs.taskDefinition.taskRole);
 
-      const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
 
-      albfs.loadBalancer.logAccessLogs(albLogsBucket);
+    albfs.loadBalancer.logAccessLogs(albLogsBucket);
 
-      /**
-     * Health check for the application load balancer
-     */
-      albfs.targetGroup.configureHealthCheck({
-        path: '/api/health-check/',
-      });
+    /**
+   * Health check for the application load balancer
+   */
+    albfs.targetGroup.configureHealthCheck({
+      path: '/api/health-check/',
+    });
 
-      /**
+    /**
      * Allows the app security group to communicate with the RDS security group
      */
-      database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
+    database.rdsSecurityGroup.addIngressRule(appSecurityGroup, ec2.Port.tcp(5432));
 
-      /**
+    /**
      * Grant the task defintion read-write access to static files bucket
      */
-      staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
+    staticFilesBucket.grantReadWrite(albfs.taskDefinition.taskRole);
 
-      new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
-      new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
+    new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
+    new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
 
-      if (props.domainName) {
-        new route53.ARecord(scope, 'ARecord', {
-          target: route53.RecordTarget.fromAlias(new route53targets.LoadBalancerTarget(albfs.loadBalancer)),
-          zone: hostedZone,
-          recordName: props.domainName,
-        });
-      }
+    if (props.domainName) {
+      new route53.ARecord(scope, 'ARecord', {
+        target: route53.RecordTarget.fromAlias(new route53targets.LoadBalancerTarget(albfs.loadBalancer)),
+        zone: hostedZone,
+        recordName: props.domainName,
+      });
     }
   }
 }
