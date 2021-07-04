@@ -6,6 +6,7 @@ Name|Description
 ----|-----------
 [DjangoEcs](#django-cdk-djangoecs)|Configures a Django project using ECS Fargate.
 [DjangoEks](#django-cdk-djangoeks)|Configures a Django project using EKS.
+[S3BucketResources](#django-cdk-s3bucketresources)|Construct that configures an S3 bucket.
 
 
 **Structs**
@@ -14,6 +15,7 @@ Name|Description
 ----|-----------
 [DjangoEcsProps](#django-cdk-djangoecsprops)|Options to configure a Django ECS project.
 [DjangoEksProps](#django-cdk-djangoeksprops)|Options to configure a Django EKS project.
+[S3BucketProps](#django-cdk-s3bucketprops)|Properties for the S3 bucket.
 
 
 
@@ -98,6 +100,41 @@ Name | Type | Description
 
 
 
+## class S3BucketResources  <a id="django-cdk-s3bucketresources"></a>
+
+Construct that configures an S3 bucket.
+
+Use this construct when you want to host Django media files
+in S3 but you are not using AWS for hosting your main Django app.
+
+__Implements__: [IConstruct](#constructs-iconstruct), [IConstruct](#aws-cdk-core-iconstruct), [IConstruct](#constructs-iconstruct), [IDependable](#aws-cdk-core-idependable)
+__Extends__: [Construct](#aws-cdk-core-construct)
+
+### Initializer
+
+
+
+
+```ts
+new S3BucketResources(scope: Construct, id: string, props: S3BucketProps)
+```
+
+* **scope** (<code>[Construct](#aws-cdk-core-construct)</code>)  *No description*
+* **id** (<code>string</code>)  *No description*
+* **props** (<code>[S3BucketProps](#django-cdk-s3bucketprops)</code>)  *No description*
+  * **bucketName** (<code>string</code>)  The name of the S3 bucket. __*Optional*__
+
+
+
+### Properties
+
+
+Name | Type | Description 
+-----|------|-------------
+**bucketName**? | <code>string</code> | __*Optional*__
+
+
+
 ## struct DjangoEcsProps  <a id="django-cdk-djangoecsprops"></a>
 
 
@@ -133,6 +170,19 @@ Name | Type | Description
 **useCeleryBeat**? | <code>boolean</code> | Used to enable the celery beat service.<br/>__*Default*__: false
 **vpc**? | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets.<br/>__*Optional*__
 **webCommand**? | <code>Array<string></code> | The command used to run the API web service.<br/>__*Optional*__
+
+
+
+## struct S3BucketProps  <a id="django-cdk-s3bucketprops"></a>
+
+
+Properties for the S3 bucket.
+
+
+
+Name | Type | Description 
+-----|------|-------------
+**bucketName**? | <code>string</code> | The name of the S3 bucket.<br/>__*Optional*__
 
 
 
