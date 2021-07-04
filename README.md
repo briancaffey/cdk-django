@@ -7,6 +7,7 @@ High-level constructs are available for deploying applications with the followin
 - ECS (near complete)
 - EKS (in progress)
 - Lambda (planned)
+- S3 bucket and IAM user* (complete)
 
 To use one of the constructs you need to provide:
 
@@ -17,6 +18,8 @@ To use one of the constructs you need to provide:
     - celery (optional)
     - celery beat (optional)
 - Options for how to run the application and which additional services your application requires
+
+* If you are hosting your application outside of AWS, there is also a construct that can be used for provisioning a new S3 bucket along with an IAM user with the necessary permissions to access it. This can be used for hosting static files as well as media files.*
 
 This project uses the AWS CDK and is written in TypeScript, so the options for each construct are defined by TypeScript Interfaces. See [API.md](/API.md) for automatically-generated documentation on the interfaces for each construct.
 

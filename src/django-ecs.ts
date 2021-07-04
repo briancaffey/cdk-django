@@ -244,9 +244,10 @@ export class DjangoEcs extends cdk.Construct {
      * Deploy external-dns and related IAM resource if a domain name is included
      */
     let certificate = undefined;
+    let hostedZone = undefined;
     if (props.domainName) {
 
-      const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
+      hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
         domainName: props.domainName,
       });
 
@@ -307,7 +308,7 @@ export class DjangoEcs extends cdk.Construct {
     if (props.domainName) {
       new route53.ARecord(scope, 'ARecord', {
         target: route53.RecordTarget.fromAlias(new route53targets.LoadBalancerTarget(albfs.loadBalancer)),
-        zone: hostedZone,
+        zone: hostedZone!,
         recordName: props.domainName,
       });
     }

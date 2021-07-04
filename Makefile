@@ -5,6 +5,20 @@
 # These Makefile targets are for common development tasks and testing constructs
 # Run `make watch` before running these commands
 
+## -- S3 Targets --
+
+## synthesize S3 resources
+s3-synth:
+	cdk synth --app='./lib/integ/integ.django-s3-storage.js';
+
+## deploy S3 resources
+s3-deploy:
+	cdk deploy --app='./lib/integ/integ.django-s3-storage.js';
+
+## destroy S3 resources
+s3-destroy:
+	cdk destroy --app='./lib/integ/integ.django-s3-storage.js';
+
 ## -- ECS Targets --
 
 ## synthesize ECS project
