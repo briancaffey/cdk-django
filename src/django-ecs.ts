@@ -5,6 +5,7 @@ import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as logs from '@aws-cdk/aws-logs';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53targets from '@aws-cdk/aws-route53-targets';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 import { RdsPostgresInstance } from './common/database';
@@ -275,7 +276,8 @@ export class DjangoEcs extends cdk.Construct {
       securityGroups: [appSecurityGroup],
       desiredCount: 1,
       assignPublicIp: true,
-      redirectHTTP: true,
+      redirectHTTP: !!props.domainName ?? false,
+      protocol: props.domainName ? elbv2.ApplicationProtocol.HTTPS : elbv2.ApplicationProtocol.HTTP,
       certificate: props.domainName ? certificate : undefined,
     });
 
