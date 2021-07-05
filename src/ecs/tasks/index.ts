@@ -100,7 +100,7 @@ export class managementCommandTask extends cdk.Construct {
        *
        * Migrations are called when the stack is created or updated
        */
-      new cr.AwsCustomResource(scope, 'CustomResourceDbMigration', {
+      new cr.AwsCustomResource(scope, `CustomResourceTaskExecution-${id}`, {
         policy: cr.AwsCustomResourcePolicy.fromStatements([
           new iam.PolicyStatement({
             actions: ['iam:PassRole'],
