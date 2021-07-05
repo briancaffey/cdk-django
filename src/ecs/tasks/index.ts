@@ -36,6 +36,8 @@ export interface managementCommandTaskProps {
  */
 export class managementCommandTask extends cdk.Construct {
 
+  public taskDefinition: ecs.TaskDefinition;
+
   constructor(scope: cdk.Construct, id: string, props: managementCommandTaskProps) {
     super(scope, id);
 
@@ -45,6 +47,7 @@ export class managementCommandTask extends cdk.Construct {
       cpu: '256',
       memoryMiB: '512',
     });
+    this.taskDefinition = taskDefinition;
 
     /**
      * Allow the task role to access the database

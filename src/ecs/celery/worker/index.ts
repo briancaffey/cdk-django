@@ -14,6 +14,9 @@ export interface CeleryWorkerProps {
 }
 
 export class CeleryWorker extends cdk.Construct {
+
+  public taskDefinition: ecs.TaskDefinition;
+
   constructor(scope: cdk.Construct, id: string, props: CeleryWorkerProps) {
     super(scope, id);
 
@@ -40,6 +43,7 @@ export class CeleryWorker extends cdk.Construct {
         },
       ),
     });
+    this.taskDefinition = taskDefinition;
 
     new ecs.FargateService(scope, `FargateService${id}`, {
       cluster: props.cluster,

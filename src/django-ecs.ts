@@ -149,11 +149,12 @@ export class DjangoEcs extends cdk.Construct {
 
 
     const environment: { [key: string]: string } = {
+      S3_BUCKET_NAME: staticFilesBucket.bucketName,
       AWS_STORAGE_BUCKET_NAME: staticFilesBucket.bucketName,
       POSTGRES_SERVICE_HOST: database.rdsPostgresInstance.dbInstanceEndpointAddress,
       DB_SECRET_NAME: database.dbSecretName,
       DEBUG: '0',
-      DJANGO_SETTINGS_MODULE: 'backend.settings.production',
+      DJANGO_SETTINGS_MODULE: 'backend.settings.aws',
       REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,
     };
 
@@ -185,15 +186,17 @@ export class DjangoEcs extends cdk.Construct {
       vpc: this.vpc,
     });
 
-    new managementCommandTask(scope, 'collectstatic', {
+    const collectStaticCommand = new managementCommandTask(scope, 'collectstatic', {
       image: this.image,
       command: ['python3', 'manage.py', 'collectstatic', '--no-input'],
       appSecurityGroup,
       environment,
       dbSecret: database.secret,
       cluster: this.cluster,
+      run: true,
       vpc: this.vpc,
     });
+    staticFilesBucket.grantReadWrite(collectStaticCommand.taskDefinition.taskRole);
 
     /**
      * Use celery beat if it is configured in props
@@ -220,7 +223,7 @@ export class DjangoEcs extends cdk.Construct {
      *
      * TODO: refactor to support defining multiple queues
      */
-    new CeleryWorker(scope, 'CeleryWorkerDefaultQueue', {
+    const celeryWorker = new CeleryWorker(scope, 'CeleryWorkerDefaultQueue', {
       image: this.image,
       command: [
         'celery',
@@ -239,6 +242,7 @@ export class DjangoEcs extends cdk.Construct {
       securityGroups: [appSecurityGroup],
       dbSecret: database.secret,
     });
+    staticFilesBucket.grantReadWrite(celeryWorker.taskDefinition.taskRole);
 
     /**
      * Lookup Certificate from ARN or generate
