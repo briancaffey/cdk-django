@@ -85,5 +85,9 @@
   "hosted-zone:account=733623710918:domainName=jamescaffey.com:region=us-east-1": {
     "Id": "/hostedzone/Z1EJVU8DMBV0XG",
     "Name": "jamescaffey.com."
+  },
+  "hosted-zone:account=733623710918:domainName=briancaffey.com:region=us-east-1": {
+    "Id": "/hostedzone/ZWORUTMOJY8LQ",
+    "Name": "briancaffey.com."
   }
 }

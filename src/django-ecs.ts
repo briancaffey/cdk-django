@@ -291,6 +291,9 @@ export class DjangoEcs extends cdk.Construct {
 
     albfs.loadBalancer.logAccessLogs(albLogsBucket);
 
+    // optionally disable the admin interface
+    // albfs.listener.addAction
+
     /**
    * Health check for the application load balancer
    */
