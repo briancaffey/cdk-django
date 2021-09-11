@@ -59,6 +59,19 @@ eks-diff:
 eks-delete-stack:
 	aws cloudformation delete-stack --stack-name DjangoEksStack
 
+## -- Static Site Targets --
+static-site-synth:
+	cdk synth --app='./lib/integ/integ.static-site.js';
+
+static-site-deploy:
+	cdk deploy --app='./lib/integ/integ.static-site.js';
+
+static-site-destroy:
+	cdk destroy --app='./lib/integ/integ.static-site.js';
+
+static-site-diff:
+	cdk diff --app='./lib/integ/integ.static-site.js';
+
 ## describe CloudFormation stacks in the AWS account
 describe-stacks:
 	aws cloudformation describe-stacks | jq
