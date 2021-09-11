@@ -24,7 +24,9 @@ export interface DjangoEcsProps {
   /**
    * Domain name for backend (including sub-domain)
    */
-  readonly domainName?: string;
+  readonly apiDomainName?: string;
+
+  readonly zoneName?: string;
 
   /**
     * Certificate ARN
@@ -250,10 +252,10 @@ export class DjangoEcs extends cdk.Construct {
      */
     let certificate = undefined;
     let hostedZone = undefined;
-    if (props.domainName) {
+    if (props.apiDomainName && props.zoneName) {
 
       hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
-        domainName: props.domainName,
+        domainName: props.zoneName,
       });
 
       /**
@@ -265,7 +267,7 @@ export class DjangoEcs extends cdk.Construct {
       } else {
         // request a new certificate
         certificate = new acm.Certificate(this, 'SSLCertificate', {
-          domainName: props.domainName,
+          domainName: props.apiDomainName,
           validation: acm.CertificateValidation.fromDns(hostedZone),
         });
       }
@@ -280,9 +282,9 @@ export class DjangoEcs extends cdk.Construct {
       securityGroups: [appSecurityGroup],
       desiredCount: 1,
       assignPublicIp: true,
-      redirectHTTP: !!props.domainName ?? false,
-      protocol: props.domainName ? elbv2.ApplicationProtocol.HTTPS : elbv2.ApplicationProtocol.HTTP,
-      certificate: props.domainName ? certificate : undefined,
+      redirectHTTP: !!props.apiDomainName ?? false,
+      protocol: props.apiDomainName ? elbv2.ApplicationProtocol.HTTPS : elbv2.ApplicationProtocol.HTTP,
+      certificate: props.apiDomainName ? certificate : undefined,
     });
 
     database.secret.grantRead(albfs.taskDefinition.taskRole);
@@ -314,11 +316,11 @@ export class DjangoEcs extends cdk.Construct {
     new cdk.CfnOutput(this, 'bucketName', { value: staticFilesBucket.bucketName! });
     new cdk.CfnOutput(this, 'apiUrl', { value: albfs.loadBalancer.loadBalancerFullName });
 
-    if (props.domainName) {
+    if (props.apiDomainName) {
       new route53.ARecord(scope, 'ARecord', {
         target: route53.RecordTarget.fromAlias(new route53targets.LoadBalancerTarget(albfs.loadBalancer)),
         zone: hostedZone!,
-        recordName: props.domainName,
+        recordName: props.apiDomainName,
       });
     }
   }

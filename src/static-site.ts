@@ -26,7 +26,7 @@ export interface StaticSiteProps {
   /**
    * Domain name for static site (including sub-domain)
    */
-  readonly domainName: string;
+  readonly frontendDomainName: string;
 
   /**
     * Certificate ARN
@@ -58,7 +58,7 @@ export class StaticSite extends cdk.Construct {
 
     // this S3 bucket will contain the static site assets
     const staticSiteBucket = new s3.Bucket(this, 'StaticSiteBucket', {
-      bucketName: props.domainName,
+      bucketName: props.frontendDomainName,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'error.html',
       publicReadAccess: false,
@@ -79,7 +79,7 @@ export class StaticSite extends cdk.Construct {
     // create the certificate if it doesn't exist
     // TODO: optionally look up the certificate from props.certificateArn
     const certificate = new DnsValidatedCertificate(scope, 'Certificate', {
-      domainName: props.domainName,
+      domainName: props.frontendDomainName,
       hostedZone,
     });
 
@@ -87,7 +87,7 @@ export class StaticSite extends cdk.Construct {
     const distribution = new cloudfront.CloudFrontWebDistribution(this, 'StaticSiteDistribution', {
       aliasConfiguration: {
         acmCertRef: certificate.certificateArn,
-        names: [props.domainName],
+        names: [props.frontendDomainName],
       },
       originConfigs: [
         {
@@ -123,7 +123,7 @@ export class StaticSite extends cdk.Construct {
       target: RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
       zone: hostedZone,
       // note that the recordName must end with a period (.)
-      recordName: `${props.domainName}.`,
+      recordName: `${props.frontendDomainName}.`,
     });
 
   }
