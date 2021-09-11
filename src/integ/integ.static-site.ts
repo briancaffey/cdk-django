@@ -12,7 +12,7 @@ class MyStaticSiteStack extends cdk.Stack {
     super(parent, name, props);
 
     const construct = new StaticSite(this, 'StaticSiteSample', {
-      domainName: process.env.DOMAIN_NAME || 'app.domain.com',
+      frontendDomainName: process.env.FRONTEND_DOMAIN_NAME || 'app.domain.com',
       pathToDist: 'test/django-step-by-step/quasar-app/dist/pwa',
       zoneName: process.env.ZONE_NAME || 'domain.com',
     });
