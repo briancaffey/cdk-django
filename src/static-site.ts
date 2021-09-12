@@ -60,7 +60,7 @@ export class StaticSite extends cdk.Construct {
     const staticSiteBucket = new s3.Bucket(this, 'StaticSiteBucket', {
       bucketName: props.frontendDomainName,
       websiteIndexDocument: 'index.html',
-      websiteErrorDocument: 'error.html',
+      websiteErrorDocument: 'index.html',
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     });
