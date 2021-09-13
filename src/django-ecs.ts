@@ -184,6 +184,7 @@ export class DjangoEcs extends cdk.Construct {
       DJANGO_SETTINGS_MODULE: 'backend.settings.aws',
       REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,
       FRONTEND_URL: props.frontendUrl ?? '',
+      ZONE_NAME: props.zoneName ?? '',
     };
 
     taskDefinition.addContainer('backendContainer', {
