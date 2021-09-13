@@ -81,6 +81,19 @@ export interface DjangoEcsProps {
    */
   readonly useEcsExec?: boolean;
 
+  /**
+   * Frontend URL
+   *
+   * This is used to tell the backend what URL(s) will send API requests
+   *
+   * In Django settings use .split(",") to split the URLs into a list
+   *
+   * This is needed for CORS
+   *
+   * TODO: change to a list of strings
+   */
+  readonly frontendUrl?: string;
+
 }
 
 /**
@@ -170,6 +183,7 @@ export class DjangoEcs extends cdk.Construct {
       DEBUG: '0',
       DJANGO_SETTINGS_MODULE: 'backend.settings.aws',
       REDIS_SERVICE_HOST: elastiCacheRedis.elastiCacheCluster.attrRedisEndpointAddress,
+      FRONTEND_URL: props.frontendUrl ?? '',
     };
 
     taskDefinition.addContainer('backendContainer', {

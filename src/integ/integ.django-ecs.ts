@@ -18,6 +18,7 @@ const construct = new DjangoEcs(stack, 'DjangoEcsSample', {
   apiDomainName: process.env.API_DOMAIN_NAME,
   zoneName: process.env.ZONE_NAME,
   useEcsExec: true,
+  frontendUrl: process.env.FRONTEND_URL,
 
   // certificateArn: process.env.CERTIFICATE_ARN,
 });
