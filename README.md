@@ -8,6 +8,7 @@ High-level constructs are available for deploying applications with the followin
 - EKS (in progress)
 - Lambda (planned)
 - S3 bucket and IAM user* (complete)
+- Static website (complete)
 
 To use one of the constructs you need to provide:
 
@@ -35,6 +36,13 @@ The constructs provides everything you will need for your backend including:
 - Route53 Records
 - RDS (postgres)
 - ElastiCache (redis)
+
+There is also a construct that can be used to host a static SPA / PWA website using:
+
+- CloudFront
+- S3
+
+The example application uses a static website built with Vue.js using the Quasar framework.
 
 ## Using the constructs
 
