@@ -178,10 +178,32 @@ This project uses [projen](https://github.com/projen/projen).
 
 For development of this library, a sample Django application is included as a git submodule in `test/django-step-by-step`. This Django project is used when deploying the application, and can be replaced with your own project for testing purposes.
 
+## ECS Exec
+
+ECS Exec is a relatively new feature that allows us to open an internactive shell in container running in a Fargate task. In order to use ECS Exec please refer to the `helper.sh` file that defines `ecs_exec_service` and `ecs_exec_task`.
+
+Additionally, the user that is calling these commands will need to have the following IAM permissions:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "ecs:ExecuteCommand",
+            "Resource": "arn:aws:ecs:<aws-region>:<aws-account-id>:cluster/*"
+        }
+    ]
+}
+```
+
+The `Resource` can be more narrowly scoped to the scpecific clusters in which you want to allow the user to run commands.
+
 ## Current Development Efforts
 
 This project is under active development. Here are some of the things that I'm curently working on:
 
+- [x] Add ECS Exec for ECS construct
 - [ ] Go over this Kubernetes checklist: [https://www.weave.works/blog/production-ready-checklist-kubernetes](https://www.weave.works/blog/production-ready-checklist-kubernetes)
 - [ ] Add snapshot tests and refactor the application
 - [ ] Add unit tests

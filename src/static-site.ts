@@ -1,16 +1,15 @@
 // https://github.com/aws-samples/aws-cdk-examples/blob/master/typescript/static-site/static-site.ts#L113
-import * as iam from '@aws-cdk/aws-iam';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cdk from '@aws-cdk/core';
+import { DnsValidatedCertificate } from '@aws-cdk/aws-certificatemanager';
 import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
+import * as iam from '@aws-cdk/aws-iam';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as targets from '@aws-cdk/aws-route53-targets';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
 
-import { DnsValidatedCertificate } from '@aws-cdk/aws-certificatemanager';
-import { ARecord, RecordTarget } from '@aws-cdk/aws-route53';
+import * as cdk from '@aws-cdk/core';
 
 export interface StaticSiteProps {
 
@@ -53,7 +52,7 @@ export class StaticSite extends cdk.Construct {
     super(scope, id);
 
     const cloudfrontOAI = new cloudfront.OriginAccessIdentity(this, 'cloudfront-OAI', {
-      comment: `OAI for ${id}`
+      comment: `OAI for ${id}`,
     });
 
     // this S3 bucket will contain the static site assets
@@ -68,7 +67,7 @@ export class StaticSite extends cdk.Construct {
     staticSiteBucket.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['s3:GetObject'],
       resources: [staticSiteBucket.arnForObjects('*')],
-      principals: [new iam.CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId)]
+      principals: [new iam.CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
     }));
 
     const hostedZone = route53.HostedZone.fromLookup(scope, 'Zone', {
@@ -93,7 +92,7 @@ export class StaticSite extends cdk.Construct {
         {
           s3OriginSource: {
             s3BucketSource: staticSiteBucket,
-            originAccessIdentity: cloudfrontOAI
+            originAccessIdentity: cloudfrontOAI,
           },
           behaviors: [{
             isDefaultBehavior: true,
@@ -107,20 +106,20 @@ export class StaticSite extends cdk.Construct {
 
     // if there is a directory called in the pathToDist directory, create a new S3 Deployment
     if (fs.existsSync(path.join(process.cwd(), props.pathToDist))) {
-      console.log("creating bucket distribution")
+      console.log('creating bucket distribution');
       // create a new S3 Deployment
       new s3Deployment.BucketDeployment(scope, 'BucketDeployment', {
         sources: [s3Deployment.Source.asset(path.join(process.cwd(), props.pathToDist))],
         destinationBucket: staticSiteBucket,
         distribution,
         distributionPaths: ['/*'],
-      })
+      });
     }
 
 
     // create the A Record that will point to the CloudFront distribution
-    new ARecord(scope, 'RecordTarget', {
-      target: RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+    new route53.ARecord(scope, 'RecordTarget', {
+      target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
       zone: hostedZone,
       // note that the recordName must end with a period (.)
       recordName: `${props.frontendDomainName}.`,

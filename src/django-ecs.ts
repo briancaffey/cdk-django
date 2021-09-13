@@ -3,6 +3,8 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
 import * as patterns from '@aws-cdk/aws-ecs-patterns';
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as iam from '@aws-cdk/aws-iam';
+import * as kms from '@aws-cdk/aws-kms';
 import * as logs from '@aws-cdk/aws-logs';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as route53targets from '@aws-cdk/aws-route53-targets';
@@ -68,6 +70,16 @@ export interface DjangoEcsProps {
    * @default false
    */
   readonly useCeleryBeat?: boolean;
+
+  /**
+   *
+   * This allows you to exec into the backend API container using ECS Exec
+   *
+   * https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-exec.html
+   *
+   * @default false
+   */
+  readonly useEcsExec?: boolean;
 
 }
 
@@ -296,9 +308,91 @@ export class DjangoEcs extends cdk.Construct {
     // optionally disable the admin interface
     // albfs.listener.addAction
 
+
     /**
-   * Health check for the application load balancer
-   */
+     * Configure ECS Exec if enabled in props
+     *
+     * ECS Exec allows you to open an interactive shell in a container running in a ECS Fargate task
+     *
+     * Based on https://github.com/pahud/ecs-exec-cdk-demo/blob/main/src/main.ts
+     *
+     * Helpful: https://github.com/aws-containers/amazon-ecs-exec-checker
+     *
+     * TODO: clean up permissions
+     */
+    if (props.useEcsExec ?? false) {
+
+      // create kms key
+      const kmsKey = new kms.Key(this, 'KmsKey');
+      // create log group
+      const logGroup = new logs.LogGroup(this, 'LogGroup');
+      // ecs exec bucket
+      const execBucket = new s3.Bucket(this, 'EcsExecBucket', {
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+      });
+
+      logGroup.grantWrite(taskDefinition.taskRole);
+      kmsKey.grantDecrypt(taskDefinition.taskRole);
+      execBucket.grantPut(taskDefinition.taskRole);
+
+      // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-exec.html#ecs-exec-logging
+      taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        actions: [
+          'logs:DescribeLogGroups',
+          'logs:DescribeLogStreams',
+        ],
+        resources: ['*'],
+      }));
+
+      // TODO: this can be removed
+      // check the resources property of the policy statement`
+      taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        actions: [
+          'logs:DescribeLogGroups',
+          'logs:CreateLogStream',
+          'logs:DescribeLogStreams',
+          'logs:PutLogEvents',
+        ],
+        resources: [`arn:aws:logs:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:log-group:/aws/ecs/${logGroup.logGroupName}:*`],
+      }));
+
+      taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+        resources: ['*'],
+        actions: [
+          'ssmmessages:CreateControlChannel',
+          'ssmmessages:CreateDataChannel',
+          'ssmmessages:OpenControlChannel',
+          'ssmmessages:OpenDataChannel',
+        ],
+      }));
+
+
+      // // we need ExecuteCommandConfiguration
+      const cfnCluster = this.cluster.node.defaultChild as ecs.CfnCluster;
+      cfnCluster.addPropertyOverride('Configuration.ExecuteCommandConfiguration', {
+        KmsKeyId: kmsKey.keyId,
+        LogConfiguration: {
+          CloudWatchLogGroupName: logGroup.logGroupName,
+          S3BucketName: execBucket.bucketName,
+          S3KeyPrefix: 'exec-output',
+        },
+        Logging: 'OVERRIDE',
+      });
+
+      // enable EnableExecuteCommand for the service
+      const cfnService = albfs.service.node.findChild('Service') as ecs.CfnService;
+      cfnService.addPropertyOverride('EnableExecuteCommand', true);
+
+      // Output the command that will allow us to use ECS Exec on our backend container
+      new cdk.CfnOutput(this, 'EcsExecCommand', {
+        value:
+          `ecs_exec_service ${this.cluster.clusterName} ${albfs.service.serviceName} ${taskDefinition.defaultContainer?.containerName}`,
+      });
+    }
+    /**
+     * Health check for the application load balancer
+     */
     albfs.targetGroup.configureHealthCheck({
       path: '/api/health-check/',
     });

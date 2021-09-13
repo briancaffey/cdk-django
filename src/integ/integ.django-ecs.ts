@@ -17,6 +17,7 @@ const construct = new DjangoEcs(stack, 'DjangoEcsSample', {
   useCeleryBeat: true,
   apiDomainName: process.env.API_DOMAIN_NAME,
   zoneName: process.env.ZONE_NAME,
+  useEcsExec: true,
 
   // certificateArn: process.env.CERTIFICATE_ARN,
 });

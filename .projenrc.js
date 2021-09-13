@@ -39,6 +39,7 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-rds',
     '@aws-cdk/aws-iam',
     '@aws-cdk/custom-resources',
+    '@aws-cdk/aws-kms',
   ],
 
   python: {
