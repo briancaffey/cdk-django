@@ -105,9 +105,14 @@ export class DjangoEcs extends cdk.Construct {
   public vpc: ec2.IVpc;
   public cluster: ecs.Cluster;
   public image: ecs.ContainerImage;
+  public loadBalancer: elbv2.ApplicationLoadBalancer;
+  public apiDomainName: string;
 
   constructor(scope: cdk.Construct, id: string, props: DjangoEcsProps) {
     super(scope, id);
+
+    // expose api domain name
+    this.apiDomainName = props.apiDomainName!;
 
     /**
      * VPC must have public, private and isolated subnets
@@ -319,6 +324,9 @@ export class DjangoEcs extends cdk.Construct {
     const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
 
     albfs.loadBalancer.logAccessLogs(albLogsBucket);
+
+    // expose the load balancer on the DjangoEcs construct
+    this.loadBalancer = albfs.loadBalancer;
 
     // optionally disable the admin interface
     // albfs.listener.addAction

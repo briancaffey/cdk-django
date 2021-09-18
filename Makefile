@@ -72,6 +72,26 @@ static-site-destroy:
 static-site-diff:
 	cdk diff --app='./lib/integ/integ.static-site.js';
 
+
+## -- Django-Vue App Targets --
+
+## synthesize Django-Vue App
+django-vue-synth:
+	cdk synth --app='./lib/integ/integ.django-vue.js';
+
+## deploy Django-Vue App
+django-vue-deploy:
+	cdk deploy --app='./lib/integ/integ.django-vue.js';
+
+## destroy Django-Vue App
+django-vue-destroy:
+	cdk destroy --app='./lib/integ/integ.django-vue.js';
+
+## diff Django-Vue App
+django-vue-diff:
+	cdk diff --app='./lib/integ/integ.django-vue.js';
+
+
 ## describe CloudFormation stacks in the AWS account
 describe-stacks:
 	aws cloudformation describe-stacks | jq
