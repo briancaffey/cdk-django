@@ -3,7 +3,7 @@ const { AwsCdkConstructLibrary } = require('projen');
 const project = new AwsCdkConstructLibrary({
   author: 'Brian Caffey',
   authorAddress: 'briancaffey2010@gmail.com',
-  cdkVersion: '1.122.0',
+  cdkVersion: '1.123.0',
   defaultReleaseBranch: 'main',
   name: 'django-cdk',
   repositoryUrl: 'https://github.com/briancaffey/django-cdk.git',
@@ -24,6 +24,7 @@ const project = new AwsCdkConstructLibrary({
     '@aws-cdk/aws-s3',
     '@aws-cdk/aws-s3-deployment',
     '@aws-cdk/aws-cloudfront',
+    '@aws-cdk/aws-cloudfront-origins',
     '@aws-cdk/aws-route53-targets',
     '@aws-cdk/aws-ecr',
     '@aws-cdk/aws-ecr-assets',

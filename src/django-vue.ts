@@ -62,7 +62,6 @@ export class DjangoVue extends cdk.Construct {
       })
     }
 
-    // const apiBackend =
     const apiBackend = new DjangoEcs(scope, 'DjangoEcsSample', {
       imageDirectory: './test/django-step-by-step/backend',
       webCommand: ['./scripts/start_prod.sh'],
@@ -79,7 +78,7 @@ export class DjangoVue extends cdk.Construct {
       pathToDist: 'test/django-step-by-step/quasar-app/dist/pwa',
       zoneName: props.zoneName,
       loadBalancer: apiBackend.loadBalancer,
-      // assetsBucket: apiBackend.staticFileBucket,
+      assetsBucket: apiBackend.staticFileBucket,
     });
 
     new cdk.CfnOutput(this, 'loadBalancerName', { value: apiBackend.loadBalancer.loadBalancerDnsName });
