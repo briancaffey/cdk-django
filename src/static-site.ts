@@ -211,8 +211,8 @@ export class StaticSite extends cdk.Construct {
     // });
 
     const bucketOrigin = new origins.S3Origin(staticSiteBucket);
-    const albOrigin = new origins.LoadBalancerV2Origin(props.loadBalancer!);
 
+    // distribution with S3Origin default behavior
     const distribution = new cloudfront.Distribution(scope, 'SiteDistribution', {
 
       certificate,
@@ -226,26 +226,27 @@ export class StaticSite extends cdk.Construct {
       },
     });
 
-    // staticSiteBucket.grantRead(distribution);
-
-
     // load balancer origin
     if (props.loadBalancer ?? false) {
-      distribution.addBehavior('api/*', albOrigin, {
-        originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, 'alb-origin-request-policy', {
-          comment: 'API origin request policy',
-          cookieBehavior: OriginRequestCookieBehavior.all(),
-          headerBehavior: OriginRequestHeaderBehavior.all(),
-          queryStringBehavior: OriginRequestQueryStringBehavior.all(),
-        }),
-        cachePolicy: new cloudfront.CachePolicy(scope, 'alb-origin-cache-policy', {
-          minTtl: cdk.Duration.seconds(0),
-          maxTtl: cdk.Duration.seconds(0),
-          defaultTtl: cdk.Duration.seconds(0),
-        }),
-        compress: false,
-        allowedMethods: AllowedMethods.ALLOW_ALL,
-      });
+      const albOrigin = new origins.LoadBalancerV2Origin(props.loadBalancer!);
+      const pathPatterns = ['api', 'graphql', 'admin'];
+      pathPatterns.forEach(path => {
+        distribution.addBehavior(`/${path}/*`, albOrigin, {
+          originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, `${path}-origin-request-policy`, {
+            comment: 'API origin request policy',
+            cookieBehavior: OriginRequestCookieBehavior.all(),
+            headerBehavior: OriginRequestHeaderBehavior.all(),
+            queryStringBehavior: OriginRequestQueryStringBehavior.all(),
+          }),
+          cachePolicy: new cloudfront.CachePolicy(scope, `${path}-origin-cache-policy`, {
+            minTtl: cdk.Duration.seconds(0),
+            maxTtl: cdk.Duration.seconds(0),
+            defaultTtl: cdk.Duration.seconds(0),
+          }),
+          compress: false,
+          allowedMethods: AllowedMethods.ALLOW_ALL,
+        });
+      })
     };
 
     // Route /static/* to the assets bucket
@@ -253,12 +254,26 @@ export class StaticSite extends cdk.Construct {
       const assetsOrigin = new origins.S3Origin(props.assetsBucket!);
       distribution.addBehavior('/static/*', assetsOrigin, {
         originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, 'assets-origin-request-policy', {
-          comment: 'API origin request policy',
+          comment: 'static origin request policy',
           cookieBehavior: OriginRequestCookieBehavior.all(),
           headerBehavior: OriginRequestHeaderBehavior.all(),
           queryStringBehavior: OriginRequestQueryStringBehavior.all(),
         }),
         cachePolicy: new cloudfront.CachePolicy(scope, 'assets-origin-cache-policy', {
+          minTtl: cdk.Duration.seconds(0),
+          maxTtl: cdk.Duration.seconds(0),
+          defaultTtl: cdk.Duration.seconds(0),
+        }),
+      });
+
+      distribution.addBehavior('/media/*', assetsOrigin, {
+        originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, 'media-origin-request-policy', {
+          comment: 'media origin request policy',
+          cookieBehavior: OriginRequestCookieBehavior.all(),
+          headerBehavior: OriginRequestHeaderBehavior.all(),
+          queryStringBehavior: OriginRequestQueryStringBehavior.all(),
+        }),
+        cachePolicy: new cloudfront.CachePolicy(scope, 'media-origin-cache-policy', {
           minTtl: cdk.Duration.seconds(0),
           maxTtl: cdk.Duration.seconds(0),
           defaultTtl: cdk.Duration.seconds(0),
