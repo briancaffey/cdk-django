@@ -137,6 +137,8 @@ export class DjangoEcs extends cdk.Construct {
      */
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
       bucketName: props?.bucketName,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
     this.staticFileBucket = staticFilesBucket;
 
@@ -334,7 +336,10 @@ export class DjangoEcs extends cdk.Construct {
 
     database.secret.grantRead(albfs.taskDefinition.taskRole);
 
-    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`, {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
 
     albfs.loadBalancer.logAccessLogs(albLogsBucket);
 
