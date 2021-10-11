@@ -14,6 +14,7 @@ const stack = new cdk.Stack(app, 'DjangoVueStack', { env });
 const construct = new DjangoVue(stack, 'DjangoVueSample', {
   domainName: process.env.FRONTEND_DOMAIN_NAME!,
   zoneName: process.env.ZONE_NAME!,
+  certificateArn: process.env.CERTIFICATE_ARN!,
 });
 
 /**

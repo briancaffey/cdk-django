@@ -86,6 +86,7 @@ export class DjangoVue extends cdk.Construct {
       zoneName: props.zoneName,
       loadBalancer: apiBackend.loadBalancer,
       assetsBucket: apiBackend.staticFileBucket,
+      certificateArn: certificate.certificateArn,
     });
 
     new cdk.CfnOutput(this, 'loadBalancerName', { value: apiBackend.loadBalancer.loadBalancerDnsName });
