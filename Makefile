@@ -72,6 +72,20 @@ static-site-destroy:
 static-site-diff:
 	cdk diff --app='./lib/integ/integ.static-site.js';
 
+## -- Docker EC2 Targets --
+
+## Synthesize Docker EC2 project
+docker-ec2-synth:
+	cdk synth --app='./lib/integ/integ.docker-ec2.js';
+
+docker-ec2-deploy:
+	cdk deploy --app='./lib/integ/integ.docker-ec2.js';
+
+docker-ec2-destroy:
+	cdk destroy --app='./lib/integ/integ.docker-ec2.js';
+
+docker-ec2-diff:
+	cdk diff --app='./lib/integ/integ.docker-ec2.js';
 
 ## -- Django-Vue App Targets --
 
