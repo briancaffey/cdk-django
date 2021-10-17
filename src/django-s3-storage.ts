@@ -28,6 +28,8 @@ export class S3BucketResources extends cdk.Construct {
     // bucket to be used for storing media files
     const bucket = new s3.Bucket(scope, 'S3Bucket', {
       bucketName: props.bucketName ?? `media-storage-${id.toLocaleLowerCase()}`,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     const user = new iam.User(scope, 'S3BucketUser');

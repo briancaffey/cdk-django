@@ -94,6 +94,11 @@ export interface DjangoEcsProps {
    */
   readonly frontendUrl?: string;
 
+  /**
+   * Extra Environment Variables to set in the backend container
+   */
+  readonly environmentVariables?: { [key: string]: string };
+
 }
 
 /**
@@ -132,6 +137,8 @@ export class DjangoEcs extends cdk.Construct {
      */
     const staticFilesBucket = new s3.Bucket(scope, 'StaticBucket', {
       bucketName: props?.bucketName,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
     this.staticFileBucket = staticFilesBucket;
 
@@ -191,6 +198,14 @@ export class DjangoEcs extends cdk.Construct {
       FRONTEND_URL: props.frontendUrl ?? '',
       ZONE_NAME: props.zoneName ?? '',
     };
+
+    if (props.environmentVariables ?? false) {
+      // add environment variables to environment
+      // merge the two objects (change const to let for `environment` declaration)
+      // environment = { ...environment, ...props.environmentVariables };
+      // or with Object.assign
+      Object.assign(environment, props.environmentVariables);
+    }
 
     taskDefinition.addContainer('backendContainer', {
       image: this.image,
@@ -321,7 +336,10 @@ export class DjangoEcs extends cdk.Construct {
 
     database.secret.grantRead(albfs.taskDefinition.taskRole);
 
-    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`);
+    const albLogsBucket = new s3.Bucket(scope, `${id}-alb-logs`, {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
 
     albfs.loadBalancer.logAccessLogs(albLogsBucket);
 

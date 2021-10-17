@@ -20,11 +20,10 @@
  *
  **/
 
-import * as cdk from '@aws-cdk/core';
-import { DjangoEcs } from './index';
-import { StaticSite } from './index';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as route53 from '@aws-cdk/aws-route53';
+import * as cdk from '@aws-cdk/core';
+import { DjangoEcs, StaticSite } from './index';
 
 /**
  * Django and Vue application stack props
@@ -58,8 +57,8 @@ export class DjangoVue extends cdk.Construct {
         domainName: props.domainName,
         hostedZone: route53.HostedZone.fromLookup(scope, 'HostedZone', {
           domainName: props.zoneName,
-        })
-      })
+        }),
+      });
     }
 
     const apiBackend = new DjangoEcs(scope, 'DjangoEcsSample', {
@@ -71,6 +70,14 @@ export class DjangoVue extends cdk.Construct {
       useEcsExec: true,
       frontendUrl: process.env.FRONTEND_URL,
       certificateArn: certificate.certificateArn,
+      environmentVariables: {
+        EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        EMAIL_PORT: process.env.EMAIL_PORT || '1025',
+        EMAIL_HOST_USER: process.env.EMAIL_HOST_USER || 'app@domain.com',
+        EMAIL_HOST_PASSWORD: process.env.EMAIL_HOST_PASSWORD || 'password',
+        // comma separated list of admin email addresses
+        ADMINS: process.env.ADMINS || 'superuser@email.com,admin@email.com,',
+      },
     });
 
     new StaticSite(scope, 'StaticSiteSample', {
@@ -79,6 +86,7 @@ export class DjangoVue extends cdk.Construct {
       zoneName: props.zoneName,
       loadBalancer: apiBackend.loadBalancer,
       assetsBucket: apiBackend.staticFileBucket,
+      certificateArn: certificate.certificateArn,
     });
 
     new cdk.CfnOutput(this, 'loadBalancerName', { value: apiBackend.loadBalancer.loadBalancerDnsName });

@@ -19,6 +19,7 @@ const construct = new DjangoEcs(stack, 'DjangoEcsSample', {
   zoneName: process.env.ZONE_NAME,
   useEcsExec: true,
   frontendUrl: process.env.FRONTEND_URL,
+  environmentVariables: { FOO_ENV_VAR: 'foo-env-var' },
 
   // certificateArn: process.env.CERTIFICATE_ARN,
 });

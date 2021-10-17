@@ -2,22 +2,22 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { DnsValidatedCertificate } from '@aws-cdk/aws-certificatemanager';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as origins from '@aws-cdk/aws-cloudfront-origins';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-
-import * as cdk from '@aws-cdk/core';
+import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import {
   AllowedMethods,
   OriginRequestQueryStringBehavior,
   OriginRequestCookieBehavior,
-  OriginRequestHeaderBehavior
+  OriginRequestHeaderBehavior,
 } from '@aws-cdk/aws-cloudfront';
+import * as origins from '@aws-cdk/aws-cloudfront-origins';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as route53 from '@aws-cdk/aws-route53';
+import * as targets from '@aws-cdk/aws-route53-targets';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3Deployment from '@aws-cdk/aws-s3-deployment';
+
+import * as cdk from '@aws-cdk/core';
 
 export interface StaticSiteProps {
 
@@ -93,6 +93,8 @@ export class StaticSite extends cdk.Construct {
       // blockPublicAccess: s3.BlockPublicAccess.
       publicReadAccess: true,
       // blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     // staticSiteBucket.addToResourcePolicy(new iam.PolicyStatement({
@@ -246,7 +248,7 @@ export class StaticSite extends cdk.Construct {
           compress: false,
           allowedMethods: AllowedMethods.ALLOW_ALL,
         });
-      })
+      });
     };
 
     // Route /static/* to the assets bucket
