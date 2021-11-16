@@ -14,6 +14,7 @@ const construct = new DockerEc2(stack, 'DjangoEcsSample', {
   webCommand: [
     './scripts/start_prod.sh',
   ],
+  // s3BucketName: process.env.S3_BUCKET_NAME!,
   domainName: process.env.HOSTNAME!,
   keyName: process.env.KEY_NAME!,
   zoneName: process.env.ZONE_NAME!,
