@@ -10,12 +10,12 @@ export interface DockerEc2Props {
   /**
    * Path to the Dockerfile
    */
-  readonly imageDirectory: string;
+  // readonly imageDirectory: string;
 
   /**
    * The command used to run the API web service.
    */
-  readonly webCommand?: string[];
+  // readonly webCommand?: string[];
 
   /*
    * Route 53 Zone Name, for example my-zone.com
@@ -27,15 +27,15 @@ export interface DockerEc2Props {
    */
   readonly domainName: string;
 
-  readonly dbName?: string;
-  readonly dbUser?: string;
-  readonly dbPassword?: string;
+  // readonly dbName?: string;
+  // readonly dbUser?: string;
+  // readonly dbPassword?: string;
   // readonly s3BucketName: string;
-  readonly keyName: string;
+  // readonly keyName: string;
   /**
    * Extra Environment Variables to set in the backend container
    */
-  readonly environmentVariables?: { [key: string]: string };
+  // readonly environmentVariables?: { [key: string]: string };
 }
 
 export class DockerEc2 extends cdk.Construct {
@@ -48,22 +48,22 @@ export class DockerEc2 extends cdk.Construct {
 
     this.vpc = new ec2.Vpc(scope, 'Vpc', {
       maxAzs: 2,
-      natGateways: 1,
+      natGateways: 0,
       subnetConfiguration: [
         {
           cidrMask: 24,
           name: 'ingress',
           subnetType: ec2.SubnetType.PUBLIC,
         },
-        {
-          cidrMask: 24,
-          name: 'application',
-          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
-        },
+        // {
+        //   cidrMask: 24,
+        //   name: 'application',
+        //   subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
+        // },
       ],
     });
 
-    console.log(props);
+    // console.log(props);
 
 
     const stack = cdk.Stack.of(scope);
@@ -132,18 +132,19 @@ interval=5
     s3DockerEc2Policy.attachToRole(dockerEc2S3Role);
 
     // TODO: replace this with props.s3BucketName
-    const bucketNamePlaceholder = 'bucket-name-placeholder';
+    // const bucketNamePlaceholder = 'bucket-name-placeholder';
 
-    const contentStringConfigapplication = `
-DATABASE_NAME=${props.dbName ?? 'postgres'}
-DATABASE_USER=${props.dbUser ?? 'postgres'}
-DATABASE_PASSWORD=${props.dbPassword ?? 'postgres'}
-BUCKET_URL=https://${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-SHORT_BUCKET_HOST=${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-AWS_REGION=${stackRegion}
-BUCKET_ACCESS_KEY=${s3UserKey.ref}
-BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
-`;
+    // TODO: add these later
+    // DATABASE_NAME=${props.dbName ?? 'postgres'}
+    // DATABASE_USER=${props.dbUser ?? 'postgres'}
+    // DATABASE_PASSWORD=${props.dbPassword ?? 'postgres'}
+    // BUCKET_URL=https://${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
+    // SHORT_BUCKET_HOST=${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
+    // AWS_REGION=${stackRegion}
+    // BUCKET_ACCESS_KEY=${s3UserKey.ref}
+    // BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
+    //     const contentStringConfigapplication = `
+    // `;
 
     const contentStringInstallapplication = `
 #!/bin/bash
@@ -151,7 +152,7 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 sysctl -w vm.max_map_count=262144
-curl https://raw.githubusercontent.com/briancaffey/django-cdk/src/files/docker-compose.yml -o docker-compose.yml
+# curl https://raw.githubusercontent.com/briancaffey/django-cdk/src/files/docker-compose-nginx.yml -o docker-compose.yml
 docker-compose -p docker-ec2 up -d --force-recreate
 `;
 
@@ -178,13 +179,13 @@ docker-compose -p docker-ec2 up -d --force-recreate
       ec2.InitService.enable('docker'),
     ]));
 
-    init.addConfig('config_application', new ec2.InitConfig([
-      ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigapplication, {
-        mode: '000400',
-        owner: 'root',
-        group: 'root',
-      }),
-    ]));
+    // init.addConfig('config_application', new ec2.InitConfig([
+    //   ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigapplication, {
+    //     mode: '000400',
+    //     owner: 'root',
+    //     group: 'root',
+    //   }),
+    // ]));
 
     init.addConfig('install_application', new ec2.InitConfig([
       ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallapplication, {
@@ -201,7 +202,7 @@ docker-compose -p docker-ec2 up -d --force-recreate
     init.addConfigSet('application', [
       'configure-cfn',
       'install_docker',
-      'config_application',
+      // 'config_application',
       'install_application',
     ]);
 

@@ -215,3 +215,17 @@ This project is under active development. Here are some of the things that I'm c
 - [ ] Go over this Kubernetes checklist: [https://www.weave.works/blog/production-ready-checklist-kubernetes](https://www.weave.works/blog/production-ready-checklist-kubernetes)
 - [ ] Add snapshot tests and refactor the application
 - [ ] Add unit tests
+
+## Issues
+
+```
+node_modules/@aws-cdk/cloud-assembly-schema/schema/cloud-assembly.version.json
+```
+
+You might need to update the version of the schema, for example:
+
+```
+This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+(Cloud assembly schema version mismatch: Maximum schema version supported is 14.0.0, but found 15.0.0)
+make: *** [docker-ec2-synth] Error 1
+```
