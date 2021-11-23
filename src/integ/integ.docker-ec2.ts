@@ -10,15 +10,15 @@ const app = new cdk.App();
 const stack = new cdk.Stack(app, 'DjangoEcsStack', { env });
 
 const construct = new DockerEc2(stack, 'DjangoEcsSample', {
-  imageDirectory: './test/django-step-by-step/backend',
-  webCommand: [
-    './scripts/start_prod.sh',
-  ],
+  // imageDirectory: './test/django-step-by-step/backend',
+  // webCommand: [
+  //   './scripts/start_prod.sh',
+  // ],
   // s3BucketName: process.env.S3_BUCKET_NAME!,
   domainName: process.env.HOSTNAME!,
-  keyName: process.env.KEY_NAME!,
+  keyName: process.env.KEY_PAIR_NAME!,
   zoneName: process.env.ZONE_NAME!,
-  environmentVariables: { FOO_ENV_VAR: 'foo-env-var' },
+  // environmentVariables: { FOO_ENV_VAR: 'foo-env-var' },
 
   // certificateArn: process.env.CERTIFICATE_ARN,
 });

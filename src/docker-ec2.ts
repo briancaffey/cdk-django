@@ -1,7 +1,7 @@
 // import { readFileSync } from 'fs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 // import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-import * as iam from '@aws-cdk/aws-iam';
+// import * as iam from '@aws-cdk/aws-iam';
 // import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 
@@ -31,7 +31,7 @@ export interface DockerEc2Props {
   // readonly dbUser?: string;
   // readonly dbPassword?: string;
   // readonly s3BucketName: string;
-  // readonly keyName: string;
+  readonly keyName: string;
   /**
    * Extra Environment Variables to set in the backend container
    */
@@ -63,7 +63,7 @@ export class DockerEc2 extends cdk.Construct {
       ],
     });
 
-    // console.log(props);
+    console.log(props);
 
 
     const stack = cdk.Stack.of(scope);
@@ -115,21 +115,21 @@ verbose=true
 interval=5
 `;
 
-    const dockerEc2S3Role = new iam.Role(scope, 'DockerEc2S3Role', {
-      assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
-    });
+    // const dockerEc2S3Role = new iam.Role(scope, 'DockerEc2S3Role', {
+    //   assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
+    // });
 
-    const s3User = new iam.User(scope, 'S3User');
-    const s3UserKey = new iam.CfnAccessKey(scope, 'S3UserKey', {
-      userName: s3User.userName,
-    });
+    // const s3User = new iam.User(scope, 'S3User');
+    // const s3UserKey = new iam.CfnAccessKey(scope, 'S3UserKey', {
+    //   userName: s3User.userName,
+    // });
 
 
-    const s3DockerEc2Policy = new iam.Policy(scope, 'S3applicationPolicy', {
-      policyName: 'S3applicationPolicy',
-    });
+    // const s3DockerEc2Policy = new iam.Policy(scope, 'S3applicationPolicy', {
+    //   policyName: 'S3applicationPolicy',
+    // });
 
-    s3DockerEc2Policy.attachToRole(dockerEc2S3Role);
+    // s3DockerEc2Policy.attachToRole(dockerEc2S3Role);
 
     // TODO: replace this with props.s3BucketName
     // const bucketNamePlaceholder = 'bucket-name-placeholder';
@@ -153,7 +153,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 sysctl -w vm.max_map_count=262144
 # curl https://raw.githubusercontent.com/briancaffey/django-cdk/src/files/docker-compose-nginx.yml -o docker-compose.yml
-docker-compose -p docker-ec2 up -d --force-recreate
+curl https://github.com/briancaffey/django-cdk/blob/docker-swarm/src/files/docker-compose-nginx.yml -o docker-compose.yml
+# docker-compose -p docker-ec2 up -d --force-recreate
+docker swarm init
+docker stack deploy -c docker-compose-nginx.yml stack
 `;
 
     init.addConfig('configure-cfn', new ec2.InitConfig([
@@ -206,5 +209,16 @@ docker-compose -p docker-ec2 up -d --force-recreate
       'install_application',
     ]);
 
+    // const instance;
+    new ec2.Instance(this, 'Instance', {
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      machineImage: new ec2.AmazonLinuxImage({
+        generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+      }),
+      vpc: this.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      userData,
+      init,
+    });
   }
 }

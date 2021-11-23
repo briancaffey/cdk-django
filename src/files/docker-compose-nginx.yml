@@ -1,0 +1,13 @@
+version: "3.4"
+
+services:
+  web:
+    image: nginx
+    networks:
+      - main
+    ports:
+      - "80:80"
+
+networks:
+  main:
+    driver: overlay
