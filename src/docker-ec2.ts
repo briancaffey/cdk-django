@@ -214,6 +214,7 @@ docker stack deploy -c stack.yml stack
     init.addConfigSet('application', [
       'install_docker',
       'install_compose',
+      'config_application',
       'install_application',
     ]);
 
@@ -246,7 +247,7 @@ docker stack deploy -c stack.yml stack
       init,
       initOptions: {
         configSets: ['application'],
-        timeout: cdk.Duration.minutes(5),
+        timeout: cdk.Duration.minutes(20),
         includeUrl: true,
       },
     });
