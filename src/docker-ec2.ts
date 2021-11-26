@@ -85,8 +85,8 @@ export class DockerEc2 extends cdk.Construct {
 #!/bin/bash -xe
 yum update -y aws-cfn-bootstrap # good practice - always do this.
 yum update -y
-echo "8.8.8.8" >> /etc/resolv.conf
-echo "8.8.4.4" >> /etc/resolv.conf
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 /opt/aws/bin/cfn-init -v --stack ${stackId} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
 /opt/aws/bin/cfn-signal -e $? --stack ${stackId} --resource ${instanceResourceName} --region ${stackRegion}
 /opt/aws/bin/cfn-hup

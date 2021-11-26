@@ -23,6 +23,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik-public
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
     deploy:
       placement:
         constraints:
