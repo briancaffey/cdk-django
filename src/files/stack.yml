@@ -39,6 +39,28 @@ services:
         - "traefik.http.services.redirect-service.loadbalancer.server.port=80"
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
+  backend:
+    image: ${IMAGE_URI}
+    networks:
+      - traefik-public
+    command:
+      - "gunicorn"
+      - "-t"
+      - "1000"
+      - "-b"
+      - "0.0.0.0:8000"
+      - "--log-level"
+      - "debug"
+      - "backend.wsgi"
+    ports:
+      - "8000:8000"
+    env_file:
+      - DEBUG=False
+    depends_on:
+      - postgres
+      - redis
+
+
   web:
     image: nginx
     networks:

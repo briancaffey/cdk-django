@@ -10,7 +10,7 @@ const app = new cdk.App();
 const stack = new cdk.Stack(app, 'DockerEc2Stack', { env });
 
 const construct = new DockerEc2(stack, 'DockerEc2Sample', {
-  // imageDirectory: './test/django-step-by-step/backend',
+  imageDirectory: './test/django-step-by-step/backend',
   // webCommand: [
   //   './scripts/start_prod.sh',
   // ],

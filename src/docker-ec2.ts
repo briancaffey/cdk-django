@@ -3,6 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 // import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 // import * as iam from '@aws-cdk/aws-iam';
 // import * as s3 from '@aws-cdk/aws-s3';
+import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
 
@@ -11,7 +12,7 @@ export interface DockerEc2Props {
   /**
    * Path to the Dockerfile
    */
-  // readonly imageDirectory: string;
+  readonly imageDirectory: string;
 
   /**
    * The command used to run the API web service.
@@ -132,7 +133,11 @@ interval=5
     // TODO: replace this with props.s3BucketName
     // const bucketNamePlaceholder = 'bucket-name-placeholder';
 
-    // TODO: add these later
+    //TODO: add these later
+    const contentStringConfigApplication = `
+DEBUG=0
+DJANGO_SETTINGS_MODULE=config.settings.production
+    `;
     // DATABASE_NAME=${props.dbName ?? 'postgres'}
     // DATABASE_USER=${props.dbUser ?? 'postgres'}
     // DATABASE_PASSWORD=${props.dbPassword ?? 'postgres'}
@@ -141,8 +146,11 @@ interval=5
     // AWS_REGION=${stackRegion}
     // BUCKET_ACCESS_KEY=${s3UserKey.ref}
     // BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
-    //     const contentStringConfigApplication = `
-    // `;
+
+    // define a container image
+    const backendImage = new ecrAssets.DockerImageAsset(this, 'BackendImage', {
+      directory: props.imageDirectory,
+    });
 
     const contentStringInstallApplication = `
 #!/bin/bash
@@ -150,6 +158,7 @@ curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/f
 docker swarm init
 docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
+export IMAGE_URI=${backendImage.imageUri}
 docker stack deploy -c stack.yml stack
 `;
 
@@ -181,13 +190,13 @@ docker stack deploy -c stack.yml stack
       ec2.InitCommand.shellCommand('ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose', { key: 'compose_for_ec2_user3' }),
     ]));
 
-    // init.addConfig('config_application', new ec2.InitConfig([
-    //   ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigApplication, {
-    //     mode: '000400',
-    //     owner: 'root',
-    //     group: 'root',
-    //   }),
-    // ]));
+    init.addConfig('config_application', new ec2.InitConfig([
+      ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigApplication, {
+        mode: '000400',
+        owner: 'root',
+        group: 'root',
+      }),
+    ]));
 
     init.addConfig('install_application', new ec2.InitConfig([
       ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallApplication, {
@@ -240,6 +249,9 @@ docker stack deploy -c stack.yml stack
         includeUrl: true,
       },
     });
+
+    // allow the EC2 instance to access the ECR repository
+    backendImage.repository.grantPull(instance);
 
     const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
       domainName: props.zoneName,
