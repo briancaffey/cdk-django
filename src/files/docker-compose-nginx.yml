@@ -40,6 +40,7 @@ services:
     image: nginx
     networks:
       - main
+      - traefik-public
     deploy:
       labels:
         - "traefik.enable=true"
