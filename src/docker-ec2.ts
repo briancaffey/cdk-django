@@ -148,6 +148,7 @@ interval=5
 #!/bin/bash
 curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/files/docker-compose-nginx.yml -o stack.yml
 docker swarm init
+docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
 docker stack deploy -c stack.yml stack
 `;

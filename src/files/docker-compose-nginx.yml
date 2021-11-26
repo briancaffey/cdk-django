@@ -42,7 +42,6 @@ services:
   web:
     image: nginx
     networks:
-      - main
       - traefik-public
     deploy:
       labels:
@@ -53,10 +52,8 @@ services:
         - "traefik.http.services.nginx-web.loadbalancer.server.port=80"
 
 networks:
-  main:
-    driver: overlay
   traefik-public:
-    driver: overlay
+    external: true
 
 volumes:
   letsencrypt:
