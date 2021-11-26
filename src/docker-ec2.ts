@@ -3,6 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 // import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 // import * as iam from '@aws-cdk/aws-iam';
 // import * as s3 from '@aws-cdk/aws-s3';
+import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
 
 export interface DockerEc2Props {
@@ -145,6 +146,7 @@ interval=5
 #!/bin/bash
 curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/files/docker-compose-nginx.yml -o stack.yml
 docker swarm init
+export DOMAIN_NAME=${props.domainName}
 docker stack deploy -c stack.yml stack
 `;
 
@@ -218,7 +220,7 @@ docker stack deploy -c stack.yml stack
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS access');
 
     // const instance;
-    new ec2.Instance(this, instanceResourceName, {
+    const instance = new ec2.Instance(this, instanceResourceName, {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
       machineImage: new ec2.AmazonLinuxImage({
         generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
@@ -234,6 +236,16 @@ docker stack deploy -c stack.yml stack
         timeout: cdk.Duration.minutes(5),
         includeUrl: true,
       },
+    });
+
+    const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
+      domainName: props.zoneName,
+    });
+
+    new route53.ARecord(this, 'ARecordEc2Docker', {
+      zone: hostedZone,
+      recordName: props.domainName,
+      target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
     });
   }
 }

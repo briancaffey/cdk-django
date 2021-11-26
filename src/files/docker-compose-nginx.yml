@@ -1,15 +1,59 @@
 version: "3.4"
 
 services:
+
+  traefik:
+    image: traefik:v2.3.4
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencryptresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencryptresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencryptresolver.acme.email=your@email.com"
+      - "--certificatesresolvers.letsencryptresolver.acme.storage=/letsencrypt/acme.json"
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+        - "traefik.http.routers.http-catchall.entrypoints=web,websecure"
+        - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+        - "traefik.http.routers.http-catchall.service=redirect-service"
+        - "traefik.http.services.redirect-service.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
   web:
     image: nginx
     networks:
       - main
-    ports:
-      - "80:80"
-
-
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nginx-web.rule=Host(`${DOMAIN_NAME}`)"
+        - "traefik.http.routers.nginx-web.entrypoints=websecure"
+        - "traefik.http.routers.nginx-web.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.nginx-web.loadbalancer.server.port=80"
 
 networks:
   main:
     driver: overlay
+  traefik-public:
+    driver: overlay
+
+volumes:
+  letsencrypt:
+    name: letsencrypt
