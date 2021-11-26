@@ -8,8 +8,6 @@ services:
     ports:
       - "80:80"
 
-
-
 networks:
   main:
     driver: overlay

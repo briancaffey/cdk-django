@@ -72,22 +72,21 @@ export class DockerEc2 extends cdk.Construct {
     const stackRegion = stack.region;
     const stackId = stack.stackId;
 
+    console.log(stackName);
+    console.log(stackRegion);
+    console.log(stackId);
+
     const instanceResourceName = 'DockerEc2Instance';
 
-    const dockerEc2ConfigSetName = 'dockerEc2';
+    const dockerEc2ConfigSetName = 'application';
 
     const userDataScript = `
+#!/bin/bash -xe
 yum update -y aws-cfn-bootstrap # good practice - always do this.
 yum update -y
-pvcreate /dev/xvdf
-vgcreate vg0 /dev/xvdf
-lvcreate -l 100%FREE -n data vg0
-mkfs.ext4 /dev/vg0/data
-mkdir /var/data
-echo "/dev/mapper/vg0-data /var/data ext4 defaults 0 2" >> /etc/fstab
-mount -a
-/opt/aws/bin/cfn-init -v --stack ${stackName} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
-/opt/aws/bin/cfn-signal -e $? --stack ${stackName} --resource ${instanceResourceName} --region ${stackRegion}
+/opt/aws/bin/cfn-init -v --stack ${stackId} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
+/opt/aws/bin/cfn-signal -e $? --stack ${stackId} --resource ${instanceResourceName} --region ${stackRegion}
+/opt/aws/bin/cfn-hup
 `;
 
     const userData = ec2.UserData.custom(userDataScript);
@@ -96,15 +95,11 @@ mount -a
     const config = new ec2.InitConfig([]);
     const init = ec2.CloudFormationInit.fromConfig(config);
 
-    const handle = new ec2.InitServiceRestartHandle();
-    handle._addFile('/etc/cfn/cfn-hup.conf');
-    handle._addFile('/etc/cfn/hooks.d/cfn-auto-reloader.conf');
-
     const contentStringCfnAutoReloader = `
 [cfn-auto-reloader-hook]
 triggers=post.update
 path=Resources.${instanceResourceName}.Metadata.AWS::CloudFormation::Init
-action=/opt/aws/bin/cfn-init -v --stack ${stackName} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
+action=/opt/aws/bin/cfn-init -v --stack ${stackName} --resource ${instanceResourceName} --region ${stackRegion}
 `;
 
     const contentStringCfnHup = `
@@ -143,24 +138,24 @@ interval=5
     // AWS_REGION=${stackRegion}
     // BUCKET_ACCESS_KEY=${s3UserKey.ref}
     // BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
-    //     const contentStringConfigapplication = `
+    //     const contentStringConfigApplication = `
     // `;
 
-    const contentStringInstallapplication = `
+    const contentStringInstallApplication = `
 #!/bin/bash
-sudo curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-sysctl -w vm.max_map_count=262144
-# curl https://raw.githubusercontent.com/briancaffey/django-cdk/src/files/docker-compose-nginx.yml -o docker-compose.yml
-curl https://github.com/briancaffey/django-cdk/blob/docker-swarm/src/files/docker-compose-nginx.yml -o docker-compose.yml
-# docker-compose -p docker-ec2 up -d --force-recreate
+curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/files/docker-compose-nginx.yml -o stack.yml
 docker swarm init
-docker stack deploy -c docker-compose-nginx.yml stack
+docker stack deploy -c stack.yml stack
 `;
 
-    init.addConfig('configure-cfn', new ec2.InitConfig([
+    // init.addConfig('configure-cfn', new ec2.InitConfig([
 
+    //   ec2.InitService.enable('cfn-hup', { serviceRestartHandle: handle }),
+    // ]));
+
+    init.addConfig('install_docker', new ec2.InitConfig([
+      ec2.InitPackage.yum('docker'),
+      ec2.InitService.enable('docker'),
       ec2.InitFile.fromString('/etc/cfn/hooks.d/cfn-auto-reloader.conf', contentStringCfnAutoReloader, {
         mode: '000400',
         owner: 'root',
@@ -172,18 +167,17 @@ docker stack deploy -c docker-compose-nginx.yml stack
         owner: 'root',
         group: 'root',
       }),
-
-      ec2.InitService.enable('cfn-hup', { serviceRestartHandle: handle }),
+      ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
     ]));
 
-    init.addConfig('install_docker', new ec2.InitConfig([
-      ec2.InitPackage.yum('docker'),
-      ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
-      ec2.InitService.enable('docker'),
+    init.addConfig('install_compose', new ec2.InitConfig([
+      ec2.InitCommand.shellCommand('curl -L https://github.com/docker/compose/releases/download/1.20.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose', { key: 'compose_for_ec2_user1' }),
+      ec2.InitCommand.shellCommand('chmod +x /usr/local/bin/docker-compose', { key: 'compose_for_ec2_user2' }),
+      ec2.InitCommand.shellCommand('ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose', { key: 'compose_for_ec2_user3' }),
     ]));
 
     // init.addConfig('config_application', new ec2.InitConfig([
-    //   ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigapplication, {
+    //   ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigApplication, {
     //     mode: '000400',
     //     owner: 'root',
     //     group: 'root',
@@ -191,34 +185,55 @@ docker stack deploy -c docker-compose-nginx.yml stack
     // ]));
 
     init.addConfig('install_application', new ec2.InitConfig([
-      ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallapplication, {
+      ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallApplication, {
         mode: '000400',
         owner: 'root',
         group: 'root',
       }),
       ec2.InitCommand.shellCommand('sudo sh application.sh', {
         cwd: '/home/ec2-user/application',
-        key: 'run_rp',
+        key: 'run_docker_compose',
       }),
     ]));
 
     init.addConfigSet('application', [
-      'configure-cfn',
       'install_docker',
-      // 'config_application',
+      'install_compose',
       'install_application',
     ]);
 
+    console.log(userData);
+    console.log(init);
+
+    const ec2SecurityGroup = new ec2.SecurityGroup(this, 'SecurityGroup', {
+      vpc: this.vpc,
+      description: 'Allow SSH and HTTP access',
+      securityGroupName: 'DockerEc2SecurityGroup',
+      allowAllOutbound: true,
+    });
+
+    // allow SSH access to the ec2SecurityGroup
+    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow SSH access');
+    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP access');
+    ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS access');
+
     // const instance;
-    new ec2.Instance(this, 'Instance', {
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+    new ec2.Instance(this, instanceResourceName, {
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
       machineImage: new ec2.AmazonLinuxImage({
         generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
       }),
       vpc: this.vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      keyName: props.keyName,
+      securityGroup: ec2SecurityGroup,
       userData,
       init,
+      initOptions: {
+        configSets: ['application'],
+        timeout: cdk.Duration.minutes(5),
+        includeUrl: true,
+      },
     });
   }
 }
