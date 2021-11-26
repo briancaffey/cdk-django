@@ -2,6 +2,22 @@ version: "3.4"
 
 services:
 
+  postgres:
+    image: postgres:13.1
+    networks:
+      - main
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redisdata:/data
+    networks:
+      - main
+
   traefik:
     image: traefik:v2.3.4
     ports:
@@ -24,6 +40,7 @@ services:
     networks:
       - traefik-public
     dns:
+      # this may not be needed
       - "8.8.8.8"
       - "8.8.4.4"
     deploy:
@@ -40,9 +57,6 @@ services:
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
   backend:
-    image: ${IMAGE_URI}
-    networks:
-      - traefik-public
     command:
       - "gunicorn"
       - "-t"
@@ -52,19 +66,34 @@ services:
       - "--log-level"
       - "debug"
       - "backend.wsgi"
+    networks:
+      - main
     ports:
+      # TODO: remove this port mapping, it is not needed
       - "8000:8000"
     env_file:
-      - DEBUG=False
+      - .env
     depends_on:
       - postgres
       - redis
 
+  celery:
+    <<: *backend
+    command:
+      - "celery"
+      - "--app=backend.celery_app:app"
+      - "worker"
+      - "-Q"
+      - "default"
+      - "--concurrency=1"
+      - "--loglevel=INFO"
+    ports: []
 
   web:
     image: nginx
     networks:
       - traefik-public
+      - main
     deploy:
       labels:
         - "traefik.enable=true"
@@ -76,7 +105,10 @@ services:
 networks:
   traefik-public:
     external: true
+  main:
+    driver: overlay
 
 volumes:
   letsencrypt:
-    name: letsencrypt
+  pgdata:
+  redisdata:

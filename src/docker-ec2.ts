@@ -136,8 +136,9 @@ interval=5
     //TODO: add these later
     const contentStringConfigApplication = `
 DEBUG=0
-DJANGO_SETTINGS_MODULE=config.settings.production
-    `;
+POSTGRES_SERVICE_HOST=postgres
+DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
+`;
     // DATABASE_NAME=${props.dbName ?? 'postgres'}
     // DATABASE_USER=${props.dbUser ?? 'postgres'}
     // DATABASE_PASSWORD=${props.dbPassword ?? 'postgres'}
