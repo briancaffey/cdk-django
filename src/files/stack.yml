@@ -5,7 +5,7 @@ services:
   postgres:
     image: postgres:13.1
     networks:
-      - main
+      - traefik-public
     env_file:
       - .env
     volumes:
@@ -16,7 +16,7 @@ services:
     volumes:
       - redisdata:/data
     networks:
-      - main
+      - traefik-public
 
   traefik:
     image: traefik:v2.3.4
@@ -68,7 +68,7 @@ services:
       - "debug"
       - "backend.wsgi"
     networks:
-      - main
+      - traefik-public
     ports:
       # TODO: remove this port mapping, it is not needed
       - "8000:8000"
@@ -94,7 +94,6 @@ services:
     image: nginx
     networks:
       - traefik-public
-      - main
     deploy:
       labels:
         - "traefik.enable=true"

@@ -159,6 +159,7 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
 
     const contentStringInstallApplication = `
 #!/bin/bash
+# download the stack.yml file
 curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/files/stack.yml -o stack.yml
 docker swarm init
 docker network create --driver=overlay traefik-public
