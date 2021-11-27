@@ -94,6 +94,8 @@ services:
     image: ${FRONTEND_IMAGE_URI}
     networks:
       - traefik-public
+    ports:
+      - "8080:80"
     deploy:
       labels:
         - "traefik.enable=true"
