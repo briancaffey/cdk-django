@@ -15,9 +15,14 @@ export interface DockerEc2Props {
   readonly imageDirectory: string;
 
   /**
-   * The command used to run the API web service.
+   * Frontend Image directory (nginx, quasar-app)
    */
-  // readonly webCommand?: string[];
+  readonly frontendImageDirectory: string;
+
+  /**
+   * Frontend Image Dockerfile
+   */
+  readonly frontendImageDockerfile: string;
 
   /*
    * Route 53 Zone Name, for example my-zone.com
@@ -157,6 +162,14 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
       directory: props.imageDirectory,
     });
 
+    const frontendImage = new ecrAssets.DockerImageAsset(this, 'FrontendImage', {
+      directory: props.frontendImageDirectory,
+      file: props.frontendImageDockerfile,
+      buildArgs: {
+        BACKEND_API_URL: `https://${props.domainName}`,
+      },
+    });
+
     const contentStringInstallApplication = `
 #!/bin/bash
 # download the stack.yml file
@@ -165,6 +178,7 @@ docker swarm init
 docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
 export IMAGE_URI=${backendImage.imageUri}
+export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
 docker stack deploy --with-registry-auth -c stack.yml stack
@@ -254,7 +268,7 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       init,
       initOptions: {
         configSets: ['application'],
-        timeout: cdk.Duration.minutes(20),
+        timeout: cdk.Duration.minutes(10),
         includeUrl: true,
       },
     });
@@ -264,8 +278,9 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'),
     );
 
-    // allow the EC2 instance to access the ECR repository
+    // allow the EC2 instance to access the ECR repositories (TODO: figure out if this is needed)
     backendImage.repository.grantPull(instance.role);
+    frontendImage.repository.grantPull(instance.role);
 
     const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
       domainName: props.zoneName,
@@ -275,6 +290,18 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       zone: hostedZone,
       recordName: props.domainName,
       target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
+    });
+
+    // Output values
+
+    // Use this command to SSH to the machine
+    new cdk.CfnOutput(this, 'Ec2InstanceSshCommand', {
+      value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName}`,
+    });
+
+    // site url
+    new cdk.CfnOutput(this, 'SiteUrl', {
+      value: `https://${props.domainName}`,
     });
   }
 }

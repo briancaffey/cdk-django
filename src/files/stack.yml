@@ -91,7 +91,7 @@ services:
     ports: []
 
   web:
-    image: nginx
+    image: ${FRONTEND_IMAGE_URI}
     networks:
       - traefik-public
     deploy:
