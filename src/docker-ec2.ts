@@ -1,9 +1,9 @@
 // import { readFileSync } from 'fs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 // import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
-// import * as iam from '@aws-cdk/aws-iam';
-// import * as s3 from '@aws-cdk/aws-s3';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
+import * as iam from '@aws-cdk/aws-iam';
+// import * as s3 from '@aws-cdk/aws-s3';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
 
@@ -73,10 +73,12 @@ export class DockerEc2 extends cdk.Construct {
     const stackName = stack.stackName;
     const stackRegion = stack.region;
     const stackId = stack.stackId;
+    const accountId = cdk.Stack.of(this).account;
 
     console.log(stackName);
     console.log(stackRegion);
     console.log(stackId);
+    console.log(accountId);
 
     const instanceResourceName = 'DockerEc2Instance';
 
@@ -137,6 +139,8 @@ interval=5
     const contentStringConfigApplication = `
 DEBUG=0
 POSTGRES_SERVICE_HOST=postgres
+POSTGRES_PASSWORD=postgres
+REDIS_SERVICE_HOST=redis
 DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
 `;
     // DATABASE_NAME=${props.dbName ?? 'postgres'}
@@ -160,7 +164,9 @@ docker swarm init
 docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
 export IMAGE_URI=${backendImage.imageUri}
-docker stack deploy -c stack.yml stack
+# login to ecr
+aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
+docker stack deploy --with-registry-auth -c stack.yml stack
 `;
 
     // init.addConfig('configure-cfn', new ec2.InitConfig([
@@ -252,8 +258,13 @@ docker stack deploy -c stack.yml stack
       },
     });
 
+    // add AmazonEC2ContainerRegistryReadOnly role to the instance
+    instance.role.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'),
+    );
+
     // allow the EC2 instance to access the ECR repository
-    backendImage.repository.grantPull(instance);
+    backendImage.repository.grantPull(instance.role);
 
     const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
       domainName: props.zoneName,
