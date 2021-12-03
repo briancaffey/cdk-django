@@ -1,4 +1,5 @@
 // import { readFileSync } from 'fs';
+import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
 // import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
@@ -95,6 +96,12 @@ yum update -y aws-cfn-bootstrap # good practice - always do this.
 yum update -y
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+# mount the EBS volume
+sudo mkdir /data
+sudo mkfs -t xfs /dev/sda1
+sudo mount /dev/sda1 /data
+
 /opt/aws/bin/cfn-init -v --stack ${stackId} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
 /opt/aws/bin/cfn-signal -e $? --stack ${stackId} --resource ${instanceResourceName} --region ${stackRegion}
 /opt/aws/bin/cfn-hup
@@ -140,7 +147,13 @@ interval=5
     // TODO: replace this with props.s3BucketName
     // const bucketNamePlaceholder = 'bucket-name-placeholder';
 
-    //TODO: add these later
+    /**
+     * Application environment variables
+     *
+     * All of these environment variables will be made accessible to all of the containers in the stack.yml file
+     *
+     * TODO: append extra environment vars from props.environmentVariables
+     */
     const contentStringConfigApplication = `
 DEBUG=0
 POSTGRES_SERVICE_HOST=postgres
@@ -157,11 +170,21 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
     // BUCKET_ACCESS_KEY=${s3UserKey.ref}
     // BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
 
-    // define a container image
+    /**
+     * This is the backend container that will be used to run the backend Django application
+     */
     const backendImage = new ecrAssets.DockerImageAsset(this, 'BackendImage', {
       directory: props.imageDirectory,
     });
 
+    /**
+     * Frontend Image
+     *
+     * This is the image that will be used to run the frontend (nginx with Quasar SPA app)
+     *
+     * The image needs to be built using the context of the django-step-by-step project root directory
+     * The Dockerfile is located in the nginx directory, so this must also be specified
+     */
     const frontendImage = new ecrAssets.DockerImageAsset(this, 'FrontendImage', {
       directory: props.frontendImageDirectory,
       file: props.frontendImageDockerfile,
@@ -170,6 +193,12 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
       },
     });
 
+    /**
+     * This script installs the docker stack into the docker swarm cluster using `docker stack deploy`
+     *
+     * Container image URIs are passed in as environment variables and the EC2 instance has permissions to pull them.
+     * The `get-login-password` command is used to authenticate to the ECR repository.
+     */
     const contentStringInstallApplication = `
 #!/bin/bash
 # download the stack.yml file
@@ -182,6 +211,20 @@ export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
 docker stack deploy --with-registry-auth -c stack.yml stack
+
+# wait until migrations run
+docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
+while [ $? -ne 0 ]; do
+    docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
+    sleep 10
+done
+
+# wait until collectstatic runs
+docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
+while [ $? -ne 0 ]; do
+    docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
+    sleep 10
+done
 `;
 
     // init.addConfig('configure-cfn', new ec2.InitConfig([
@@ -255,7 +298,10 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS access');
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'For debugging');
 
-    // const instance;
+    // const sda1Volume = new ec2.Volume(this, 'SDA1Volume', {
+    //   availabilityZone: this.vpc.availabilityZones[0],
+    // });
+    const sda1Volume = autoscaling.BlockDeviceVolume.ebs(20, { deleteOnTermination: false });
     const instance = new ec2.Instance(this, instanceResourceName, {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
       machineImage: new ec2.AmazonLinuxImage({
@@ -272,6 +318,12 @@ docker stack deploy --with-registry-auth -c stack.yml stack
         timeout: cdk.Duration.minutes(10),
         includeUrl: true,
       },
+      blockDevices: [
+        {
+          deviceName: '/dev/sda1',
+          volume: sda1Volume,
+        },
+      ],
     });
 
     // add AmazonEC2ContainerRegistryReadOnly role to the instance
@@ -287,6 +339,9 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       domainName: props.zoneName,
     });
 
+    /**
+     * This A Record points the `app.domain.com` Route53 record to the pubic IP of the EC2 instance.
+     */
     new route53.ARecord(this, 'ARecordEc2Docker', {
       zone: hostedZone,
       recordName: props.domainName,

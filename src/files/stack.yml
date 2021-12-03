@@ -35,7 +35,7 @@ services:
       - "--certificatesresolvers.letsencryptresolver.acme.email=your@email.com"
       - "--certificatesresolvers.letsencryptresolver.acme.storage=/letsencrypt/acme.json"
     volumes:
-      - letsencrypt:/letsencrypt
+      - /data:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - traefik-public
