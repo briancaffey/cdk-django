@@ -1,0 +1,116 @@
+version: "3.4"
+
+services:
+
+  postgres:
+    image: postgres:13.1
+    networks:
+      - traefik-public
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redisdata:/data
+    networks:
+      - traefik-public
+
+  traefik:
+    image: traefik:v2.3.4
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencryptresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencryptresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencryptresolver.acme.email=your@email.com"
+      - "--certificatesresolvers.letsencryptresolver.acme.storage=/letsencrypt/acme.json"
+    volumes:
+      - /data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik-public
+    dns:
+      # this may not be needed
+      - "8.8.8.8"
+      - "8.8.4.4"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+        - "traefik.http.routers.http-catchall.entrypoints=web,websecure"
+        - "traefik.http.routers.http-catchall.middlewares=redirect-to-https@docker"
+        - "traefik.http.routers.http-catchall.service=redirect-service"
+        - "traefik.http.services.redirect-service.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+  backend: &backend
+    image: ${IMAGE_URI}
+    command:
+      - "gunicorn"
+      - "-t"
+      - "1000"
+      - "-b"
+      - "0.0.0.0:8000"
+      - "--log-level"
+      - "debug"
+      - "backend.wsgi"
+    networks:
+      - traefik-public
+    ports:
+      # TODO: remove this port mapping, it is not needed
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
+  celery:
+    <<: *backend
+    command:
+      - "celery"
+      - "--app=backend.celery_app:app"
+      - "worker"
+      - "-Q"
+      - "default"
+      - "--concurrency=1"
+      - "--loglevel=INFO"
+    ports: []
+
+  web:
+    image: ${FRONTEND_IMAGE_URI}
+    networks:
+      - traefik-public
+    ports:
+      - "8080:80"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.nginx-web.rule=Host(`${DOMAIN_NAME}`)"
+        - "traefik.http.routers.nginx-web.entrypoints=websecure"
+        - "traefik.http.routers.nginx-web.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.nginx-web.loadbalancer.server.port=80"
+
+networks:
+  traefik-public:
+    external: true
+  main:
+    driver: overlay
+
+volumes:
+  letsencrypt:
+  pgdata:
+  redisdata:
