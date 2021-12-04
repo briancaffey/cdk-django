@@ -6,6 +6,8 @@ Name|Description
 ----|-----------
 [DjangoEcs](#django-cdk-djangoecs)|Configures a Django project using ECS Fargate.
 [DjangoEks](#django-cdk-djangoeks)|Configures a Django project using EKS.
+[DjangoVue](#django-cdk-djangovue)|Construct for projects using Django backend and static site for frontend.
+[DockerEc2](#django-cdk-dockerec2)|*No description*
 [S3BucketResources](#django-cdk-s3bucketresources)|Construct that configures an S3 bucket.
 [StaticSite](#django-cdk-staticsite)|Construct for a static website hosted with S3 and CloudFront.
 
@@ -16,6 +18,8 @@ Name|Description
 ----|-----------
 [DjangoEcsProps](#django-cdk-djangoecsprops)|Options to configure a Django ECS project.
 [DjangoEksProps](#django-cdk-djangoeksprops)|Options to configure a Django EKS project.
+[DjangoVueProps](#django-cdk-djangovueprops)|Django and Vue application stack props.
+[DockerEc2Props](#django-cdk-dockerec2props)|*No description*
 [S3BucketProps](#django-cdk-s3bucketprops)|Properties for the S3 bucket.
 [StaticSiteProps](#django-cdk-staticsiteprops)|*No description*
 
@@ -44,6 +48,8 @@ new DjangoEcs(scope: Construct, id: string, props: DjangoEcsProps)
   * **apiDomainName** (<code>string</code>)  Domain name for backend (including sub-domain). __*Optional*__
   * **bucketName** (<code>string</code>)  Name of existing bucket to use for media files. __*Optional*__
   * **certificateArn** (<code>string</code>)  Certificate ARN. __*Optional*__
+  * **environmentVariables** (<code>Map<string, string></code>)  Extra Environment Variables to set in the backend container. __*Optional*__
+  * **frontendUrl** (<code>string</code>)  Frontend URL. __*Optional*__
   * **useCeleryBeat** (<code>boolean</code>)  Used to enable the celery beat service. __*Default*__: false
   * **useEcsExec** (<code>boolean</code>)  This allows you to exec into the backend API container using ECS Exec. __*Default*__: false
   * **vpc** (<code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code>)  The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets. __*Optional*__
@@ -57,8 +63,10 @@ new DjangoEcs(scope: Construct, id: string, props: DjangoEcsProps)
 
 Name | Type | Description 
 -----|------|-------------
+**apiDomainName** | <code>string</code> | <span></span>
 **cluster** | <code>[Cluster](#aws-cdk-aws-ecs-cluster)</code> | <span></span>
 **image** | <code>[ContainerImage](#aws-cdk-aws-ecs-containerimage)</code> | <span></span>
+**loadBalancer** | <code>[ApplicationLoadBalancer](#aws-cdk-aws-elasticloadbalancingv2-applicationloadbalancer)</code> | <span></span>
 **staticFileBucket** | <code>[Bucket](#aws-cdk-aws-s3-bucket)</code> | <span></span>
 **vpc** | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | <span></span>
 
@@ -100,6 +108,69 @@ Name | Type | Description
 -----|------|-------------
 **cluster** | <code>[Cluster](#aws-cdk-aws-eks-cluster)</code> | <span></span>
 **staticFileBucket** | <code>[Bucket](#aws-cdk-aws-s3-bucket)</code> | <span></span>
+**vpc** | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | <span></span>
+
+
+
+## class DjangoVue  <a id="django-cdk-djangovue"></a>
+
+Construct for projects using Django backend and static site for frontend.
+
+__Implements__: [IConstruct](#constructs-iconstruct), [IConstruct](#aws-cdk-core-iconstruct), [IConstruct](#constructs-iconstruct), [IDependable](#aws-cdk-core-idependable)
+__Extends__: [Construct](#aws-cdk-core-construct)
+
+### Initializer
+
+
+
+
+```ts
+new DjangoVue(scope: Construct, id: string, props: DjangoVueProps)
+```
+
+* **scope** (<code>[Construct](#aws-cdk-core-construct)</code>)  *No description*
+* **id** (<code>string</code>)  *No description*
+* **props** (<code>[DjangoVueProps](#django-cdk-djangovueprops)</code>)  *No description*
+  * **domainName** (<code>string</code>)  *No description* 
+  * **zoneName** (<code>string</code>)  *No description* 
+  * **certificateArn** (<code>string</code>)  Certificate ARN for looking up the Certificate to use for CloudFront and ALB. __*Optional*__
+
+
+
+
+## class DockerEc2  <a id="django-cdk-dockerec2"></a>
+
+
+
+__Implements__: [IConstruct](#constructs-iconstruct), [IConstruct](#aws-cdk-core-iconstruct), [IConstruct](#constructs-iconstruct), [IDependable](#aws-cdk-core-idependable)
+__Extends__: [Construct](#aws-cdk-core-construct)
+
+### Initializer
+
+
+
+
+```ts
+new DockerEc2(scope: Construct, id: string, props: DockerEc2Props)
+```
+
+* **scope** (<code>[Construct](#aws-cdk-core-construct)</code>)  *No description*
+* **id** (<code>string</code>)  *No description*
+* **props** (<code>[DockerEc2Props](#django-cdk-dockerec2props)</code>)  *No description*
+  * **domainName** (<code>string</code>)  The domain name to use, such as example.my-zone.com. 
+  * **frontendImageDirectory** (<code>string</code>)  Frontend Image directory (nginx, quasar-app). 
+  * **frontendImageDockerfile** (<code>string</code>)  Frontend Image Dockerfile. 
+  * **imageDirectory** (<code>string</code>)  Path to the Dockerfile. 
+  * **keyName** (<code>string</code>)  The name of the key pair to use for SSH access. 
+  * **zoneName** (<code>string</code>)  *No description* 
+
+
+
+### Properties
+
+
+Name | Type | Description 
+-----|------|-------------
 **vpc** | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | <span></span>
 
 
@@ -163,7 +234,9 @@ new StaticSite(scope: Construct, id: string, props: StaticSiteProps)
   * **frontendDomainName** (<code>string</code>)  Domain name for static site (including sub-domain). 
   * **pathToDist** (<code>string</code>)  Path to static site distribution directory. 
   * **zoneName** (<code>string</code>)  The zoneName of the hosted zone. 
+  * **assetsBucket** (<code>[Bucket](#aws-cdk-aws-s3-bucket)</code>)  Assets bucket. __*Optional*__
   * **certificateArn** (<code>string</code>)  Certificate ARN. __*Optional*__
+  * **loadBalancer** (<code>[ApplicationLoadBalancer](#aws-cdk-aws-elasticloadbalancingv2-applicationloadbalancer)</code>)  Load Balancer. __*Optional*__
 
 
 
@@ -181,6 +254,8 @@ Name | Type | Description
 **apiDomainName**? | <code>string</code> | Domain name for backend (including sub-domain).<br/>__*Optional*__
 **bucketName**? | <code>string</code> | Name of existing bucket to use for media files.<br/>__*Optional*__
 **certificateArn**? | <code>string</code> | Certificate ARN.<br/>__*Optional*__
+**environmentVariables**? | <code>Map<string, string></code> | Extra Environment Variables to set in the backend container.<br/>__*Optional*__
+**frontendUrl**? | <code>string</code> | Frontend URL.<br/>__*Optional*__
 **useCeleryBeat**? | <code>boolean</code> | Used to enable the celery beat service.<br/>__*Default*__: false
 **useEcsExec**? | <code>boolean</code> | This allows you to exec into the backend API container using ECS Exec.<br/>__*Default*__: false
 **vpc**? | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets.<br/>__*Optional*__
@@ -205,6 +280,39 @@ Name | Type | Description
 **useCeleryBeat**? | <code>boolean</code> | Used to enable the celery beat service.<br/>__*Default*__: false
 **vpc**? | <code>[IVpc](#aws-cdk-aws-ec2-ivpc)</code> | The VPC to use for the application. It must contain PUBLIC, PRIVATE and ISOLATED subnets.<br/>__*Optional*__
 **webCommand**? | <code>Array<string></code> | The command used to run the API web service.<br/>__*Optional*__
+
+
+
+## struct DjangoVueProps  <a id="django-cdk-djangovueprops"></a>
+
+
+Django and Vue application stack props.
+
+
+
+Name | Type | Description 
+-----|------|-------------
+**domainName** | <code>string</code> | <span></span>
+**zoneName** | <code>string</code> | <span></span>
+**certificateArn**? | <code>string</code> | Certificate ARN for looking up the Certificate to use for CloudFront and ALB.<br/>__*Optional*__
+
+
+
+## struct DockerEc2Props  <a id="django-cdk-dockerec2props"></a>
+
+
+
+
+
+
+Name | Type | Description 
+-----|------|-------------
+**domainName** | <code>string</code> | The domain name to use, such as example.my-zone.com.
+**frontendImageDirectory** | <code>string</code> | Frontend Image directory (nginx, quasar-app).
+**frontendImageDockerfile** | <code>string</code> | Frontend Image Dockerfile.
+**imageDirectory** | <code>string</code> | Path to the Dockerfile.
+**keyName** | <code>string</code> | The name of the key pair to use for SSH access.
+**zoneName** | <code>string</code> | <span></span>
 
 
 
@@ -233,7 +341,9 @@ Name | Type | Description
 **frontendDomainName** | <code>string</code> | Domain name for static site (including sub-domain).
 **pathToDist** | <code>string</code> | Path to static site distribution directory.
 **zoneName** | <code>string</code> | The zoneName of the hosted zone.
+**assetsBucket**? | <code>[Bucket](#aws-cdk-aws-s3-bucket)</code> | Assets bucket.<br/>__*Optional*__
 **certificateArn**? | <code>string</code> | Certificate ARN.<br/>__*Optional*__
+**loadBalancer**? | <code>[ApplicationLoadBalancer](#aws-cdk-aws-elasticloadbalancingv2-applicationloadbalancer)</code> | Load Balancer.<br/>__*Optional*__
 
 
 
