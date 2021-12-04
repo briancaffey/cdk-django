@@ -1,10 +1,9 @@
 // import { readFileSync } from 'fs';
-import * as autoscaling from '@aws-cdk/aws-autoscaling';
+// import * as s3 from '@aws-cdk/aws-s3';
+// import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
-// import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as iam from '@aws-cdk/aws-iam';
-// import * as s3 from '@aws-cdk/aws-s3';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
 
@@ -35,10 +34,9 @@ export interface DockerEc2Props {
    */
   readonly domainName: string;
 
-  // readonly dbName?: string;
-  // readonly dbUser?: string;
-  // readonly dbPassword?: string;
-  // readonly s3BucketName: string;
+  /**
+   * The name of the key pair to use for SSH access
+   */
   readonly keyName: string;
   /**
    * Extra Environment Variables to set in the backend container
@@ -63,16 +61,8 @@ export class DockerEc2 extends cdk.Construct {
           name: 'ingress',
           subnetType: ec2.SubnetType.PUBLIC,
         },
-        // {
-        //   cidrMask: 24,
-        //   name: 'application',
-        //   subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,
-        // },
       ],
     });
-
-    console.log(props);
-
 
     const stack = cdk.Stack.of(scope);
 
@@ -80,11 +70,6 @@ export class DockerEc2 extends cdk.Construct {
     const stackRegion = stack.region;
     const stackId = stack.stackId;
     const accountId = cdk.Stack.of(this).account;
-
-    console.log(stackName);
-    console.log(stackRegion);
-    console.log(stackId);
-    console.log(accountId);
 
     const instanceResourceName = 'DockerEc2Instance';
 
@@ -97,10 +82,14 @@ yum update -y
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
-# mount the EBS volume
 sudo mkdir /data
-sudo mkfs -t xfs /dev/sda1
-sudo mount /dev/sda1 /data
+
+echo "mounting EBS volume......."
+# create an entry about volume in /etc/fstab
+echo "/dev/sda1    /data   xfs    defaults    0 0" >> /etc/fstab
+# apply the changes to the fstab file (without rebooting)
+sudo mount -av
+
 
 /opt/aws/bin/cfn-init -v --stack ${stackId} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
 /opt/aws/bin/cfn-signal -e $? --stack ${stackId} --resource ${instanceResourceName} --region ${stackRegion}
@@ -128,25 +117,6 @@ verbose=true
 interval=5
 `;
 
-    // const dockerEc2S3Role = new iam.Role(scope, 'DockerEc2S3Role', {
-    //   assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
-    // });
-
-    // const s3User = new iam.User(scope, 'S3User');
-    // const s3UserKey = new iam.CfnAccessKey(scope, 'S3UserKey', {
-    //   userName: s3User.userName,
-    // });
-
-
-    // const s3DockerEc2Policy = new iam.Policy(scope, 'S3applicationPolicy', {
-    //   policyName: 'S3applicationPolicy',
-    // });
-
-    // s3DockerEc2Policy.attachToRole(dockerEc2S3Role);
-
-    // TODO: replace this with props.s3BucketName
-    // const bucketNamePlaceholder = 'bucket-name-placeholder';
-
     /**
      * Application environment variables
      *
@@ -161,14 +131,9 @@ POSTGRES_PASSWORD=postgres
 REDIS_SERVICE_HOST=redis
 DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
 `;
-    // DATABASE_NAME=${props.dbName ?? 'postgres'}
-    // DATABASE_USER=${props.dbUser ?? 'postgres'}
-    // DATABASE_PASSWORD=${props.dbPassword ?? 'postgres'}
     // BUCKET_URL=https://${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
     // SHORT_BUCKET_HOST=${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
     // AWS_REGION=${stackRegion}
-    // BUCKET_ACCESS_KEY=${s3UserKey.ref}
-    // BUCKET_SECRET_KEY=${s3UserKey.attrSecretAccessKey}
 
     /**
      * This is the backend container that will be used to run the backend Django application
@@ -212,47 +177,45 @@ export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
 docker stack deploy --with-registry-auth -c stack.yml stack
 
+# TODO: run migrations and collectstatic here once the services are up and running
 # wait until migrations run
-docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
-while [ $? -ne 0 ]; do
-    docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
-    sleep 10
-done
+#docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
+#while [ $? -ne 0 ]; do
+#    sleep 10
+#    echo "waiting for migrations to run"
+#    echo "docker ps....."
+#    docker ps
+#    echo "docker ps..."
+#    docker ps -q -f name="backend"
+#    docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
+#done
 
 # wait until collectstatic runs
-docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
-while [ $? -ne 0 ]; do
-    docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
-    sleep 10
-done
+#docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
+#while [ $? -ne 0 ]; do
+#    sleep 10
+#    echo "waiting for collectstatic to run"
+#    docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
+#done
 `;
 
-    // init.addConfig('configure-cfn', new ec2.InitConfig([
-
-    //   ec2.InitService.enable('cfn-hup', { serviceRestartHandle: handle }),
-    // ]));
-
-    init.addConfig('install_docker', new ec2.InitConfig([
-      ec2.InitPackage.yum('docker'),
-      ec2.InitService.enable('docker'),
+    init.addConfig('configure-cfn', new ec2.InitConfig([
       ec2.InitFile.fromString('/etc/cfn/hooks.d/cfn-auto-reloader.conf', contentStringCfnAutoReloader, {
         mode: '000400',
         owner: 'root',
         group: 'root',
       }),
-
       ec2.InitFile.fromString('/etc/cfn/cfn-hup.conf', contentStringCfnHup, {
         mode: '000400',
         owner: 'root',
         group: 'root',
       }),
-      ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
     ]));
 
-    init.addConfig('install_compose', new ec2.InitConfig([
-      ec2.InitCommand.shellCommand('curl -L https://github.com/docker/compose/releases/download/1.20.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose', { key: 'compose_for_ec2_user1' }),
-      ec2.InitCommand.shellCommand('chmod +x /usr/local/bin/docker-compose', { key: 'compose_for_ec2_user2' }),
-      ec2.InitCommand.shellCommand('ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose', { key: 'compose_for_ec2_user3' }),
+    init.addConfig('install_docker', new ec2.InitConfig([
+      ec2.InitPackage.yum('docker'),
+      ec2.InitService.enable('docker'),
+      ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
     ]));
 
     init.addConfig('config_application', new ec2.InitConfig([
@@ -276,14 +239,11 @@ done
     ]));
 
     init.addConfigSet('application', [
+      'configure-cfn',
       'install_docker',
-      'install_compose',
       'config_application',
       'install_application',
     ]);
-
-    console.log(userData);
-    console.log(init);
 
     const ec2SecurityGroup = new ec2.SecurityGroup(this, 'SecurityGroup', {
       vpc: this.vpc,
@@ -298,10 +258,15 @@ done
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS access');
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'For debugging');
 
-    // const sda1Volume = new ec2.Volume(this, 'SDA1Volume', {
-    //   availabilityZone: this.vpc.availabilityZones[0],
-    // });
-    const sda1Volume = autoscaling.BlockDeviceVolume.ebs(20, { deleteOnTermination: false });
+    /**
+     * EBS to to used for storing docker volume data on /data
+     *
+     * This is currently being replaced on each stack update. How can I make this persistent?
+     */
+    const blockDeviceVolume = ec2.BlockDeviceVolume.ebs(20, {
+      deleteOnTermination: false,
+    });
+
     const instance = new ec2.Instance(this, instanceResourceName, {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
       machineImage: new ec2.AmazonLinuxImage({
@@ -321,7 +286,7 @@ done
       blockDevices: [
         {
           deviceName: '/dev/sda1',
-          volume: sda1Volume,
+          volume: blockDeviceVolume,
         },
       ],
     });
