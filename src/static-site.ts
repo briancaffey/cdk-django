@@ -232,15 +232,15 @@ export class StaticSite extends cdk.Construct {
     if (props.loadBalancer ?? false) {
       const albOrigin = new origins.LoadBalancerV2Origin(props.loadBalancer!);
       const pathPatterns = ['api', 'graphql', 'admin'];
-      pathPatterns.forEach(path => {
-        distribution.addBehavior(`/${path}/*`, albOrigin, {
-          originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, `${path}-origin-request-policy`, {
+      pathPatterns.forEach(pathPattern => {
+        distribution.addBehavior(`/${pathPattern}/*`, albOrigin, {
+          originRequestPolicy: new cloudfront.OriginRequestPolicy(scope, `${pathPattern}-origin-request-policy`, {
             comment: 'API origin request policy',
             cookieBehavior: OriginRequestCookieBehavior.all(),
             headerBehavior: OriginRequestHeaderBehavior.all(),
             queryStringBehavior: OriginRequestQueryStringBehavior.all(),
           }),
-          cachePolicy: new cloudfront.CachePolicy(scope, `${path}-origin-cache-policy`, {
+          cachePolicy: new cloudfront.CachePolicy(scope, `${pathPattern}-origin-cache-policy`, {
             minTtl: cdk.Duration.seconds(0),
             maxTtl: cdk.Duration.seconds(0),
             defaultTtl: cdk.Duration.seconds(0),
