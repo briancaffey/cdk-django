@@ -137,7 +137,7 @@ services:
       labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.rule=Host(`${PORTAINER_DOMAIN_NAME}`)" #Change me
-      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.routers.portainer.service=portainer"
