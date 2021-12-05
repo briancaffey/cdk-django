@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.9"
 
 services:
 
@@ -6,10 +6,12 @@ services:
     image: postgres:13.1
     networks:
       - main
-    env_file:
-      - .env
+    environment:
+      POSTGRES_PASSWORD: /run/secret/potgres_password
     volumes:
       - /data/postgres:/var/lib/postgresql/data
+    secrets:
+      - postgres_password
 
   redis:
     image: redis:alpine
@@ -70,11 +72,15 @@ services:
       - "backend.wsgi"
     networks:
       - main
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
+    environment:
+      POSTGRES_PASSWORD: /run/secret/potgres_password
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: backend.settings.swarm_ec2
+      REDIS_SERVICE_HOST: redis
+      POSTGRES_SERVICE_HOST: postgres
+    secrets:
+      - postgres_password
+
 
   celery:
     <<: *backend
@@ -86,7 +92,6 @@ services:
       - "default"
       - "--concurrency=1"
       - "--loglevel=INFO"
-    ports: []
 
   web:
     image: ${FRONTEND_IMAGE_URI}
@@ -135,17 +140,12 @@ services:
       placement:
         constraints: [node.role == manager]
       labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`${PORTAINER_DOMAIN_NAME}`)" #Change me
-      - "traefik.http.routers.portainer.entrypoints=web"
-      - "traefik.http.routers.portainer.tls=true"
-      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.routers.portainer.service=portainer"
-      # Edge - What is this?
-      # - "traefik.http.routers.edge.rule=Host(`portainer.${DOMAIN_NAME}`)" #Change me
-      # - "traefik.http.routers.edge.entrypoints=web"
-      # - "traefik.http.services.edge.loadbalancer.server.port=8000"
-      # - "traefik.http.routers.edge.service=edge"
+        - "traefik.enable=true"
+        - "traefik.http.routers.portainer.rule=Host(`${PORTAINER_DOMAIN_NAME}`)"
+        - "traefik.http.routers.portainer.entrypoints=web"
+        - "traefik.http.routers.portainer.tls=true"
+        - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+        - "traefik.http.routers.portainer.service=portainer"
 
 networks:
   traefik-public:
@@ -155,3 +155,7 @@ networks:
   agent_network:
     driver: overlay
     attachable: true
+
+secrets:
+  postgres_password:
+    external: true

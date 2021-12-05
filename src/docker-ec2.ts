@@ -169,7 +169,7 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
     });
 
     const stackFile = props.stackFileUri ?? 'https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml';
-
+    const postgresPassword = process.env.POSTGRES_PASSWORD ?? 'postgres';
     /**
      * This script installs the docker stack into the docker swarm cluster using `docker stack deploy`
      *
@@ -190,7 +190,7 @@ export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
 docker stack deploy --with-registry-auth -c stack.yml stack
 
-printf "foobar" | docker secret create my_secret_data -
+printf "${postgresPassword}" | docker secret create postgres_password -
 
 # TODO: run migrations and collectstatic here once the services are up and running
 # wait until migrations run
