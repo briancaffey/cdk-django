@@ -11,6 +11,13 @@ import * as cdk from '@aws-cdk/core';
 export interface DockerEc2Props {
 
   /**
+   * stack file URI
+   *
+   * @default https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml
+   */
+  readonly stackFileUri?: string;
+
+  /**
    * Path to the Dockerfile
    */
   readonly imageDirectory: string;
@@ -161,6 +168,8 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
       },
     });
 
+    const stackFile = props.stackFileUri ?? 'https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml';
+
     /**
      * This script installs the docker stack into the docker swarm cluster using `docker stack deploy`
      *
@@ -170,15 +179,18 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
     const contentStringInstallApplication = `
 #!/bin/bash
 # download the stack.yml file
-curl https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml -o stack.yml
+curl ${stackFile} -o stack.yml
 docker swarm init
 docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
+export PORTAINER_DOMAIN_NAME=portainer.${props.zoneName}
 export IMAGE_URI=${backendImage.imageUri}
 export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
 docker stack deploy --with-registry-auth -c stack.yml stack
+
+printf "foobar" | docker secret create my_secret_data -
 
 # TODO: run migrations and collectstatic here once the services are up and running
 # wait until migrations run
@@ -237,7 +249,7 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       }),
       ec2.InitCommand.shellCommand('sudo sh application.sh', {
         cwd: '/home/ec2-user/application',
-        key: 'run_docker_compose',
+        key: 'run_docker_docker_stack_deploy',
       }),
     ]));
 
@@ -262,14 +274,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'For debugging');
 
     efsFileSystem.connections.allowFrom(ec2SecurityGroup, ec2.Port.tcp(2049), 'Allow EFS access');
-    /**
-     * EBS to to used for storing docker volume data on /data
-     *
-     * This is currently being replaced on each stack update. How can I make this persistent?
-     */
-    const blockDeviceVolume = ec2.BlockDeviceVolume.ebs(20, {
-      deleteOnTermination: false,
-    });
 
     const instance = new ec2.Instance(this, instanceResourceName, {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
@@ -287,12 +291,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
         timeout: cdk.Duration.minutes(10),
         includeUrl: true,
       },
-      blockDevices: [
-        {
-          deviceName: '/dev/sda1',
-          volume: blockDeviceVolume,
-        },
-      ],
     });
 
     // add AmazonEC2ContainerRegistryReadOnly role to the instance
@@ -317,6 +315,12 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
     });
 
+    new route53.ARecord(this, 'ARecordEc2DockerPortainer', {
+      zone: hostedZone,
+      recordName: `portainer.${props.zoneName}`,
+      target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
+    });
+
     // Output values
 
     // Use this command to SSH to the machine
@@ -327,6 +331,11 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     // site url
     new cdk.CfnOutput(this, 'SiteUrl', {
       value: `https://${props.domainName}`,
+    });
+
+    // portainer url
+    new cdk.CfnOutput(this, 'PortainerUrl', {
+      value: `https://portainer.${props.zoneName}`,
     });
 
     new cdk.CfnOutput(this, 'EfsFileSystemId', {

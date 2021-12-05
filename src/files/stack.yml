@@ -103,7 +103,6 @@ services:
         - "traefik.http.routers.nginx-web.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.nginx-web.loadbalancer.server.port=80"
 
-
   agent:
     image: portainer/agent
     environment:
@@ -122,36 +121,6 @@ services:
       placement:
         constraints: [node.platform.os == linux]
 
-
-  # agent:
-  #   image: portainer/agent:2.9.2
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
-  #   networks:
-  #     - agent_network
-  #   deploy:
-  #     mode: global
-  #     placement:
-  #       constraints: [node.platform.os == linux]
-
-  # portainer:
-  #   image: portainer/portainer-ce:2.9.2
-  #   command: -H tcp://tasks.agent:9001 --tlsskipverify
-  #   ports:
-  #     - "9443:9443"
-  #     - "9000:9000"
-  #     - "8000:8000"
-  #   volumes:
-  #     - /data/portainer:/data
-  #   networks:
-  #     - agent_network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-  #     placement:
-  #       constraints: [node.role == manager]
-
   portainer:
     image: portainer/portainer-ce:2.9.2
     command: -H tcp://tasks.agent:9001 --tlsskipverify
@@ -167,7 +136,7 @@ services:
         constraints: [node.role == manager]
       labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN_NAME}`)" #Change me
+      - "traefik.http.routers.portainer.rule=Host(`${PORTAINER_DOMAIN_NAME}`)" #Change me
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
@@ -186,8 +155,3 @@ networks:
   agent_network:
     driver: overlay
     attachable: true
-
-# volumes:
-#   letsencrypt:
-#   pgdata:
-#   redisdata:
