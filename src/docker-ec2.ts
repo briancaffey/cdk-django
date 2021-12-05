@@ -3,6 +3,7 @@
 // import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
+import * as efs from '@aws-cdk/aws-efs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
@@ -52,7 +53,7 @@ export class DockerEc2 extends cdk.Construct {
     super(scope, id);
 
 
-    this.vpc = new ec2.Vpc(scope, 'Vpc', {
+    const vpc = new ec2.Vpc(scope, 'Vpc', {
       maxAzs: 2,
       natGateways: 0,
       subnetConfiguration: [
@@ -62,6 +63,12 @@ export class DockerEc2 extends cdk.Construct {
           subnetType: ec2.SubnetType.PUBLIC,
         },
       ],
+    });
+
+    this.vpc = vpc;
+
+    const efsFileSystem = new efs.FileSystem(this, 'EfsFileSystem', {
+      vpc,
     });
 
     const stack = cdk.Stack.of(scope);
@@ -82,14 +89,10 @@ yum update -y
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
-sudo mkdir /data
-
-echo "mounting EBS volume......."
-# create an entry about volume in /etc/fstab
-echo "/dev/sda1    /data   xfs    defaults    0 0" >> /etc/fstab
-# apply the changes to the fstab file (without rebooting)
-sudo mount -av
-
+# mount efs file system to /data
+sudo mkdir -p /data/{traefik,postgres,redis,assets,portainer}
+echo "${efsFileSystem.fileSystemId}.efs.${stackRegion}.amazonaws.com:/ /data nfs defaults,_netdev 0 0" >> /etc/fstab
+sudo mount -fav
 
 /opt/aws/bin/cfn-init -v --stack ${stackId} --resource ${instanceResourceName} --configsets ${dockerEc2ConfigSetName} --region ${stackRegion}
 /opt/aws/bin/cfn-signal -e $? --stack ${stackId} --resource ${instanceResourceName} --region ${stackRegion}
@@ -167,7 +170,7 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
     const contentStringInstallApplication = `
 #!/bin/bash
 # download the stack.yml file
-curl https://raw.githubusercontent.com/briancaffey/django-cdk/docker-swarm/src/files/stack.yml -o stack.yml
+curl https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml -o stack.yml
 docker swarm init
 docker network create --driver=overlay traefik-public
 export DOMAIN_NAME=${props.domainName}
@@ -258,6 +261,7 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS access');
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'For debugging');
 
+    efsFileSystem.connections.allowFrom(ec2SecurityGroup, ec2.Port.tcp(2049), 'Allow EFS access');
     /**
      * EBS to to used for storing docker volume data on /data
      *
@@ -323,6 +327,14 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     // site url
     new cdk.CfnOutput(this, 'SiteUrl', {
       value: `https://${props.domainName}`,
+    });
+
+    new cdk.CfnOutput(this, 'EfsFileSystemId', {
+      value: efsFileSystem.fileSystemId,
+    });
+
+    new cdk.CfnOutput(this, 'EfsFileSystemArn', {
+      value: efsFileSystem.fileSystemArn,
     });
   }
 }
