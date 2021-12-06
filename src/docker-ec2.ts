@@ -76,6 +76,7 @@ export class DockerEc2 extends cdk.Construct {
 
     const efsFileSystem = new efs.FileSystem(this, 'EfsFileSystem', {
       vpc,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const stack = cdk.Stack.of(scope);
@@ -178,19 +179,27 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
      */
     const contentStringInstallApplication = `
 #!/bin/bash
+
 # download the stack.yml file
 curl ${stackFile} -o stack.yml
+
 docker swarm init
 docker network create --driver=overlay traefik-public
+
+# export environment variables for docker stack deploy command
 export DOMAIN_NAME=${props.domainName}
-export PORTAINER_DOMAIN_NAME=portainer.${props.zoneName}
+export PORTAINER_DOMAIN_NAME=portainer.${props.domainName}
 export IMAGE_URI=${backendImage.imageUri}
 export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
+
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
-docker stack deploy --with-registry-auth -c stack.yml stack
 
+# create docker secrets
 printf "${postgresPassword}" | docker secret create postgres_password -
+
+# deploy docker stack
+docker stack deploy --with-registry-auth -c stack.yml stack
 
 # TODO: run migrations and collectstatic here once the services are up and running
 # wait until migrations run
@@ -317,7 +326,7 @@ printf "${postgresPassword}" | docker secret create postgres_password -
 
     new route53.ARecord(this, 'ARecordEc2DockerPortainer', {
       zone: hostedZone,
-      recordName: `portainer.${props.zoneName}`,
+      recordName: `portainer.${props.domainName}`,
       target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
     });
 
@@ -328,6 +337,11 @@ printf "${postgresPassword}" | docker secret create postgres_password -
       value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName}`,
     });
 
+    // Use this command to SSH to the machine
+    new cdk.CfnOutput(this, 'Ec2InstanceBackendExecCommand', {
+      value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName} docker exec -it $(docker ps -q -f name="backend") bash`,
+    });
+
     // site url
     new cdk.CfnOutput(this, 'SiteUrl', {
       value: `https://${props.domainName}`,
@@ -335,7 +349,7 @@ printf "${postgresPassword}" | docker secret create postgres_password -
 
     // portainer url
     new cdk.CfnOutput(this, 'PortainerUrl', {
-      value: `https://portainer.${props.zoneName}`,
+      value: `https://portainer.${props.domainName}`,
     });
 
     new cdk.CfnOutput(this, 'EfsFileSystemId', {
