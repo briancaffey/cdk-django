@@ -129,24 +129,6 @@ interval=5
 `;
 
     /**
-     * Application environment variables
-     *
-     * All of these environment variables will be made accessible to all of the containers in the stack.yml file
-     *
-     * TODO: append extra environment vars from props.environmentVariables
-     */
-    const contentStringConfigApplication = `
-DEBUG=0
-POSTGRES_SERVICE_HOST=postgres
-POSTGRES_PASSWORD=postgres
-REDIS_SERVICE_HOST=redis
-DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
-`;
-    // BUCKET_URL=https://${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-    // SHORT_BUCKET_HOST=${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-    // AWS_REGION=${stackRegion}
-
-    /**
      * This is the backend container that will be used to run the backend Django application
      */
     const backendImage = new ecrAssets.DockerImageAsset(this, 'BackendImage', {
@@ -242,14 +224,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
     ]));
 
-    init.addConfig('config_application', new ec2.InitConfig([
-      ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigApplication, {
-        mode: '000400',
-        owner: 'root',
-        group: 'root',
-      }),
-    ]));
-
     init.addConfig('install_application', new ec2.InitConfig([
       ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallApplication, {
         mode: '000400',
@@ -265,7 +239,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     init.addConfigSet('application', [
       'configure-cfn',
       'install_docker',
-      'config_application',
       'install_application',
     ]);
 
