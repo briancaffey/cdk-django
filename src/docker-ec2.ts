@@ -14,7 +14,7 @@ export interface DockerEc2Props {
   /**
    * stack file URI
    *
-   * @default https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml
+   * @default https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml
    */
   readonly stackFileUri?: string;
 
@@ -166,7 +166,7 @@ interval=5
       },
     });
 
-    const stackFile = props.stackFileUri ?? 'https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml';
+    const stackFile = props.stackFileUri ?? 'https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml';
     const postgresPassword = process.env.POSTGRES_PASSWORD ?? 'postgres';
     /**
      * This script installs the docker stack into the docker swarm cluster using `docker stack deploy`
@@ -184,9 +184,9 @@ docker swarm init
 docker network create --driver=overlay traefik-public
 
 # export environment variables for docker stack deploy command
-export DOMAIN_NAME=${props.domainName}
-export PORTAINER_DOMAIN_NAME=portainer.${props.domainName}
-export IMAGE_URI=${backendImage.imageUri}
+export APPLICATION_HOST_NAME=${props.domainName}
+export PORTAINER_HOST_NAME=portainer.${props.domainName}
+export BACKEND_IMAGE_URI=${backendImage.imageUri}
 export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
 
 # login to ecr
