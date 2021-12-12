@@ -2,6 +2,7 @@
 // import * as s3 from '@aws-cdk/aws-s3';
 // import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ecr from '@aws-cdk/aws-ecr';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as efs from '@aws-cdk/aws-efs';
 import * as iam from '@aws-cdk/aws-iam';
@@ -133,6 +134,20 @@ interval=5
      */
     const backendImage = new ecrAssets.DockerImageAsset(this, 'BackendImage', {
       directory: props.imageDirectory,
+    });
+
+    /**
+     * This is the ECR repository that will be used by the GitHub action for the backend container
+     */
+    const backendRepository = new ecr.Repository(this, 'BackendRepository', {
+      repositoryName: `${stackName.toLowerCase()}-backend`,
+    });
+
+    /**
+     * This is the ECR repository that will be used by the GitHub action for the frontend container
+     */
+    const frontendRepository = new ecr.Repository(this, 'FrontendRepository', {
+      repositoryName: `${stackName.toLowerCase()}-frontend`,
     });
 
     /**
@@ -284,6 +299,15 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     backendImage.repository.grantPull(instance.role);
     frontendImage.repository.grantPull(instance.role);
 
+    /*
+     * the backend and frontend repositories are used when deploying the application
+     * with docker stack deploy in GitHub Actions.
+     *
+     * `cdk deploy` will also deploy the application, but it will use the aws-cdk/assets repository
+     */
+    backendRepository.grantPull(instance.role);
+    frontendRepository.grantPull(instance.role);
+
     const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
       domainName: props.zoneName,
     });
@@ -303,34 +327,56 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
     });
 
-    // Output values
+    /**
+     * CfnOutput values - these values are provided for GitHub Actions
+     *
+     * Some CfnOutput values are provided for developer convenience.
+     */
 
     // Use this command to SSH to the machine
     new cdk.CfnOutput(this, 'Ec2InstanceSshCommand', {
+      description: 'Use this command to SSH to the machine',
       value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName}`,
     });
 
     // Use this command to SSH to the machine
     new cdk.CfnOutput(this, 'Ec2InstanceBackendExecCommand', {
+      description: 'Command to execute the backend container',
       value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName} docker exec -it $(docker ps -q -f name="backend") bash`,
     });
 
+    // public IP of the EC2 instance
+    new cdk.CfnOutput(this, 'Ec2PublicIpAddress', {
+      value: instance.instancePublicIp.toString(),
+      exportName: 'Ec2PublicIpAddress',
+    });
+
+    // KeyName
+    new cdk.CfnOutput(this, 'Ec2KeyName', {
+      value: props.keyName,
+      exportName: 'Ec2KeyName',
+    });
+
     // site url
-    new cdk.CfnOutput(this, 'SiteUrl', {
-      value: `https://${props.domainName}`,
+    new cdk.CfnOutput(this, 'ApplicationHostName', {
+      value: props.domainName,
+      exportName: 'ApplicationHostName',
     });
 
     // portainer url
-    new cdk.CfnOutput(this, 'PortainerUrl', {
-      value: `https://portainer.${props.domainName}`,
+    new cdk.CfnOutput(this, 'PortainerHostName', {
+      value: `portainer.${props.domainName}`,
+      exportName: 'PortainerHostName',
     });
 
-    new cdk.CfnOutput(this, 'EfsFileSystemId', {
-      value: efsFileSystem.fileSystemId,
+    new cdk.CfnOutput(this, 'BackendRepositoryUri', {
+      value: backendRepository.repositoryUri,
+      exportName: 'BackendRepositoryUri',
     });
 
-    new cdk.CfnOutput(this, 'EfsFileSystemArn', {
-      value: efsFileSystem.fileSystemArn,
+    new cdk.CfnOutput(this, 'FrontendRepositoryUri', {
+      value: frontendRepository.repositoryUri,
+      exportName: 'FrontendRepositoryUri',
     });
   }
 }
