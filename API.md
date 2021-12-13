@@ -163,6 +163,7 @@ new DockerEc2(scope: Construct, id: string, props: DockerEc2Props)
   * **imageDirectory** (<code>string</code>)  Path to the Dockerfile. 
   * **keyName** (<code>string</code>)  The name of the key pair to use for SSH access. 
   * **zoneName** (<code>string</code>)  *No description* 
+  * **stackFileUri** (<code>string</code>)  stack file URI. __*Default*__: https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml
 
 
 
@@ -313,6 +314,7 @@ Name | Type | Description
 **imageDirectory** | <code>string</code> | Path to the Dockerfile.
 **keyName** | <code>string</code> | The name of the key pair to use for SSH access.
 **zoneName** | <code>string</code> | <span></span>
+**stackFileUri**? | <code>string</code> | stack file URI.<br/>__*Default*__: https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml
 
 
 
