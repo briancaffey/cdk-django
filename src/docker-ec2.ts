@@ -2,6 +2,7 @@
 // import * as s3 from '@aws-cdk/aws-s3';
 // import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as ecr from '@aws-cdk/aws-ecr';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as efs from '@aws-cdk/aws-efs';
 import * as iam from '@aws-cdk/aws-iam';
@@ -9,6 +10,13 @@ import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
 
 export interface DockerEc2Props {
+
+  /**
+   * stack file URI
+   *
+   * @default https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml
+   */
+  readonly stackFileUri?: string;
 
   /**
    * Path to the Dockerfile
@@ -69,6 +77,7 @@ export class DockerEc2 extends cdk.Construct {
 
     const efsFileSystem = new efs.FileSystem(this, 'EfsFileSystem', {
       vpc,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const stack = cdk.Stack.of(scope);
@@ -121,28 +130,24 @@ interval=5
 `;
 
     /**
-     * Application environment variables
-     *
-     * All of these environment variables will be made accessible to all of the containers in the stack.yml file
-     *
-     * TODO: append extra environment vars from props.environmentVariables
-     */
-    const contentStringConfigApplication = `
-DEBUG=0
-POSTGRES_SERVICE_HOST=postgres
-POSTGRES_PASSWORD=postgres
-REDIS_SERVICE_HOST=redis
-DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
-`;
-    // BUCKET_URL=https://${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-    // SHORT_BUCKET_HOST=${bucketNamePlaceholder}.s3.${stackRegion}.amazonaws.com
-    // AWS_REGION=${stackRegion}
-
-    /**
      * This is the backend container that will be used to run the backend Django application
      */
     const backendImage = new ecrAssets.DockerImageAsset(this, 'BackendImage', {
       directory: props.imageDirectory,
+    });
+
+    /**
+     * This is the ECR repository that will be used by the GitHub action for the backend container
+     */
+    const backendRepository = new ecr.Repository(this, 'BackendRepository', {
+      repositoryName: `${stackName.toLowerCase()}-backend`,
+    });
+
+    /**
+     * This is the ECR repository that will be used by the GitHub action for the frontend container
+     */
+    const frontendRepository = new ecr.Repository(this, 'FrontendRepository', {
+      repositoryName: `${stackName.toLowerCase()}-frontend`,
     });
 
     /**
@@ -161,6 +166,8 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
       },
     });
 
+    const stackFile = props.stackFileUri ?? 'https://raw.githubusercontent.com/briancaffey/django-step-by-step/dev/stack.yml';
+    const postgresPassword = process.env.POSTGRES_PASSWORD ?? 'postgres';
     /**
      * This script installs the docker stack into the docker swarm cluster using `docker stack deploy`
      *
@@ -169,15 +176,26 @@ DJANGO_SETTINGS_MODULE=backend.settings.swarm_ec2
      */
     const contentStringInstallApplication = `
 #!/bin/bash
+
 # download the stack.yml file
-curl https://raw.githubusercontent.com/briancaffey/django-cdk/dev/src/files/stack.yml -o stack.yml
+curl ${stackFile} -o stack.yml
+
 docker swarm init
 docker network create --driver=overlay traefik-public
-export DOMAIN_NAME=${props.domainName}
-export IMAGE_URI=${backendImage.imageUri}
+
+# export environment variables for docker stack deploy command
+export APPLICATION_HOST_NAME=${props.domainName}
+export PORTAINER_HOST_NAME=portainer.${props.domainName}
+export BACKEND_IMAGE_URI=${backendImage.imageUri}
 export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
+
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
+
+# create docker secrets
+printf "${postgresPassword}" | docker secret create postgres_password -
+
+# deploy docker stack
 docker stack deploy --with-registry-auth -c stack.yml stack
 
 # TODO: run migrations and collectstatic here once the services are up and running
@@ -221,14 +239,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       ec2.InitCommand.shellCommand('usermod -a -G docker ec2-user', { key: 'docker_for_ec2_user' }),
     ]));
 
-    init.addConfig('config_application', new ec2.InitConfig([
-      ec2.InitFile.fromString('/home/ec2-user/application/.env', contentStringConfigApplication, {
-        mode: '000400',
-        owner: 'root',
-        group: 'root',
-      }),
-    ]));
-
     init.addConfig('install_application', new ec2.InitConfig([
       ec2.InitFile.fromString('/home/ec2-user/application/application.sh', contentStringInstallApplication, {
         mode: '000400',
@@ -237,14 +247,13 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       }),
       ec2.InitCommand.shellCommand('sudo sh application.sh', {
         cwd: '/home/ec2-user/application',
-        key: 'run_docker_compose',
+        key: 'run_docker_docker_stack_deploy',
       }),
     ]));
 
     init.addConfigSet('application', [
       'configure-cfn',
       'install_docker',
-      'config_application',
       'install_application',
     ]);
 
@@ -262,14 +271,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     ec2SecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'For debugging');
 
     efsFileSystem.connections.allowFrom(ec2SecurityGroup, ec2.Port.tcp(2049), 'Allow EFS access');
-    /**
-     * EBS to to used for storing docker volume data on /data
-     *
-     * This is currently being replaced on each stack update. How can I make this persistent?
-     */
-    const blockDeviceVolume = ec2.BlockDeviceVolume.ebs(20, {
-      deleteOnTermination: false,
-    });
 
     const instance = new ec2.Instance(this, instanceResourceName, {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
@@ -287,12 +288,6 @@ docker stack deploy --with-registry-auth -c stack.yml stack
         timeout: cdk.Duration.minutes(10),
         includeUrl: true,
       },
-      blockDevices: [
-        {
-          deviceName: '/dev/sda1',
-          volume: blockDeviceVolume,
-        },
-      ],
     });
 
     // add AmazonEC2ContainerRegistryReadOnly role to the instance
@@ -303,6 +298,15 @@ docker stack deploy --with-registry-auth -c stack.yml stack
     // allow the EC2 instance to access the ECR repositories (TODO: figure out if this is needed)
     backendImage.repository.grantPull(instance.role);
     frontendImage.repository.grantPull(instance.role);
+
+    /*
+     * the backend and frontend repositories are used when deploying the application
+     * with docker stack deploy in GitHub Actions.
+     *
+     * `cdk deploy` will also deploy the application, but it will use the aws-cdk/assets repository
+     */
+    backendRepository.grantPull(instance.role);
+    frontendRepository.grantPull(instance.role);
 
     const hostedZone = route53.HostedZone.fromLookup(scope, 'hosted-zone', {
       domainName: props.zoneName,
@@ -317,24 +321,62 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
     });
 
-    // Output values
+    new route53.ARecord(this, 'ARecordEc2DockerPortainer', {
+      zone: hostedZone,
+      recordName: `portainer.${props.domainName}`,
+      target: route53.RecordTarget.fromIpAddresses(instance.instancePublicIp),
+    });
+
+    /**
+     * CfnOutput values - these values are provided for GitHub Actions
+     *
+     * Some CfnOutput values are provided for developer convenience.
+     */
 
     // Use this command to SSH to the machine
     new cdk.CfnOutput(this, 'Ec2InstanceSshCommand', {
+      description: 'Use this command to SSH to the machine',
       value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName}`,
     });
 
+    // Use this command to SSH to the machine
+    new cdk.CfnOutput(this, 'Ec2InstanceBackendExecCommand', {
+      description: 'Command to execute the backend container',
+      value: `ssh -i "~/.ssh/${props.keyName}.pem" ec2-user@${instance.instancePublicDnsName} docker exec -it $(docker ps -q -f name="backend") bash`,
+    });
+
+    // public IP of the EC2 instance
+    new cdk.CfnOutput(this, 'Ec2PublicIpAddress', {
+      value: instance.instancePublicIp.toString(),
+      exportName: 'Ec2PublicIpAddress',
+    });
+
+    // KeyName
+    new cdk.CfnOutput(this, 'Ec2KeyName', {
+      value: props.keyName,
+      exportName: 'Ec2KeyName',
+    });
+
     // site url
-    new cdk.CfnOutput(this, 'SiteUrl', {
-      value: `https://${props.domainName}`,
+    new cdk.CfnOutput(this, 'ApplicationHostName', {
+      value: props.domainName,
+      exportName: 'ApplicationHostName',
     });
 
-    new cdk.CfnOutput(this, 'EfsFileSystemId', {
-      value: efsFileSystem.fileSystemId,
+    // portainer url
+    new cdk.CfnOutput(this, 'PortainerHostName', {
+      value: `portainer.${props.domainName}`,
+      exportName: 'PortainerHostName',
     });
 
-    new cdk.CfnOutput(this, 'EfsFileSystemArn', {
-      value: efsFileSystem.fileSystemArn,
+    new cdk.CfnOutput(this, 'BackendRepositoryUri', {
+      value: backendRepository.repositoryUri,
+      exportName: 'BackendRepositoryUri',
+    });
+
+    new cdk.CfnOutput(this, 'FrontendRepositoryUri', {
+      value: frontendRepository.repositoryUri,
+      exportName: 'FrontendRepositoryUri',
     });
   }
 }
