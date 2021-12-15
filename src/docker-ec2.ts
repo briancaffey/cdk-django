@@ -1,12 +1,10 @@
-// import { readFileSync } from 'fs';
-// import * as s3 from '@aws-cdk/aws-s3';
-// import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecr from '@aws-cdk/aws-ecr';
 import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
 import * as efs from '@aws-cdk/aws-efs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as route53 from '@aws-cdk/aws-route53';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 
 export interface DockerEc2Props {
@@ -79,6 +77,22 @@ export class DockerEc2 extends cdk.Construct {
       vpc,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
+
+    /**
+     * S3 bucket for storing static and media files
+     *
+     * Static files are public, accessing media files requires authentication through django-storages
+     */
+    const assetsBucket = new s3.Bucket(this, 'StaticFileBucket', {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const bucketPolicyStatement = new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [`${assetsBucket.bucketArn}/static/*`],
+    });
+    bucketPolicyStatement.addAnyPrincipal();
+    assetsBucket.addToResourcePolicy(bucketPolicyStatement);
 
     const stack = cdk.Stack.of(scope);
 
@@ -188,6 +202,7 @@ export APPLICATION_HOST_NAME=${props.domainName}
 export PORTAINER_HOST_NAME=portainer.${props.domainName}
 export BACKEND_IMAGE_URI=${backendImage.imageUri}
 export FRONTEND_IMAGE_URI=${frontendImage.imageUri}
+export S3_BUCKET_NAME=${assetsBucket.bucketName}
 
 # login to ecr
 aws ecr get-login-password --region ${stackRegion} | docker login --username AWS --password-stdin ${accountId}.dkr.ecr.${stackRegion}.amazonaws.com
@@ -197,27 +212,6 @@ printf "${postgresPassword}" | docker secret create postgres_password -
 
 # deploy docker stack
 docker stack deploy --with-registry-auth -c stack.yml stack
-
-# TODO: run migrations and collectstatic here once the services are up and running
-# wait until migrations run
-#docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
-#while [ $? -ne 0 ]; do
-#    sleep 10
-#    echo "waiting for migrations to run"
-#    echo "docker ps....."
-#    docker ps
-#    echo "docker ps..."
-#    docker ps -q -f name="backend"
-#    docker exec $(docker ps -q -f name="backend") python3 manage.py migrate --no-input
-#done
-
-# wait until collectstatic runs
-#docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
-#while [ $? -ne 0 ]; do
-#    sleep 10
-#    echo "waiting for collectstatic to run"
-#    docker exec $(docker ps -q -f name="backend") python3 manage.py collectstatic --no-input
-#done
 `;
 
     init.addConfig('configure-cfn', new ec2.InitConfig([
@@ -289,6 +283,9 @@ docker stack deploy --with-registry-auth -c stack.yml stack
         includeUrl: true,
       },
     });
+
+    // allow the EC2 instance to access the S3 bucket - static and media files
+    assetsBucket.grantReadWrite(instance.role);
 
     // add AmazonEC2ContainerRegistryReadOnly role to the instance
     instance.role.addManagedPolicy(
@@ -369,14 +366,22 @@ docker stack deploy --with-registry-auth -c stack.yml stack
       exportName: 'PortainerHostName',
     });
 
+    // backend image repository uri
     new cdk.CfnOutput(this, 'BackendRepositoryUri', {
       value: backendRepository.repositoryUri,
       exportName: 'BackendRepositoryUri',
     });
 
+    // frontend image repository uri
     new cdk.CfnOutput(this, 'FrontendRepositoryUri', {
       value: frontendRepository.repositoryUri,
       exportName: 'FrontendRepositoryUri',
+    });
+
+    // S3 bucket name
+    new cdk.CfnOutput(this, 'S3BucketName', {
+      value: assetsBucket.bucketName,
+      exportName: 'S3BucketName',
     });
   }
 }
