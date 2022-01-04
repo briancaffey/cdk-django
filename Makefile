@@ -87,6 +87,24 @@ docker-ec2-destroy:
 docker-ec2-diff:
 	cdk diff --app='./lib/integ/integ.docker-ec2.js';
 
+## Ec2 Nginx Targets --
+
+## Synthesize Nginx EC2 project
+ec2-nginx-synth:
+	cdk synth --app='./lib/integ/integ.ec2-nginx.js';
+
+## Deploy Nginx EC2 project
+ec2-nginx-deploy:
+	cdk deploy --app='./lib/integ/integ.ec2-nginx.js';
+
+## Destroy Nginx EC2 project
+ec2-nginx-destroy:
+	cdk destroy --app='./lib/integ/integ.ec2-nginx.js';
+
+## Diff Nginx EC2 project
+ec2-nginx-diff:
+	cdk diff --app='./lib/integ/integ.ec2-nginx.js';
+
 ## -- Django-Vue App Targets --
 
 ## synthesize Django-Vue App
