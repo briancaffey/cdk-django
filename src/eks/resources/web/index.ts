@@ -1,6 +1,6 @@
-import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
-import * as eks from '@aws-cdk/aws-eks';
-import * as cdk from '@aws-cdk/core';
+import * as ecrAssets from 'aws-cdk-lib/aws-ecr-assets';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as cdk from 'aws-cdk-lib/core';
 
 interface WebResourcesProps {
   env: {[key: string]: string}[];

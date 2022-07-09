@@ -1,5 +1,5 @@
-import * as eks from '@aws-cdk/aws-eks';
-import * as cdk from '@aws-cdk/core';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as cdk from 'aws-cdk-lib/core';
 
 /**
  * Props for AppIngressResources, used for annotating ingress with ACM cert ARN and domain name

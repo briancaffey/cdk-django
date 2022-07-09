@@ -20,9 +20,9 @@
  *
  **/
 
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as cdk from '@aws-cdk/core';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as cdk from 'aws-cdk-lib/core';
 import { DjangoEcs, StaticSite } from './index';
 
 /**

@@ -1,7 +1,7 @@
-import * as eks from '@aws-cdk/aws-eks';
-import * as iam from '@aws-cdk/aws-iam';
-import * as route53 from '@aws-cdk/aws-route53';
-import * as cdk from '@aws-cdk/core';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as cdk from 'aws-cdk-lib/core';
 
 /**
  * Props used to deploy external-dns to cluster

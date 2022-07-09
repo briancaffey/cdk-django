@@ -1,11 +1,11 @@
-import * as ec2 from '@aws-cdk/aws-ec2';
-// import * as ecr from '@aws-cdk/aws-ecr';
-// import * as ecrAssets from '@aws-cdk/aws-ecr-assets';
-// import * as efs from '@aws-cdk/aws-efs';
-// import * as iam from '@aws-cdk/aws-iam';
-import * as route53 from '@aws-cdk/aws-route53';
-// import * as s3 from '@aws-cdk/aws-s3';
-import * as cdk from '@aws-cdk/core';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+// import * as ecr from 'aws-cdk-lib/aws-ecr';
+// import * as ecrAssets from 'aws-cdk-lib/aws-ecr-assets';
+// import * as efs from 'aws-cdk-lib/aws-efs';
+// import * as iam from 'aws-cdk-lib/aws-iam';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+// import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cdk from 'aws-cdk-lib/core';
 
 export interface Ec2NginxProps {
 

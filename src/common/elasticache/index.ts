@@ -1,6 +1,6 @@
-import { Port, SecurityGroup, SubnetType, IVpc } from '@aws-cdk/aws-ec2';
-import { CfnCacheCluster, CfnSubnetGroup } from '@aws-cdk/aws-elasticache';
-import * as cdk from '@aws-cdk/core';
+import { Port, SecurityGroup, SubnetType, IVpc } from 'aws-cdk-lib/aws-ec2';
+import { CfnCacheCluster, CfnSubnetGroup } from 'aws-cdk-lib/aws-elasticache';
+import * as cdk from 'aws-cdk-lib/core';
 
 export interface ElastiCacheRedisProps {
   vpc: IVpc;

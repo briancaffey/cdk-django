@@ -1,6 +1,6 @@
-import * as eks from '@aws-cdk/aws-eks';
-import * as iam from '@aws-cdk/aws-iam';
-import * as cdk from '@aws-cdk/core';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cdk from 'aws-cdk-lib/core';
 
 // eslint-disable-next-line
 const request = require('sync-request');
