@@ -49,7 +49,7 @@ export class AdHocBase extends Construct {
     });
 
     // allow traffic from ALB security group to the application security group
-    appSecurityGroup.addIngressRule(albSecurityGroup, Port.tcp(-1), 'ALB');
+    appSecurityGroup.addIngressRule(albSecurityGroup, Port.allTcp(), 'ALB');
 
     // load balancer
     const loadBalancer = new ApplicationLoadBalancer(scope, 'LoadBalancer', {
@@ -135,8 +135,8 @@ export class AdHocBase extends Construct {
       resources: ['*'],
     }));
 
-    const taskExecutionRole = new Role(this, 'EcsTaskRole', {
-      roleName: `${stackName}EcsTaskRole`,
+    const taskExecutionRole = new Role(this, 'TaskExecutionRole', {
+      roleName: `${stackName}TaskExecutionRole`,
       assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
 
@@ -175,7 +175,7 @@ export class AdHocBase extends Construct {
 
     // Bastion host
     // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
-    new BastionHostLinux(this, 'BastionHost', {
+    const bastionHost = new BastionHostLinux(this, 'BastionHost', {
       vpc: this.vpc,
       securityGroup: appSecurityGroup,
       init: CloudFormationInit.fromElements(
@@ -184,15 +184,16 @@ export class AdHocBase extends Construct {
     });
 
     // Outputs that will be used in ad hoc environments
-    new CfnOutput(this, 'vpcId', { value: this.vpc.vpcId });
-    new CfnOutput(this, 'privateSubnets', { value: this.vpc.privateSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'publicSubnets', { value: this.vpc.publicSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'appSecurityGroup', { value: appSecurityGroup.securityGroupId });
-    new CfnOutput(this, 'albListenerArn', { value: httpsListener.listenerArn });
-    new CfnOutput(this, 'albDnsName', { value: loadBalancer.loadBalancerDnsName });
-    new CfnOutput(this, 'serviceDiscoveryNamespaceId', { value: serviceDiscoveryPrivateDnsNamespace.namespaceId });
-    new CfnOutput(this, 'taskRoleArn', { value: ecsTaskRole.roleArn });
-    new CfnOutput(this, 'executionRoleArn', { value: taskExecutionRole.roleArn });
-    new CfnOutput(this, 'rdsAddress', { value: rdsInstance.rdsInstance.dbInstanceEndpointAddress });
+    new CfnOutput(this, 'vpcId', { exportName: 'vpcId', value: this.vpc.vpcId });
+    new CfnOutput(this, 'privateSubnets', { exportName: 'privateSubnets', value: this.vpc.privateSubnets.map(subnet => subnet.subnetId).join(',') });
+    new CfnOutput(this, 'publicSubnets', { exportName: 'publicSubnets', value: this.vpc.publicSubnets.map(subnet => subnet.subnetId).join(',') });
+    new CfnOutput(this, 'appSecurityGroup', { exportName: 'appSecurityGroup', value: appSecurityGroup.securityGroupId });
+    new CfnOutput(this, 'albListenerArn', { exportName: 'albListenerArn', value: httpsListener.listenerArn });
+    new CfnOutput(this, 'albDnsName', { exportName: 'albDnsName', value: loadBalancer.loadBalancerDnsName });
+    new CfnOutput(this, 'serviceDiscoveryNamespaceId', { exportName: 'serviceDiscoveryNamespaceId', value: serviceDiscoveryPrivateDnsNamespace.namespaceId });
+    new CfnOutput(this, 'taskRoleArn', { exportName: 'taskRoleArn', value: ecsTaskRole.roleArn });
+    new CfnOutput(this, 'executionRoleArn', { exportName: 'executionRoleArn', value: taskExecutionRole.roleArn });
+    new CfnOutput(this, 'rdsAddress', { exportName: 'rdsAddress', value: rdsInstance.rdsInstance.dbInstanceEndpointAddress });
+    new CfnOutput(this, 'bastionHostInstanceId', { exportName: 'bastionHostInstanceId', value: bastionHost.instanceId });
   }
 }

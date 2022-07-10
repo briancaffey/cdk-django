@@ -9,7 +9,7 @@ const env = {
 };
 
 const app = new cdk.App();
-const stack = new cdk.Stack(app, 'AdHocBaseStack', { env });
+const stack = new cdk.Stack(app, 'AdHocBaseStack', { env, stackName: 'test-ad-hoc-base' });
 
 let certArn = process.env.CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
 
