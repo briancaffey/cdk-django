@@ -6,9 +6,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   defaultReleaseBranch: 'main',
   name: 'django-cdk',
   repositoryUrl: 'git@github.com:briancaffey/django-cdk.git',
-  // jestOptions: {
-  //   jestVersion: '^27.0.0', // 28 requires a later typescript version
-  // },
+  // https://github.com/projen/projen/issues/1941
   bundledDeps: ['@types/jest@27.4.1'],
 
   // deps: [],                /* Runtime dependencies of this module. */
