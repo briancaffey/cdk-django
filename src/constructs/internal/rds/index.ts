@@ -1,5 +1,5 @@
 import { Stack } from 'aws-cdk-lib';
-import { IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { InstanceClass, InstanceType, InstanceSize, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
@@ -41,6 +41,7 @@ export class RdsInstance extends Construct {
       vpc: props.vpc,
       engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.VER_13_4 }),
       credentials: Credentials.fromSecret(secret),
+      instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MICRO),
       port: 5432,
       securityGroups: [rdsSecurityGroup],
       vpcSubnets: {

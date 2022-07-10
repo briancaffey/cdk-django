@@ -180,6 +180,7 @@ export class AdHocBase extends Construct {
       securityGroup: appSecurityGroup,
       init: CloudFormationInit.fromElements(
         InitPackage.yum('postgresql'),
+        InitPackage.yum('socat'),
       ),
     });
 
