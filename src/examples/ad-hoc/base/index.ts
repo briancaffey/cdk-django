@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import cdk = require('aws-cdk-lib');
+import { App, Stack, Tags } from 'aws-cdk-lib';
+import { AdHocApp } from '../../../constructs/ad-hoc/app';
 // import { IListenerCertificate } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AdHocBase } from '../../../constructs/ad-hoc/base';
 
@@ -8,16 +8,33 @@ const env = {
   account: process.env.AWS_ACCOUNT_ID,
 };
 
-const app = new cdk.App();
-const stack = new cdk.Stack(app, 'AdHocBaseStack', { env, stackName: 'test-ad-hoc-base' });
+// https://docs.aws.amazon.com/cdk/v2/guide/stack_how_to_create_multiple_stacks.html
+const app = new App();
+const baseStack = new Stack(app, 'TestAdHocBaseStack', { env, stackName: 'test-ad-hoc-base' });
+
+const appStack = new Stack(app, 'TestAdHocAppStack', { env, stackName: 'test-ad-hoc-app' });
 
 let certArn = process.env.CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
 
-const construct = new AdHocBase(stack, 'AdHocBase', {
+// TODO: import construct props from base stack and use here
+const adHocBase = new AdHocBase(baseStack, 'AdHocBase', {
   certificateArn: certArn,
+});
+
+const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
+  baseStackName: 'test-ad-hoc-base',
+  vpc: adHocBase.vpc,
+  alb: adHocBase.alb,
+  appSecurityGroup: adHocBase.appSecurityGroup,
+  taskRole: adHocBase.taskRole,
+  executionRole: adHocBase.executionRole,
+  serviceDiscoveryNamespace: adHocBase.serviceDiscoveryNamespace,
+  rdsInstance: adHocBase.databaseInstance,
 });
 
 /**
  * Add tagging for this construct and all child constructs
  */
-cdk.Tags.of(construct).add('stack', 'AdHocBaseStack');
+Tags.of(adHocBase).add('stack', 'AdHocBaseStack');
+
+Tags.of(addHocApp).add('stack', 'AdHocAppStack');

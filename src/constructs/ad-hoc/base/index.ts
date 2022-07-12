@@ -10,6 +10,7 @@ import {
   ListenerAction,
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { RdsInstance } from '../../internal/rds';
@@ -24,6 +25,11 @@ export class AdHocBase extends Construct {
 
   public vpc: IVpc;
   public alb: ApplicationLoadBalancer;
+  public appSecurityGroup: SecurityGroup;
+  public taskRole: Role;
+  public executionRole: Role;
+  public serviceDiscoveryNamespace: PrivateDnsNamespace;
+  public databaseInstance: DatabaseInstance;
 
   constructor(scope: Construct, id: string, props: AdHocBaseProps) {
     super(scope, id);
@@ -47,6 +53,7 @@ export class AdHocBase extends Construct {
     const appSecurityGroup = new SecurityGroup(scope, 'AppSecurityGroup', {
       vpc: this.vpc,
     });
+    this.appSecurityGroup = appSecurityGroup;
 
     // allow traffic from ALB security group to the application security group
     appSecurityGroup.addIngressRule(albSecurityGroup, Port.allTcp(), 'ALB');
@@ -111,12 +118,14 @@ export class AdHocBase extends Construct {
       // TODO: add stack name as part of the name
       name: 'sd-ns',
     });
+    this.serviceDiscoveryNamespace = serviceDiscoveryPrivateDnsNamespace;
 
     // IAM
     const ecsTaskRole = new Role(this, 'EcsTaskRole', {
       roleName: `${stackName}EcsTaskRole`,
       assumedBy: new ServicePrincipal('ecs.amazonaws.com'),
     });
+    this.taskRole = ecsTaskRole;
 
     ecsTaskRole.addToPolicy(new PolicyStatement({
       effect: Effect.ALLOW,
@@ -139,6 +148,7 @@ export class AdHocBase extends Construct {
       roleName: `${stackName}TaskExecutionRole`,
       assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
+    this.executionRole = taskExecutionRole;
 
     // S3
     taskExecutionRole.addToPolicy(new PolicyStatement({
@@ -172,6 +182,7 @@ export class AdHocBase extends Construct {
       appSecurityGroup: appSecurityGroup,
       dbSecretName: 'DB_SECRET_NAME',
     });
+    this.databaseInstance = rdsInstance.rdsInstance;
 
     // Bastion host
     // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
@@ -185,16 +196,16 @@ export class AdHocBase extends Construct {
     });
 
     // Outputs that will be used in ad hoc environments
-    new CfnOutput(this, 'vpcId', { exportName: 'vpcId', value: this.vpc.vpcId });
-    new CfnOutput(this, 'privateSubnets', { exportName: 'privateSubnets', value: this.vpc.privateSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'publicSubnets', { exportName: 'publicSubnets', value: this.vpc.publicSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'appSecurityGroup', { exportName: 'appSecurityGroup', value: appSecurityGroup.securityGroupId });
-    new CfnOutput(this, 'albListenerArn', { exportName: 'albListenerArn', value: httpsListener.listenerArn });
-    new CfnOutput(this, 'albDnsName', { exportName: 'albDnsName', value: loadBalancer.loadBalancerDnsName });
-    new CfnOutput(this, 'serviceDiscoveryNamespaceId', { exportName: 'serviceDiscoveryNamespaceId', value: serviceDiscoveryPrivateDnsNamespace.namespaceId });
-    new CfnOutput(this, 'taskRoleArn', { exportName: 'taskRoleArn', value: ecsTaskRole.roleArn });
-    new CfnOutput(this, 'executionRoleArn', { exportName: 'executionRoleArn', value: taskExecutionRole.roleArn });
-    new CfnOutput(this, 'rdsAddress', { exportName: 'rdsAddress', value: rdsInstance.rdsInstance.dbInstanceEndpointAddress });
-    new CfnOutput(this, 'bastionHostInstanceId', { exportName: 'bastionHostInstanceId', value: bastionHost.instanceId });
+    new CfnOutput(this, 'vpcId', { exportName: `${stackName}-vpcId`, value: this.vpc.vpcId });
+    new CfnOutput(this, 'privateSubnets', { exportName: `${stackName}-privateSubnets`, value: this.vpc.privateSubnets.map(subnet => subnet.subnetId).join(',') });
+    new CfnOutput(this, 'publicSubnets', { exportName: `${stackName}-publicSubnets`, value: this.vpc.publicSubnets.map(subnet => subnet.subnetId).join(',') });
+    new CfnOutput(this, 'appSecurityGroup', { exportName: `${stackName}-appSecurityGroup`, value: appSecurityGroup.securityGroupId });
+    new CfnOutput(this, 'albListenerArn', { exportName: `${stackName}-albListenerArn`, value: httpsListener.listenerArn });
+    new CfnOutput(this, 'albDnsName', { exportName: `${stackName}-albDnsName`, value: loadBalancer.loadBalancerDnsName });
+    new CfnOutput(this, 'serviceDiscoveryNamespaceId', { exportName: `${stackName}-serviceDiscoveryNamespaceId`, value: serviceDiscoveryPrivateDnsNamespace.namespaceId });
+    new CfnOutput(this, 'taskRoleArn', { exportName: `${stackName}-taskRoleArn`, value: ecsTaskRole.roleArn });
+    new CfnOutput(this, 'executionRoleArn', { exportName: `${stackName}-executionRoleArn`, value: taskExecutionRole.roleArn });
+    new CfnOutput(this, 'rdsAddress', { exportName: `${stackName}-rdsAddress`, value: rdsInstance.rdsInstance.dbInstanceEndpointAddress });
+    new CfnOutput(this, 'bastionHostInstanceId', { exportName: `${stackName}-bastionHostInstanceId`, value: bastionHost.instanceId });
   }
 }
