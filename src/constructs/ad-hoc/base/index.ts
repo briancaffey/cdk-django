@@ -1,4 +1,4 @@
-import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { BastionHostLinux, CloudFormationInit, InitPackage, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationProtocol,
@@ -11,6 +11,7 @@ import {
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Effect, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { RdsInstance } from '../../internal/rds';
@@ -19,6 +20,7 @@ import { ApplicationVpc } from '../../internal/vpc';
 // TODO: add props
 export interface AdHocBaseProps {
   readonly certificateArn: string;
+  readonly domainName: string;
 }
 
 export class AdHocBase extends Construct {
@@ -30,6 +32,9 @@ export class AdHocBase extends Construct {
   public executionRole: Role;
   public serviceDiscoveryNamespace: PrivateDnsNamespace;
   public databaseInstance: DatabaseInstance;
+  public assetsBucket: Bucket;
+  public domainName: string;
+  public listener: ApplicationListener;
 
   constructor(scope: Construct, id: string, props: AdHocBaseProps) {
     super(scope, id);
@@ -37,8 +42,20 @@ export class AdHocBase extends Construct {
     // get the stack name
     const stackName = Stack.of(this).stackName;
 
+    // the domain name to use for the ad hoc environments
+    this.domainName = props.domainName;
+
+    // vpc
     const vpc = new ApplicationVpc(scope, 'Vpc');
     this.vpc = vpc.vpc;
+
+    // one bucket for all environments
+    const assetsBucket = new Bucket(scope, 'AssetsBucket', {
+      bucketName: `${stackName}-assets-bucket`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+    this.assetsBucket = assetsBucket;
 
     // security group for the ALB
     const albSecurityGroup = new SecurityGroup(scope, 'AlbSecurityGroup', {
@@ -88,7 +105,6 @@ export class AdHocBase extends Construct {
     });
 
     // listener - HTTP
-    // const httpListener =
     new ApplicationListener(this, 'http-listener', {
       loadBalancer: loadBalancer,
       port: 80,
@@ -111,12 +127,13 @@ export class AdHocBase extends Construct {
         messageBody: 'Fixed content response',
       }),
     });
+    this.listener = httpsListener;
 
     // Service Discovery namespace
     const serviceDiscoveryPrivateDnsNamespace = new PrivateDnsNamespace(this, 'ServiceDiscoveryNamespace', {
       vpc: this.vpc,
       // TODO: add stack name as part of the name
-      name: 'sd-ns',
+      name: `${stackName}-sd-ns`,
     });
     this.serviceDiscoveryNamespace = serviceDiscoveryPrivateDnsNamespace;
 
@@ -186,26 +203,14 @@ export class AdHocBase extends Construct {
 
     // Bastion host
     // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
-    const bastionHost = new BastionHostLinux(this, 'BastionHost', {
+    new BastionHostLinux(this, 'BastionHost', {
       vpc: this.vpc,
       securityGroup: appSecurityGroup,
       init: CloudFormationInit.fromElements(
         InitPackage.yum('postgresql'),
         InitPackage.yum('socat'),
+        // start socat as an init service?
       ),
     });
-
-    // Outputs that will be used in ad hoc environments
-    new CfnOutput(this, 'vpcId', { exportName: `${stackName}-vpcId`, value: this.vpc.vpcId });
-    new CfnOutput(this, 'privateSubnets', { exportName: `${stackName}-privateSubnets`, value: this.vpc.privateSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'publicSubnets', { exportName: `${stackName}-publicSubnets`, value: this.vpc.publicSubnets.map(subnet => subnet.subnetId).join(',') });
-    new CfnOutput(this, 'appSecurityGroup', { exportName: `${stackName}-appSecurityGroup`, value: appSecurityGroup.securityGroupId });
-    new CfnOutput(this, 'albListenerArn', { exportName: `${stackName}-albListenerArn`, value: httpsListener.listenerArn });
-    new CfnOutput(this, 'albDnsName', { exportName: `${stackName}-albDnsName`, value: loadBalancer.loadBalancerDnsName });
-    new CfnOutput(this, 'serviceDiscoveryNamespaceId', { exportName: `${stackName}-serviceDiscoveryNamespaceId`, value: serviceDiscoveryPrivateDnsNamespace.namespaceId });
-    new CfnOutput(this, 'taskRoleArn', { exportName: `${stackName}-taskRoleArn`, value: ecsTaskRole.roleArn });
-    new CfnOutput(this, 'executionRoleArn', { exportName: `${stackName}-executionRoleArn`, value: taskExecutionRole.roleArn });
-    new CfnOutput(this, 'rdsAddress', { exportName: `${stackName}-rdsAddress`, value: rdsInstance.rdsInstance.dbInstanceEndpointAddress });
-    new CfnOutput(this, 'bastionHostInstanceId', { exportName: `${stackName}-bastionHostInstanceId`, value: bastionHost.instanceId });
   }
 }

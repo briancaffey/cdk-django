@@ -19,6 +19,7 @@ let certArn = process.env.CERTIFICATE_ARN || 'arn:aws:acm:us-east-1:123456789012
 // TODO: import construct props from base stack and use here
 const adHocBase = new AdHocBase(baseStack, 'AdHocBase', {
   certificateArn: certArn,
+  domainName: process.env.DOMAIN_NAME || 'example.com',
 });
 
 const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
@@ -30,6 +31,13 @@ const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
   executionRole: adHocBase.executionRole,
   serviceDiscoveryNamespace: adHocBase.serviceDiscoveryNamespace,
   rdsInstance: adHocBase.databaseInstance,
+  assetsBucket: adHocBase.assetsBucket,
+  domainName: adHocBase.domainName,
+  listener: adHocBase.listener,
+
+  djangoSettingsModule: process.env.DJANGO_SETTINGS_MODULE ?? 'backend.settings.production',
+  backendVersion: process.env.BACKEND_VERSION || 'latest',
+  frontendVersion: process.env.FRONTEND_VERSION || 'latest',
 });
 
 /**
