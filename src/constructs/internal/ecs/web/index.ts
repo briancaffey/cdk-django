@@ -1,10 +1,25 @@
-import { Duration /* RemovalPolicy */ } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
-import { AwsLogDriver, Cluster, ContainerImage, FargateService, FargateTaskDefinition } from 'aws-cdk-lib/aws-ecs';
-import { ApplicationListener, ListenerCondition } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import {
+  AwsLogDriver,
+  Cluster,
+  ContainerImage,
+  FargateService,
+  FargateTaskDefinition,
+} from 'aws-cdk-lib/aws-ecs';
+import {
+  ApplicationListener,
+  ApplicationListenerRule,
+  ApplicationProtocol,
+  ApplicationTargetGroup,
+  ListenerAction,
+  ListenerCondition,
+  TargetType,
+} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Role } from 'aws-cdk-lib/aws-iam';
-// import { LogGroup, LogStream, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, LogStream, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
+
 
 export interface WebProps {
   readonly cluster: Cluster;
@@ -25,6 +40,8 @@ export interface WebProps {
   readonly pathPatterns: string[];
   readonly hostHeaders: string[];
   readonly port: number;
+  readonly priority: number;
+  readonly healthCheckPath: string;
 };
 
 export class WebService extends Construct {
@@ -35,19 +52,17 @@ export class WebService extends Construct {
     // https://docs.aws.amazon.com/cdk/api/v1/docs/@aws-cdk_aws-ecs.FargateService.html#example
     // const stackName = 'test'; // Stack.of(this).stackName;
 
-    // // define log group and logstream
-    // const logGroup = new LogGroup(this, 'LogGroup', {
-    //   logGroupName: `/ecs/test/${props.containerName}`,
-    //   retention: RetentionDays.ONE_DAY,
-    //   removalPolicy: RemovalPolicy.DESTROY,
-    // });
+    // define log group and logstream
+    const logGroup = new LogGroup(this, 'LogGroup', {
+      logGroupName: `/ecs/test/${props.containerName}`,
+      retention: RetentionDays.ONE_DAY,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
 
-    // new LogStream(this, 'LogStream', {
-    //   logGroup,
-    //   logStreamName: 'web-logs',
-    // });
-
-    // const logDriver = new AwsLogDriver({ streamPrefix: 'web' });
+    new LogStream(this, 'LogStream', {
+      logGroup,
+      logStreamName: 'web-logs',
+    });
 
     // task definition
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDefinition', {
@@ -62,14 +77,8 @@ export class WebService extends Construct {
       command: props.command,
       containerName: props.containerName,
       environment: props.environmentVariables,
-      // essential: true,
-      healthCheck: {
-        command: ['curl', '-f', 'http://localhost:8000/api/health-check/'],
-        interval: Duration.seconds(10),
-        timeout: Duration.seconds(5),
-        retries: 3,
-      },
-      // logging: logDriver,
+      essential: true,
+      logging: new AwsLogDriver({ streamPrefix: 'web', logGroup }),
       portMappings: [{
         containerPort: props.port,
         hostPort: props.port,
@@ -102,24 +111,34 @@ export class WebService extends Construct {
       },
     });
 
-    // add the service as a target to the HTTPS listener on the ALB
-    props.listener.addTargets(`stackName-${props.containerName}`, {
+    const targetGroup = new ApplicationTargetGroup(this, 'TargetGroup', {
+      targetType: TargetType.IP,
       port: props.port,
-      targets: [service],
-      priority: 1,
+      protocol: ApplicationProtocol.HTTP,
+      deregistrationDelay: Duration.seconds(30),
+      healthCheck: {
+        path: props.healthCheckPath,
+        interval: Duration.seconds(10),
+        timeout: Duration.seconds(5),
+        healthyThresholdCount: 2,
+        unhealthyThresholdCount: 2,
+      },
+      vpc: props.vpc,
+    });
+
+    // const listenerRule =
+    new ApplicationListenerRule(this, 'ListenerRule', {
+      listener: props.listener,
+      priority: props.priority,
+      // targetGroups: [targetGroup],
       conditions: [
         ListenerCondition.pathPatterns(props.pathPatterns),
         ListenerCondition.hostHeaders([`stackName.${props.domainName}`]),
       ],
-      deregistrationDelay: Duration.seconds(10),
-      healthCheck: {
-        interval: Duration.seconds(10),
-        path: '/api/health-check/',
-        timeout: Duration.seconds(5),
-        healthyThresholdCount: 2,
-        unhealthyThresholdCount: 2,
-        port: 'traffic-port',
-      },
+      action: ListenerAction.forward([targetGroup]),
     });
+
+    service.attachToApplicationTargetGroup(targetGroup);
+
   }
 }

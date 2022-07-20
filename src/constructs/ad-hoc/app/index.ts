@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+// import { Stack } from 'aws-cdk-lib';
 import { IVpc, ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
@@ -34,7 +34,7 @@ export class AdHocApp extends Construct {
   constructor(scope: Construct, id: string, props: AdHocAppProps) {
     super(scope, id);
 
-    const stackName = Stack.of(this).stackName;
+    // const stackName = Stack.of(this).stackName;
     // const awsAccountId = Stack.of(this).account;
     // const awsRegion = Stack.of(this).region;
 
@@ -53,11 +53,11 @@ export class AdHocApp extends Construct {
     // shared environment variables
     const environmentVariables: { [key: string]: string }= {
       S3_BUCKET_NAME: props.assetsBucket.bucketName,
-      REDIS_SERVICE_HOST: `${stackName}-redis.${serviceDiscoveryNamespace}`,
+      REDIS_SERVICE_HOST: `stackName-redis.${serviceDiscoveryNamespace}`,
       POSTGRES_SERVICE_HOST: props.rdsInstance.dbInstanceEndpointAddress,
-      POSTGRES_NAME: `${stackName}-db`,
+      POSTGRES_NAME: 'stackName-db',
       DJANGO_SETTINGS_MODULE: props.djangoSettingsModule ?? 'backend.settings.production',
-      FRONTEND_URL: `https://${stackName}.${props.domainName}`,
+      FRONTEND_URL: `https://stackName.${props.domainName}`,
       DOMAIN_NAME: props.domainName,
     };
 
@@ -79,6 +79,7 @@ export class AdHocApp extends Construct {
       domainName: props.domainName,
       pathPatterns: ['/api/*', '/admin/*', '/mtv/*', '/graphql/*'],
       hostHeaders: ['*'],
+      priority: 1,
     });
 
 
@@ -100,6 +101,7 @@ export class AdHocApp extends Construct {
       domainName: props.domainName,
       pathPatterns: ['/*'],
       hostHeaders: ['*'],
+      priority: 2,
     });
 
     // ensure that the backend service listener rule has a higher priority than the frontend service listener rule

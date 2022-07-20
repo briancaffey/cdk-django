@@ -1,4 +1,4 @@
-import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy /* Stack */ } from 'aws-cdk-lib';
 import { BastionHostLinux, CloudFormationInit, InitPackage, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationProtocol,
@@ -40,7 +40,7 @@ export class AdHocBase extends Construct {
     super(scope, id);
 
     // get the stack name
-    const stackName = Stack.of(this).stackName;
+    const stackName = 'test'; // Stack.of(this).stackName;
 
     // the domain name to use for the ad hoc environments
     this.domainName = props.domainName;

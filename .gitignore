@@ -32,6 +32,8 @@ jspm_packages/
 .cache
 cdk.out
 notes
+app.yml
+base.yml
 !/.projenrc.js
 /test-reports/
 junit.xml
