@@ -8,6 +8,7 @@ import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
+// import { HighestPriorityRule } from '../../internal/customResources/highestPriorityRule';
 import { WebService } from '../../internal/ecs/web';
 
 export interface AdHocAppProps {
@@ -37,6 +38,12 @@ export class AdHocApp extends Construct {
     // const stackName = Stack.of(this).stackName;
     // const awsAccountId = Stack.of(this).account;
     // const awsRegion = Stack.of(this).region;
+
+    // custom resource to get the highest available listener rule priority
+    // then take the next two highest priorities and use them for the frontend and backend listener rule priorities
+    // https://github.com/aws-samples/aws-cdk-examples/blob/master/typescript/custom-resource/index.ts
+
+    // const highestPriorityRule = new HighestPriorityRule(this, 'HighestPriorityRule', { listener: props.listener });
 
     const backendEcrRepo = Repository.fromRepositoryName(this, 'BackendRepo', 'backend');
     const backendImage = new EcrImage(backendEcrRepo, props.backendVersion);
@@ -79,9 +86,9 @@ export class AdHocApp extends Construct {
       domainName: props.domainName,
       pathPatterns: ['/api/*', '/admin/*', '/mtv/*', '/graphql/*'],
       hostHeaders: ['*'],
-      priority: 1,
+      priority: 2, //highestPriorityRule.priority + 1,
+      healthCheckPath: '/api/health-check/',
     });
-
 
     // frontend service
     // const frontendService =
@@ -101,7 +108,8 @@ export class AdHocApp extends Construct {
       domainName: props.domainName,
       pathPatterns: ['/*'],
       hostHeaders: ['*'],
-      priority: 2,
+      priority: 3, // highestPriorityRule.priority + 2,
+      healthCheckPath: '/',
     });
 
     // ensure that the backend service listener rule has a higher priority than the frontend service listener rule

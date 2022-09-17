@@ -1,7 +1,7 @@
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
 import {
-  AwsLogDriver,
+  // AwsLogDriver,
   Cluster,
   ContainerImage,
   FargateService,
@@ -17,7 +17,7 @@ import {
   TargetType,
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Role } from 'aws-cdk-lib/aws-iam';
-import { LogGroup, LogStream, RetentionDays } from 'aws-cdk-lib/aws-logs';
+// import { LogGroup, LogStream, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
 
@@ -50,19 +50,18 @@ export class WebService extends Construct {
 
     // Getting circular dependency error when using `FargateTaskDefinition`
     // https://docs.aws.amazon.com/cdk/api/v1/docs/@aws-cdk_aws-ecs.FargateService.html#example
-    // const stackName = 'test'; // Stack.of(this).stackName;
 
     // define log group and logstream
-    const logGroup = new LogGroup(this, 'LogGroup', {
-      logGroupName: `/ecs/test/${props.containerName}`,
-      retention: RetentionDays.ONE_DAY,
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
+    // const logGroup = new LogGroup(this, 'LogGroup', {
+    //   logGroupName: `/ecs/test/${props.containerName}`,
+    //   retention: RetentionDays.ONE_DAY,
+    //   removalPolicy: RemovalPolicy.DESTROY,
+    // });
 
-    new LogStream(this, 'LogStream', {
-      logGroup,
-      logStreamName: 'web-logs',
-    });
+    // new LogStream(this, 'LogStream', {
+    //   logGroup,
+    //   logStreamName: 'web-logs',
+    // });
 
     // task definition
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDefinition', {
@@ -78,7 +77,7 @@ export class WebService extends Construct {
       containerName: props.containerName,
       environment: props.environmentVariables,
       essential: true,
-      logging: new AwsLogDriver({ streamPrefix: 'web', logGroup }),
+      // logging: new AwsLogDriver({ streamPrefix: 'web', logGroup }),
       portMappings: [{
         containerPort: props.port,
         hostPort: props.port,
