@@ -72,7 +72,3 @@ Another major focus of this project is to show best practices for secure and saf
 The production environment is quite expensive to run compared to other alternatives, so it may not be a best fit for all organizations and development teams. ECS Fargate is more expensive for comparable amounts of compute that be purchased using EC2 instances.
 
 Ad hoc environments take advantage of Fargate Spot instances which are less expensive than regular Fargate instances. Similar to EC2 spot instances, this allows us to use "left-over" compute resources at a discount with the caveat that the instances may be shut down for rescheduling by AWS at any time (with a 2 minute warning).
-
-## Reset
-
-Resetting git repo
