@@ -2,39 +2,39 @@
 
 ## Constructs <a name="Constructs" id="Constructs"></a>
 
-### AdHocApp <a name="AdHocApp" id="django-cdk.AdHocApp"></a>
+### AdHocApp <a name="AdHocApp" id="cdk-django.AdHocApp"></a>
 
-#### Initializers <a name="Initializers" id="django-cdk.AdHocApp.Initializer"></a>
+#### Initializers <a name="Initializers" id="cdk-django.AdHocApp.Initializer"></a>
 
 ```typescript
-import { AdHocApp } from 'django-cdk'
+import { AdHocApp } from 'cdk-django'
 
 new AdHocApp(scope: Construct, id: string, props: AdHocAppProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocApp.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocApp.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocApp.Initializer.parameter.props">props</a></code> | <code><a href="#django-cdk.AdHocAppProps">AdHocAppProps</a></code> | *No description.* |
+| <code><a href="#cdk-django.AdHocApp.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocApp.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocApp.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-django.AdHocAppProps">AdHocAppProps</a></code> | *No description.* |
 
 ---
 
-##### `scope`<sup>Required</sup> <a name="scope" id="django-cdk.AdHocApp.Initializer.parameter.scope"></a>
+##### `scope`<sup>Required</sup> <a name="scope" id="cdk-django.AdHocApp.Initializer.parameter.scope"></a>
 
 - *Type:* constructs.Construct
 
 ---
 
-##### `id`<sup>Required</sup> <a name="id" id="django-cdk.AdHocApp.Initializer.parameter.id"></a>
+##### `id`<sup>Required</sup> <a name="id" id="cdk-django.AdHocApp.Initializer.parameter.id"></a>
 
 - *Type:* string
 
 ---
 
-##### `props`<sup>Required</sup> <a name="props" id="django-cdk.AdHocApp.Initializer.parameter.props"></a>
+##### `props`<sup>Required</sup> <a name="props" id="cdk-django.AdHocApp.Initializer.parameter.props"></a>
 
-- *Type:* <a href="#django-cdk.AdHocAppProps">AdHocAppProps</a>
+- *Type:* <a href="#cdk-django.AdHocAppProps">AdHocAppProps</a>
 
 ---
 
@@ -42,11 +42,11 @@ new AdHocApp(scope: Construct, id: string, props: AdHocAppProps)
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#django-cdk.AdHocApp.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cdk-django.AdHocApp.toString">toString</a></code> | Returns a string representation of this construct. |
 
 ---
 
-##### `toString` <a name="toString" id="django-cdk.AdHocApp.toString"></a>
+##### `toString` <a name="toString" id="cdk-django.AdHocApp.toString"></a>
 
 ```typescript
 public toString(): string
@@ -58,21 +58,21 @@ Returns a string representation of this construct.
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#django-cdk.AdHocApp.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
+| <code><a href="#cdk-django.AdHocApp.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
 
 ---
 
-##### ~~`isConstruct`~~ <a name="isConstruct" id="django-cdk.AdHocApp.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="cdk-django.AdHocApp.isConstruct"></a>
 
 ```typescript
-import { AdHocApp } from 'django-cdk'
+import { AdHocApp } from 'cdk-django'
 
 AdHocApp.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
 
-###### `x`<sup>Required</sup> <a name="x" id="django-cdk.AdHocApp.isConstruct.parameter.x"></a>
+###### `x`<sup>Required</sup> <a name="x" id="cdk-django.AdHocApp.isConstruct.parameter.x"></a>
 
 - *Type:* any
 
@@ -84,11 +84,11 @@ Any object.
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocApp.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#cdk-django.AdHocApp.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
 
 ---
 
-##### `node`<sup>Required</sup> <a name="node" id="django-cdk.AdHocApp.property.node"></a>
+##### `node`<sup>Required</sup> <a name="node" id="cdk-django.AdHocApp.property.node"></a>
 
 ```typescript
 public readonly node: Node;
@@ -101,39 +101,39 @@ The tree node.
 ---
 
 
-### AdHocBase <a name="AdHocBase" id="django-cdk.AdHocBase"></a>
+### AdHocBase <a name="AdHocBase" id="cdk-django.AdHocBase"></a>
 
-#### Initializers <a name="Initializers" id="django-cdk.AdHocBase.Initializer"></a>
+#### Initializers <a name="Initializers" id="cdk-django.AdHocBase.Initializer"></a>
 
 ```typescript
-import { AdHocBase } from 'django-cdk'
+import { AdHocBase } from 'cdk-django'
 
 new AdHocBase(scope: Construct, id: string, props: AdHocBaseProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocBase.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.Initializer.parameter.props">props</a></code> | <code><a href="#django-cdk.AdHocBaseProps">AdHocBaseProps</a></code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.Initializer.parameter.props">props</a></code> | <code><a href="#cdk-django.AdHocBaseProps">AdHocBaseProps</a></code> | *No description.* |
 
 ---
 
-##### `scope`<sup>Required</sup> <a name="scope" id="django-cdk.AdHocBase.Initializer.parameter.scope"></a>
+##### `scope`<sup>Required</sup> <a name="scope" id="cdk-django.AdHocBase.Initializer.parameter.scope"></a>
 
 - *Type:* constructs.Construct
 
 ---
 
-##### `id`<sup>Required</sup> <a name="id" id="django-cdk.AdHocBase.Initializer.parameter.id"></a>
+##### `id`<sup>Required</sup> <a name="id" id="cdk-django.AdHocBase.Initializer.parameter.id"></a>
 
 - *Type:* string
 
 ---
 
-##### `props`<sup>Required</sup> <a name="props" id="django-cdk.AdHocBase.Initializer.parameter.props"></a>
+##### `props`<sup>Required</sup> <a name="props" id="cdk-django.AdHocBase.Initializer.parameter.props"></a>
 
-- *Type:* <a href="#django-cdk.AdHocBaseProps">AdHocBaseProps</a>
+- *Type:* <a href="#cdk-django.AdHocBaseProps">AdHocBaseProps</a>
 
 ---
 
@@ -141,11 +141,11 @@ new AdHocBase(scope: Construct, id: string, props: AdHocBaseProps)
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#django-cdk.AdHocBase.toString">toString</a></code> | Returns a string representation of this construct. |
+| <code><a href="#cdk-django.AdHocBase.toString">toString</a></code> | Returns a string representation of this construct. |
 
 ---
 
-##### `toString` <a name="toString" id="django-cdk.AdHocBase.toString"></a>
+##### `toString` <a name="toString" id="cdk-django.AdHocBase.toString"></a>
 
 ```typescript
 public toString(): string
@@ -157,21 +157,21 @@ Returns a string representation of this construct.
 
 | **Name** | **Description** |
 | --- | --- |
-| <code><a href="#django-cdk.AdHocBase.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
+| <code><a href="#cdk-django.AdHocBase.isConstruct">isConstruct</a></code> | Checks if `x` is a construct. |
 
 ---
 
-##### ~~`isConstruct`~~ <a name="isConstruct" id="django-cdk.AdHocBase.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="cdk-django.AdHocBase.isConstruct"></a>
 
 ```typescript
-import { AdHocBase } from 'django-cdk'
+import { AdHocBase } from 'cdk-django'
 
 AdHocBase.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
 
-###### `x`<sup>Required</sup> <a name="x" id="django-cdk.AdHocBase.isConstruct.parameter.x"></a>
+###### `x`<sup>Required</sup> <a name="x" id="cdk-django.AdHocBase.isConstruct.parameter.x"></a>
 
 - *Type:* any
 
@@ -183,19 +183,19 @@ Any object.
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocBase.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
-| <code><a href="#django-cdk.AdHocBase.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationLoadBalancer</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.SecurityGroup</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.databaseInstance">databaseInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBase.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#cdk-django.AdHocBase.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationLoadBalancer</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.SecurityGroup</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.databaseInstance">databaseInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
 
 ---
 
-##### `node`<sup>Required</sup> <a name="node" id="django-cdk.AdHocBase.property.node"></a>
+##### `node`<sup>Required</sup> <a name="node" id="cdk-django.AdHocBase.property.node"></a>
 
 ```typescript
 public readonly node: Node;
@@ -207,7 +207,7 @@ The tree node.
 
 ---
 
-##### `alb`<sup>Required</sup> <a name="alb" id="django-cdk.AdHocBase.property.alb"></a>
+##### `alb`<sup>Required</sup> <a name="alb" id="cdk-django.AdHocBase.property.alb"></a>
 
 ```typescript
 public readonly alb: ApplicationLoadBalancer;
@@ -217,7 +217,7 @@ public readonly alb: ApplicationLoadBalancer;
 
 ---
 
-##### `appSecurityGroup`<sup>Required</sup> <a name="appSecurityGroup" id="django-cdk.AdHocBase.property.appSecurityGroup"></a>
+##### `appSecurityGroup`<sup>Required</sup> <a name="appSecurityGroup" id="cdk-django.AdHocBase.property.appSecurityGroup"></a>
 
 ```typescript
 public readonly appSecurityGroup: SecurityGroup;
@@ -227,7 +227,7 @@ public readonly appSecurityGroup: SecurityGroup;
 
 ---
 
-##### `assetsBucket`<sup>Required</sup> <a name="assetsBucket" id="django-cdk.AdHocBase.property.assetsBucket"></a>
+##### `assetsBucket`<sup>Required</sup> <a name="assetsBucket" id="cdk-django.AdHocBase.property.assetsBucket"></a>
 
 ```typescript
 public readonly assetsBucket: Bucket;
@@ -237,7 +237,7 @@ public readonly assetsBucket: Bucket;
 
 ---
 
-##### `databaseInstance`<sup>Required</sup> <a name="databaseInstance" id="django-cdk.AdHocBase.property.databaseInstance"></a>
+##### `databaseInstance`<sup>Required</sup> <a name="databaseInstance" id="cdk-django.AdHocBase.property.databaseInstance"></a>
 
 ```typescript
 public readonly databaseInstance: DatabaseInstance;
@@ -247,7 +247,7 @@ public readonly databaseInstance: DatabaseInstance;
 
 ---
 
-##### `domainName`<sup>Required</sup> <a name="domainName" id="django-cdk.AdHocBase.property.domainName"></a>
+##### `domainName`<sup>Required</sup> <a name="domainName" id="cdk-django.AdHocBase.property.domainName"></a>
 
 ```typescript
 public readonly domainName: string;
@@ -257,7 +257,7 @@ public readonly domainName: string;
 
 ---
 
-##### `listener`<sup>Required</sup> <a name="listener" id="django-cdk.AdHocBase.property.listener"></a>
+##### `listener`<sup>Required</sup> <a name="listener" id="cdk-django.AdHocBase.property.listener"></a>
 
 ```typescript
 public readonly listener: ApplicationListener;
@@ -267,7 +267,7 @@ public readonly listener: ApplicationListener;
 
 ---
 
-##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="django-cdk.AdHocBase.property.serviceDiscoveryNamespace"></a>
+##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="cdk-django.AdHocBase.property.serviceDiscoveryNamespace"></a>
 
 ```typescript
 public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
@@ -277,7 +277,7 @@ public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
 
 ---
 
-##### `vpc`<sup>Required</sup> <a name="vpc" id="django-cdk.AdHocBase.property.vpc"></a>
+##### `vpc`<sup>Required</sup> <a name="vpc" id="cdk-django.AdHocBase.property.vpc"></a>
 
 ```typescript
 public readonly vpc: IVpc;
@@ -290,12 +290,12 @@ public readonly vpc: IVpc;
 
 ## Structs <a name="Structs" id="Structs"></a>
 
-### AdHocAppProps <a name="AdHocAppProps" id="django-cdk.AdHocAppProps"></a>
+### AdHocAppProps <a name="AdHocAppProps" id="cdk-django.AdHocAppProps"></a>
 
-#### Initializer <a name="Initializer" id="django-cdk.AdHocAppProps.Initializer"></a>
+#### Initializer <a name="Initializer" id="cdk-django.AdHocAppProps.Initializer"></a>
 
 ```typescript
-import { AdHocAppProps } from 'django-cdk'
+import { AdHocAppProps } from 'cdk-django'
 
 const adHocAppProps: AdHocAppProps = { ... }
 ```
@@ -304,22 +304,22 @@ const adHocAppProps: AdHocAppProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocAppProps.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.IApplicationLoadBalancer</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.ISecurityGroup</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.backendVersion">backendVersion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.baseStackName">baseStackName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.frontendVersion">frontendVersion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.rdsInstance">rdsInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocAppProps.property.djangoSettingsModule">djangoSettingsModule</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.IApplicationLoadBalancer</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.ISecurityGroup</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.backendVersion">backendVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.baseStackName">baseStackName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.frontendVersion">frontendVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.rdsInstance">rdsInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.djangoSettingsModule">djangoSettingsModule</a></code> | <code>string</code> | *No description.* |
 
 ---
 
-##### `alb`<sup>Required</sup> <a name="alb" id="django-cdk.AdHocAppProps.property.alb"></a>
+##### `alb`<sup>Required</sup> <a name="alb" id="cdk-django.AdHocAppProps.property.alb"></a>
 
 ```typescript
 public readonly alb: IApplicationLoadBalancer;
@@ -329,7 +329,7 @@ public readonly alb: IApplicationLoadBalancer;
 
 ---
 
-##### `appSecurityGroup`<sup>Required</sup> <a name="appSecurityGroup" id="django-cdk.AdHocAppProps.property.appSecurityGroup"></a>
+##### `appSecurityGroup`<sup>Required</sup> <a name="appSecurityGroup" id="cdk-django.AdHocAppProps.property.appSecurityGroup"></a>
 
 ```typescript
 public readonly appSecurityGroup: ISecurityGroup;
@@ -339,7 +339,7 @@ public readonly appSecurityGroup: ISecurityGroup;
 
 ---
 
-##### `assetsBucket`<sup>Required</sup> <a name="assetsBucket" id="django-cdk.AdHocAppProps.property.assetsBucket"></a>
+##### `assetsBucket`<sup>Required</sup> <a name="assetsBucket" id="cdk-django.AdHocAppProps.property.assetsBucket"></a>
 
 ```typescript
 public readonly assetsBucket: Bucket;
@@ -349,7 +349,7 @@ public readonly assetsBucket: Bucket;
 
 ---
 
-##### `backendVersion`<sup>Required</sup> <a name="backendVersion" id="django-cdk.AdHocAppProps.property.backendVersion"></a>
+##### `backendVersion`<sup>Required</sup> <a name="backendVersion" id="cdk-django.AdHocAppProps.property.backendVersion"></a>
 
 ```typescript
 public readonly backendVersion: string;
@@ -359,7 +359,7 @@ public readonly backendVersion: string;
 
 ---
 
-##### `baseStackName`<sup>Required</sup> <a name="baseStackName" id="django-cdk.AdHocAppProps.property.baseStackName"></a>
+##### `baseStackName`<sup>Required</sup> <a name="baseStackName" id="cdk-django.AdHocAppProps.property.baseStackName"></a>
 
 ```typescript
 public readonly baseStackName: string;
@@ -369,7 +369,7 @@ public readonly baseStackName: string;
 
 ---
 
-##### `domainName`<sup>Required</sup> <a name="domainName" id="django-cdk.AdHocAppProps.property.domainName"></a>
+##### `domainName`<sup>Required</sup> <a name="domainName" id="cdk-django.AdHocAppProps.property.domainName"></a>
 
 ```typescript
 public readonly domainName: string;
@@ -379,7 +379,7 @@ public readonly domainName: string;
 
 ---
 
-##### `frontendVersion`<sup>Required</sup> <a name="frontendVersion" id="django-cdk.AdHocAppProps.property.frontendVersion"></a>
+##### `frontendVersion`<sup>Required</sup> <a name="frontendVersion" id="cdk-django.AdHocAppProps.property.frontendVersion"></a>
 
 ```typescript
 public readonly frontendVersion: string;
@@ -389,7 +389,7 @@ public readonly frontendVersion: string;
 
 ---
 
-##### `listener`<sup>Required</sup> <a name="listener" id="django-cdk.AdHocAppProps.property.listener"></a>
+##### `listener`<sup>Required</sup> <a name="listener" id="cdk-django.AdHocAppProps.property.listener"></a>
 
 ```typescript
 public readonly listener: ApplicationListener;
@@ -399,7 +399,7 @@ public readonly listener: ApplicationListener;
 
 ---
 
-##### `rdsInstance`<sup>Required</sup> <a name="rdsInstance" id="django-cdk.AdHocAppProps.property.rdsInstance"></a>
+##### `rdsInstance`<sup>Required</sup> <a name="rdsInstance" id="cdk-django.AdHocAppProps.property.rdsInstance"></a>
 
 ```typescript
 public readonly rdsInstance: DatabaseInstance;
@@ -409,7 +409,7 @@ public readonly rdsInstance: DatabaseInstance;
 
 ---
 
-##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="django-cdk.AdHocAppProps.property.serviceDiscoveryNamespace"></a>
+##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace"></a>
 
 ```typescript
 public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
@@ -419,7 +419,7 @@ public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
 
 ---
 
-##### `vpc`<sup>Required</sup> <a name="vpc" id="django-cdk.AdHocAppProps.property.vpc"></a>
+##### `vpc`<sup>Required</sup> <a name="vpc" id="cdk-django.AdHocAppProps.property.vpc"></a>
 
 ```typescript
 public readonly vpc: IVpc;
@@ -429,7 +429,7 @@ public readonly vpc: IVpc;
 
 ---
 
-##### `djangoSettingsModule`<sup>Optional</sup> <a name="djangoSettingsModule" id="django-cdk.AdHocAppProps.property.djangoSettingsModule"></a>
+##### `djangoSettingsModule`<sup>Optional</sup> <a name="djangoSettingsModule" id="cdk-django.AdHocAppProps.property.djangoSettingsModule"></a>
 
 ```typescript
 public readonly djangoSettingsModule: string;
@@ -439,12 +439,12 @@ public readonly djangoSettingsModule: string;
 
 ---
 
-### AdHocBaseProps <a name="AdHocBaseProps" id="django-cdk.AdHocBaseProps"></a>
+### AdHocBaseProps <a name="AdHocBaseProps" id="cdk-django.AdHocBaseProps"></a>
 
-#### Initializer <a name="Initializer" id="django-cdk.AdHocBaseProps.Initializer"></a>
+#### Initializer <a name="Initializer" id="cdk-django.AdHocBaseProps.Initializer"></a>
 
 ```typescript
-import { AdHocBaseProps } from 'django-cdk'
+import { AdHocBaseProps } from 'cdk-django'
 
 const adHocBaseProps: AdHocBaseProps = { ... }
 ```
@@ -453,12 +453,12 @@ const adHocBaseProps: AdHocBaseProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#django-cdk.AdHocBaseProps.property.certificateArn">certificateArn</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#django-cdk.AdHocBaseProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBaseProps.property.certificateArn">certificateArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBaseProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
 
 ---
 
-##### `certificateArn`<sup>Required</sup> <a name="certificateArn" id="django-cdk.AdHocBaseProps.property.certificateArn"></a>
+##### `certificateArn`<sup>Required</sup> <a name="certificateArn" id="cdk-django.AdHocBaseProps.property.certificateArn"></a>
 
 ```typescript
 public readonly certificateArn: string;
@@ -468,7 +468,7 @@ public readonly certificateArn: string;
 
 ---
 
-##### `domainName`<sup>Required</sup> <a name="domainName" id="django-cdk.AdHocBaseProps.property.domainName"></a>
+##### `domainName`<sup>Required</sup> <a name="domainName" id="cdk-django.AdHocBaseProps.property.domainName"></a>
 
 ```typescript
 public readonly domainName: string;

@@ -2,7 +2,7 @@
 
 ## About this construct library
 
-`django-cdk` is a construct library for AWS Cloud Development Kit (CDK) that I wrote to learn more about infrastructure as code. It it focuses on showing how to build AWS infrastructure to support Django applications. I recommend that you only use this construct library as a reference for your own applications.
+`cdk-django` is a construct library for AWS Cloud Development Kit (CDK) that I wrote to learn more about infrastructure as code. It it focuses on showing how to build AWS infrastructure to support Django applications. I recommend that you only use this construct library as a reference for your own applications.
 
 There are four major constructs in this library:
 
@@ -32,7 +32,7 @@ I wrote about ad hoc environments in an article on my blog here: [https://brianc
 
 The prod base and prod app constructs are used for setting up infrastructure for production environments.
 
-I have written a very similar library that will deploy almost the exact same infrastructure (both for ad hoc and production environments) using Terraform which can be found here: [https://github.com/briancaffey/terraform-aws-django](https://github.com/briancaffey/terraform-aws-django). The directory structures for these two repositories are very similar. `django-cdk` is published to npm and `terraform-aws-django` is published to the Terraform registry.
+I have written a very similar library that will deploy almost the exact same infrastructure (both for ad hoc and production environments) using Terraform which can be found here: [https://github.com/briancaffey/terraform-aws-django](https://github.com/briancaffey/terraform-aws-django). The directory structures for these two repositories are very similar. `cdk-django` is published to npm and `terraform-aws-django` is published to the Terraform registry.
 
 This construct library focuses on security, best practices, scalability, flexibility and cost-efficiency.
 
@@ -40,7 +40,7 @@ This construct library focuses on security, best practices, scalability, flexibi
 
 I developed this construct library together with a sample reference Django application that I wrote for learning, testing and experimentation. This Django application is a simple blogging application called **μblog**. This repo for μblog can be found here: [https://github.com/briancaffey/django-step-by-step](https://github.com/briancaffey/django-step-by-step).
 
-This repo shows how to set up local development environments using docker and docker-compose, and also contains multiple GitHub Actions workflows that demonstrate how to use `django-cdk` to build and deploy the applications using CI/CD automation. There are GitHub Actions workflows for both `django-cdk` and `terraform-aws-django`.
+This repo shows how to set up local development environments using docker and docker-compose, and also contains multiple GitHub Actions workflows that demonstrate how to use `cdk-django` to build and deploy the applications using CI/CD automation. There are GitHub Actions workflows for both `cdk-django` and `terraform-aws-django`.
 
 ## Important points
 

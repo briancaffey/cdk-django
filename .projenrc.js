@@ -4,8 +4,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorAddress: 'briancaffey2010@gmail.com',
   cdkVersion: '2.31.1',
   defaultReleaseBranch: 'main',
-  name: 'django-cdk',
-  repositoryUrl: 'git@github.com:briancaffey/django-cdk.git',
+  name: 'cdk-django',
+  repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
   // https://github.com/projen/projen/issues/1941
   bundledDeps: ['@types/jest@27.4.1'],
   gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml'],
