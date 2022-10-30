@@ -18,7 +18,7 @@ export class ApplicationVpc extends Construct {
         {
           cidrMask: 24,
           name: 'application',
-          subnetType: SubnetType.PRIVATE_WITH_NAT,
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
     });

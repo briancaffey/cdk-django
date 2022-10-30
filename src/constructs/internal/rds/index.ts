@@ -46,7 +46,7 @@ export class RdsInstance extends Construct {
       port: 5432,
       securityGroups: [rdsSecurityGroup],
       vpcSubnets: {
-        subnetType: SubnetType.PRIVATE_WITH_NAT,
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
       },
     });
     this.rdsInstance = rdsInstance;

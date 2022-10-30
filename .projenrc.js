@@ -2,7 +2,7 @@ const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'briancaffey',
   authorAddress: 'briancaffey2010@gmail.com',
-  cdkVersion: '2.31.1',
+  cdkVersion: '2.49.0',
   defaultReleaseBranch: 'main',
   name: 'cdk-django',
   repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
