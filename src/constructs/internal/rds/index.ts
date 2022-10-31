@@ -1,4 +1,5 @@
 // import { Stack } from 'aws-cdk-lib';
+import { Stack } from 'aws-cdk-lib';
 import { InstanceClass, InstanceType, InstanceSize, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -16,7 +17,7 @@ export class RdsInstance extends Construct {
   constructor(scope: Construct, id: string, props: RdsInstanceProps) {
     super(scope, id);
 
-    const stackName = 'test'; // Stack.of(this).stackName;
+    const stackName = Stack.of(this).stackName;
 
     const secret = new Secret(scope, 'dbSecret', {
       secretName: props.dbSecretName,
