@@ -92,7 +92,6 @@ export class WebService extends Construct {
         containerPort: props.port,
         hostPort: props.port,
       }],
-      hostname: props.containerName,
     });
 
     const useSpot = props.useSpot ?? false;

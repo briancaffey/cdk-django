@@ -74,7 +74,6 @@ export class ManagementCommandTask extends Construct {
         streamPrefix,
         logGroup,
       }),
-      hostname: props.containerName,
     });
 
     const privateSubnets = props.vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }).subnets.map(s => s.subnetId).join(',');
