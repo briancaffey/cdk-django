@@ -1,5 +1,5 @@
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
+import { ISecurityGroup, IVpc, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   LogDriver,
   Cluster,
@@ -77,11 +77,13 @@ export class ManagementCommandTask extends Construct {
       hostname: props.containerName,
     });
 
+    const privateSubnets = props.vpc.selectSubnets({ subnetType: SubnetType.PRIVATE_WITH_EGRESS }).subnets.map(s => s.subnetId).join(',');
+
     // this script is called once on initial setup from GitHub Actions
     const executionScript = `
 START_TIME=$(date +%s000)
 
-TASK_ID=$(aws ecs run-task --cluster ${props.cluster.clusterArn} --task-definition ${taskDefinition.taskDefinitionArn} --network-configuration "awsvpcConfiguration={subnets=[${props.vpc.privateSubnets.map(x=>{x.subnetId;}).join(',')}],securityGroups=[${props.appSecurityGroup}],assignPublicIp=ENABLED}" | jq -r '.tasks[0].taskArn')
+TASK_ID=$(aws ecs run-task --cluster ${props.cluster.clusterArn} --task-definition ${taskDefinition.taskDefinitionArn} --network-configuration "awsvpcConfiguration={subnets=[${privateSubnets}],securityGroups=[${props.appSecurityGroup.securityGroupId}],assignPublicIp=ENABLED}" | jq -r '.tasks[0].taskArn')
 
 aws ecs wait tasks-stopped --tasks $TASK_ID --cluster ${props.cluster.clusterArn}
 
