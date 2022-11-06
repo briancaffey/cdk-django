@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { CfnOutput, Stack } from 'aws-cdk-lib';
 import { IVpc, ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
@@ -9,6 +9,7 @@ import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 // import { HighestPriorityRule } from '../../internal/customResources/highestPriorityRule';
 import { EcsRoles } from '../../internal/ecs/iam';
+import { ManagementCommandTask } from '../../internal/ecs/management-command';
 import { WebService } from '../../internal/ecs/web';
 
 export interface AdHocAppProps {
@@ -113,13 +114,25 @@ export class AdHocApp extends Construct {
       healthCheckPath: '/',
     });
 
-    // ensure that the backend service listener rule has a higher priority than the frontend service listener rule
-    // backendService.node.addDependency(frontendService);
-
     // worker service
 
     // scheduler service
 
     // management command task definition
+    const backendUpdateTask = new ManagementCommandTask(this, 'BackendUpdateTask', {
+      cluster,
+      environmentVariables,
+      vpc: props.vpc,
+      appSecurityGroup: props.appSecurityGroup,
+      taskRole: ecsRoles.ecsTaskRole,
+      executionRole: ecsRoles.taskExecutionRole,
+      image: backendImage,
+      command: ['python', 'manage.py', 'backend_update'],
+      containerName: 'backendUpdate',
+      family: 'backendUpdate',
+    });
+
+    // define stack output use for running the management command
+    new CfnOutput(this, 'backendUpdateCommand', { value: backendUpdateTask.executionScript });
   }
 }

@@ -1,10 +1,6 @@
-import {
-  Duration,
-  RemovalPolicy,
-} from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { ISecurityGroup, IVpc } from 'aws-cdk-lib/aws-ec2';
 import {
-  // AwsLogDriver,
   LogDriver,
   Cluster,
   ContainerImage,
@@ -56,19 +52,22 @@ export class WebService extends Construct {
   constructor(scope: Construct, id: string, props: WebProps) {
     super(scope, id);
 
-    // Getting circular dependency error when using `FargateTaskDefinition`
-    // https://docs.aws.amazon.com/cdk/api/v1/docs/@aws-cdk_aws-ecs.FargateService.html#example
+    const stackName = Stack.of(this).stackName;
+
+    // define log group and logstream
+    const logGroupName = `/ecs/${stackName}/${props.containerName}/`;
+    const streamPrefix = props.containerName;
 
     // define log group and logstream
     const logGroup = new LogGroup(this, 'LogGroup', {
-      logGroupName: `/ecs/test/${props.containerName}`,
+      logGroupName,
       retention: RetentionDays.ONE_DAY,
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
     new LogStream(this, 'LogStream', {
       logGroup,
-      logStreamName: 'web-logs',
+      logStreamName: props.containerName,
     });
 
     // task definition
@@ -86,14 +85,14 @@ export class WebService extends Construct {
       environment: props.environmentVariables,
       essential: true,
       logging: LogDriver.awsLogs({
-        streamPrefix: 'web',
-        // logGroup
+        streamPrefix,
+        logGroup,
       }),
       portMappings: [{
         containerPort: props.port,
         hostPort: props.port,
       }],
-      hostname: `stackName-${props.containerName}`,
+      hostname: props.containerName,
     });
 
     const useSpot = props.useSpot ?? false;
@@ -115,7 +114,7 @@ export class WebService extends Construct {
       desiredCount: 1,
       enableExecuteCommand: true,
       securityGroups: [props.appSecurityGroup],
-      serviceName: `stackName-${props.containerName}`,
+      serviceName: `${stackName}-${props.containerName}`,
       vpcSubnets: {
         subnets: props.vpc.privateSubnets,
       },
@@ -143,7 +142,7 @@ export class WebService extends Construct {
       // targetGroups: [targetGroup],
       conditions: [
         ListenerCondition.pathPatterns(props.pathPatterns),
-        ListenerCondition.hostHeaders([`stackName.${props.domainName}`]),
+        ListenerCondition.hostHeaders([`${stackName}.${props.domainName}`]),
       ],
       action: ListenerAction.forward([targetGroup]),
     });
