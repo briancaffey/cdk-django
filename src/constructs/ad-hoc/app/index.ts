@@ -75,7 +75,7 @@ export class AdHocApp extends Construct {
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName });
     const cnameRecord = new CnameRecord(this, 'CnameApiRecord', {
       recordName: stackName,
-      domainName: `${stackName}.${props.domainName}`,
+      domainName: props.alb.loadBalancerDnsName,
       zone: hostedZone,
     });
 
