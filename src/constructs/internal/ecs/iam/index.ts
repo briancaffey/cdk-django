@@ -19,7 +19,7 @@ export class EcsRoles extends Construct {
     // IAM
     const ecsTaskRole = new Role(this, 'EcsTaskRole', {
       roleName: `${stackName}EcsTaskRole`,
-      assumedBy: new ServicePrincipal('ecs.amazonaws.com'),
+      assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
     });
 
     ecsTaskRole.addToPolicy(new PolicyStatement({
