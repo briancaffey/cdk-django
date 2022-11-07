@@ -4,6 +4,7 @@ import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
 import { IApplicationLoadBalancer, ApplicationListener } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
+import { CnameRecord, HostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
@@ -70,6 +71,14 @@ export class AdHocApp extends Construct {
     // define ecsTaskRole and taskExecutionRole for ECS
     const ecsRoles = new EcsRoles(scope, 'EcsRoles');
 
+    // Route53
+    const hostedZone = HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName });
+    const cnameRecord = new CnameRecord(this, 'CnameApiRecord', {
+      recordName: stackName,
+      domainName: `${stackName}.${props.domainName}`,
+      zone: hostedZone,
+    });
+
     // api service
     // const backendService =
     new WebService(this, 'ApiService', {
@@ -134,5 +143,6 @@ export class AdHocApp extends Construct {
 
     // define stack output use for running the management command
     new CfnOutput(this, 'backendUpdateCommand', { value: backendUpdateTask.executionScript });
+    new CfnOutput(this, 'domainName', { value: cnameRecord.domainName });
   }
 }
