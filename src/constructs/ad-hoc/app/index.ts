@@ -137,7 +137,7 @@ export class AdHocApp extends Construct {
       taskRole: ecsRoles.ecsTaskRole,
       executionRole: ecsRoles.taskExecutionRole,
       image: backendImage,
-      command: ['python', 'manage.py', 'backend_update'],
+      command: ['python', 'manage.py', 'pre_update'],
       containerName: 'backendUpdate',
       family: 'backendUpdate',
     });
