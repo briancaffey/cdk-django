@@ -82,7 +82,7 @@ export class ManagementCommandTask extends Construct {
     const executionScript = `
 START_TIME=$(date +%s000)
 
-TASK_ID=$(aws ecs run-task --cluster ${props.cluster.clusterArn} --task-definition ${taskDefinition.taskDefinitionArn} --network-configuration "awsvpcConfiguration={subnets=[${privateSubnets}],securityGroups=[${props.appSecurityGroup.securityGroupId}],assignPublicIp=ENABLED}" | jq -r '.tasks[0].taskArn')
+TASK_ID=$(aws ecs run-task --cluster ${props.cluster.clusterArn} --task-definition ${taskDefinition.taskDefinitionArn} --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[${privateSubnets}],securityGroups=[${props.appSecurityGroup.securityGroupId}],assignPublicIp=ENABLED}" | jq -r '.tasks[0].taskArn')
 
 aws ecs wait tasks-stopped --tasks $TASK_ID --cluster ${props.cluster.clusterArn}
 

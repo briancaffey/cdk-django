@@ -54,6 +54,7 @@ export class AdHocApp extends Construct {
 
     const cluster = new Cluster(this, 'Cluster', {
       vpc: props.vpc,
+      enableFargateCapacityProviders: true,
     });
 
     const serviceDiscoveryNamespace = props.serviceDiscoveryNamespace.namespaceName;
