@@ -20,7 +20,6 @@
     "post-compile": "npx projen post-compile",
     "post-upgrade": "npx projen post-upgrade",
     "pre-compile": "npx projen pre-compile",
-    "publish:git": "npx projen publish:git",
     "release": "npx projen release",
     "test": "npx projen test",
     "test:update": "npx projen test:update",
@@ -74,7 +73,7 @@
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",
-  "version": "0.0.12",
+  "version": "0.0.0",
   "jest": {
     "testMatch": [
       "<rootDir>/src/**/__tests__/**/*.ts?(x)",
