@@ -1,7 +1,7 @@
 import { CfnOutput, Stack } from 'aws-cdk-lib';
 import { IVpc, ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
-import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
+import { Cluster, ContainerImage, EcrImage } from 'aws-cdk-lib/aws-ecs';
 import { IApplicationLoadBalancer, ApplicationListener } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { CnameRecord, HostedZone } from 'aws-cdk-lib/aws-route53';
@@ -11,7 +11,9 @@ import { Construct } from 'constructs';
 // import { HighestPriorityRule } from '../../internal/customResources/highestPriorityRule';
 import { EcsRoles } from '../../internal/ecs/iam';
 import { ManagementCommandTask } from '../../internal/ecs/management-command';
+import { RedisService } from '../../internal/ecs/redis';
 import { WebService } from '../../internal/ecs/web';
+import { WorkerService } from '../../internal/ecs/worker';
 
 export interface AdHocAppProps {
   readonly baseStackName: string;
@@ -58,6 +60,7 @@ export class AdHocApp extends Construct {
     });
 
     const serviceDiscoveryNamespace = props.serviceDiscoveryNamespace.namespaceName;
+
     // shared environment variables
     const environmentVariables: { [key: string]: string }= {
       S3_BUCKET_NAME: props.assetsBucket.bucketName,
@@ -78,6 +81,19 @@ export class AdHocApp extends Construct {
       recordName: stackName,
       domainName: props.alb.loadBalancerDnsName,
       zone: hostedZone,
+    });
+
+    new RedisService(this, 'RedisService', {
+      cluster,
+      environmentVariables: {},
+      vpc: props.vpc,
+      appSecurityGroup: props.appSecurityGroup,
+      taskRole: ecsRoles.ecsTaskRole,
+      executionRole: ecsRoles.taskExecutionRole,
+      image: ContainerImage.fromRegistry('redis:5.0.3-alpine'),
+      containerName: 'redis',
+      family: 'redis',
+      serviceDiscoveryNamespace: props.serviceDiscoveryNamespace,
     });
 
     // api service
@@ -125,6 +141,18 @@ export class AdHocApp extends Construct {
     });
 
     // worker service
+    new WorkerService(this, 'DefaultCeleryWorker', {
+      cluster,
+      environmentVariables,
+      vpc: props.vpc,
+      appSecurityGroup: props.appSecurityGroup,
+      taskRole: ecsRoles.ecsTaskRole,
+      executionRole: ecsRoles.taskExecutionRole,
+      image: backendImage,
+      command: ['celery', '--app=backend.celery_app:app', 'worker', '--loglevel=INFO', '-Q', 'default'],
+      containerName: 'default-worker',
+      family: 'default-worker',
+    });
 
     // scheduler service
 
