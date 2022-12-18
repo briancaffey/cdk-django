@@ -1,4 +1,5 @@
 const { awscdk } = require('projen');
+const { ReleaseTrigger } = require('projen/lib/release');
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'briancaffey',
   authorAddress: 'briancaffey2010@gmail.com',
@@ -9,6 +10,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // https://github.com/projen/projen/issues/1941
   bundledDeps: ['@types/jest@27.4.1'],
   gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml'],
+  releaseTrigger: ReleaseTrigger.manual(),
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
