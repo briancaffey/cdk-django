@@ -171,22 +171,22 @@ WantedBy=multi-user.target
 
     // Bastion host
     // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
-    new BastionHostLinux(this, 'BastionHost', {
-      vpc: this.vpc,
-      securityGroup: appSecurityGroup,
-      init: CloudFormationInit.fromElements(
-        InitPackage.yum('postgresql'),
-        InitPackage.yum('socat'),
-        // start socat as an init service?
-        InitFile.fromString(
-          '/etc/systemd/system/socat-forwarder.service',
-          socatForwarderString,
-          { serviceRestartHandles: [handle] },
-        ),
-        InitService.enable('socat-forwarder', {
-          serviceRestartHandle: handle,
-        }),
-      ),
-    });
+    // new BastionHostLinux(this, 'BastionHost', {
+    //   vpc: this.vpc,
+    //   securityGroup: appSecurityGroup,
+    //   init: CloudFormationInit.fromElements(
+    //     InitPackage.yum('postgresql'),
+    //     InitPackage.yum('socat'),
+    //     // start socat as an init service?
+    //     InitFile.fromString(
+    //       '/etc/systemd/system/socat-forwarder.service',
+    //       socatForwarderString,
+    //       { serviceRestartHandles: [handle] },
+    //     ),
+    //     InitService.enable('socat-forwarder', {
+    //       serviceRestartHandle: handle,
+    //     }),
+    //   ),
+    // });
   }
 }
