@@ -3,7 +3,7 @@ import {
   RemovalPolicy,
   Stack,
 } from 'aws-cdk-lib';
-import { BastionHostLinux, CloudFormationInit, InitPackage, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { BastionHostLinux, CloudFormationInit, InitFile, InitPackage, InitService, InitServiceRestartHandle, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationProtocol,
   ApplicationListener,
@@ -146,6 +146,29 @@ export class AdHocBase extends Construct {
     });
     this.databaseInstance = rdsInstance.rdsInstance;
 
+
+    const handle = new InitServiceRestartHandle();
+
+    const socatForwarderString = `
+# /etc/systemd/system/socat-forwarder.service
+[Unit]
+Description=socat forwarder service
+After=socat-forwarder.service
+Requires=socat-forwarder.service
+
+[Service]
+Type=simple
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=socat-forwarder
+
+ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:${rdsInstance.rdsInstance.instanceEndpoint}:5432
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+`;
+
     // Bastion host
     // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
     new BastionHostLinux(this, 'BastionHost', {
@@ -155,6 +178,14 @@ export class AdHocBase extends Construct {
         InitPackage.yum('postgresql'),
         InitPackage.yum('socat'),
         // start socat as an init service?
+        InitFile.fromString(
+          '/etc/systemd/system/socat-forwarder.service',
+          socatForwarderString,
+          { serviceRestartHandles: [handle] },
+        ),
+        InitService.enable('socat-forwarder', {
+          serviceRestartHandle: handle,
+        }),
       ),
     });
   }
