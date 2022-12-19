@@ -82,9 +82,6 @@ export class RedisService extends Construct {
       name: `${stackName}-redis`,
       dnsRecordType: DnsRecordType.A,
       dnsTtl: Duration.seconds(30),
-      healthCheck: {
-        failureThreshold: 1,
-      },
     });
 
     const fargateService = new FargateService(this, 'Service', {
