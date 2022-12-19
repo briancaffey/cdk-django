@@ -3,7 +3,7 @@ import {
   RemovalPolicy,
   Stack,
 } from 'aws-cdk-lib';
-import { BastionHostLinux, CloudFormationInit, InitFile, InitPackage, InitService, InitServiceRestartHandle, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { BastionHostLinux, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationProtocol,
   ApplicationListener,
@@ -145,48 +145,47 @@ export class AdHocBase extends Construct {
       dbSecretName: 'DB_SECRET_NAME',
     });
     this.databaseInstance = rdsInstance.rdsInstance;
-
-
-    const handle = new InitServiceRestartHandle();
+    const { instanceEndpoint } = rdsInstance.rdsInstance;
 
     const socatForwarderString = `
-# /etc/systemd/system/socat-forwarder.service
-[Unit]
-Description=socat forwarder service
-After=socat-forwarder.service
-Requires=socat-forwarder.service
+#cloud-config
+package_upgrade: true
+packages:
+  - postgresql
+  - socat
+write_files:
+  - content: |
+      # /etc/systemd/system/socat-forwarder.service
+      [Unit]
+      Description=socat forwarder service
+      After=socat-forwarder.service
+      Requires=socat-forwarder.service
 
-[Service]
-Type=simple
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=socat-forwarder
+      [Service]
+      Type=simple
+      StandardOutput=syslog
+      StandardError=syslog
+      SyslogIdentifier=socat-forwarder
 
-ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:${rdsInstance.rdsInstance.instanceEndpoint}:5432
-Restart=always
+      ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:${instanceEndpoint}:5432
+      Restart=always
 
-[Install]
-WantedBy=multi-user.target
+      [Install]
+      WantedBy=multi-user.target
+    path: /etc/systemd/system/socat-forwarder.service
+
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, socat-forwarder.service ]
+  # https://dustymabe.com/2015/08/03/installingstarting-systemd-services-using-cloud-init/
+  - [ systemctl, start, --no-block, socat-forwarder.service ]
 `;
 
-    // Bastion host
-    // https://github.com/aws/amazon-ssm-agent/issues/259#issuecomment-591850202
-    // new BastionHostLinux(this, 'BastionHost', {
-    //   vpc: this.vpc,
-    //   securityGroup: appSecurityGroup,
-    //   init: CloudFormationInit.fromElements(
-    //     InitPackage.yum('postgresql'),
-    //     InitPackage.yum('socat'),
-    //     // start socat as an init service?
-    //     InitFile.fromString(
-    //       '/etc/systemd/system/socat-forwarder.service',
-    //       socatForwarderString,
-    //       { serviceRestartHandles: [handle] },
-    //     ),
-    //     InitService.enable('socat-forwarder', {
-    //       serviceRestartHandle: handle,
-    //     }),
-    //   ),
-    // });
+    const bastionHost = new BastionHostLinux(this, 'BastionHost', {
+      vpc: this.vpc,
+      securityGroup: appSecurityGroup,
+    });
+
+    bastionHost.instance.addUserData(socatForwarderString);
   }
 }
