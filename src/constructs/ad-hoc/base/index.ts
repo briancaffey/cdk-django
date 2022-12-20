@@ -3,7 +3,7 @@ import {
   RemovalPolicy,
   Stack,
 } from 'aws-cdk-lib';
-import { BastionHostLinux, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
+import { BastionHostLinux, CfnInstance, IVpc, Peer, Port, SecurityGroup, SubnetType, UserData } from 'aws-cdk-lib/aws-ec2';
 import {
   ApplicationProtocol,
   ApplicationListener,
@@ -145,10 +145,9 @@ export class AdHocBase extends Construct {
       dbSecretName: 'DB_SECRET_NAME',
     });
     this.databaseInstance = rdsInstance.rdsInstance;
-    const { instanceEndpoint } = rdsInstance.rdsInstance;
+    const { dbInstanceEndpointAddress } = rdsInstance.rdsInstance;
 
     const socatForwarderString = `
-#cloud-config
 package_upgrade: true
 packages:
   - postgresql
@@ -167,7 +166,7 @@ write_files:
       StandardError=syslog
       SyslogIdentifier=socat-forwarder
 
-      ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:${instanceEndpoint}:5432
+      ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:${dbInstanceEndpointAddress}:5432
       Restart=always
 
       [Install]
@@ -186,6 +185,12 @@ runcmd:
       securityGroup: appSecurityGroup,
     });
 
-    bastionHost.instance.addUserData(socatForwarderString);
+    const bastionHostUserData = UserData.forLinux({ shebang: '#cloud-config' });
+
+    bastionHostUserData.addCommands(socatForwarderString);
+
+    const cfnBastionHost = bastionHost.instance.node.defaultChild as CfnInstance;
+
+    cfnBastionHost.addPropertyOverride('UserData', bastionHostUserData.render());
   }
 }
