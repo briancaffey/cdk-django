@@ -53,7 +53,7 @@ export class AdHocBase extends Construct {
 
     // one bucket for all environments
     const assetsBucket = new Bucket(scope, 'AssetsBucket', {
-      bucketName: `${stackName}-assets-bucket`,
+      bucketName: `${props.domainName.replace('.', '-')}-${stackName}-assets-bucket`,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
