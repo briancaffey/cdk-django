@@ -1,5 +1,6 @@
 import {
   Duration,
+  Fn,
   RemovalPolicy,
   Stack,
 } from 'aws-cdk-lib';
@@ -191,6 +192,6 @@ runcmd:
 
     const cfnBastionHost = bastionHost.instance.node.defaultChild as CfnInstance;
 
-    cfnBastionHost.addPropertyOverride('UserData', bastionHostUserData.render());
+    cfnBastionHost.addPropertyOverride('UserData', Fn.base64(bastionHostUserData.render()));
   }
 }
