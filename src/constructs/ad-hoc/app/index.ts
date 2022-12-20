@@ -70,6 +70,8 @@ export class AdHocApp extends Construct {
       DJANGO_SETTINGS_MODULE: props.djangoSettingsModule ?? 'backend.settings.production',
       FRONTEND_URL: `https://${stackName}.${props.domainName}`,
       DOMAIN_NAME: props.domainName,
+      // TODO: read this from ad hoc base stack
+      DB_SECRET_NAME: 'DB_SECRET_NAME',
     };
 
     // define ecsTaskRole and taskExecutionRole for ECS
