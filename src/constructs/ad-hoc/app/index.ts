@@ -55,6 +55,7 @@ export class AdHocApp extends Construct {
     const frontendImage = new EcrImage(frontendEcrRepo, frontendVersion);
 
     const cluster = new Cluster(this, 'Cluster', {
+      clusterName: `${stackName}-cluster`,
       vpc: props.vpc,
       enableFargateCapacityProviders: true,
     });
