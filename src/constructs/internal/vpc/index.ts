@@ -12,6 +12,8 @@ export class ApplicationVpc extends Construct {
       vpcName: `${stackName}-vpc`,
       maxAzs: 2,
       natGateways: 1,
+      enableDnsHostnames: true,
+      enableDnsSupport: true,
       subnetConfiguration: [
         {
           cidrMask: 24,
