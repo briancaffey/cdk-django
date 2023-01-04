@@ -34,6 +34,7 @@ cdk.out
 notes
 app.yml
 base.yml
+cdk.context.json
 !/.projenrc.js
 /test-reports/
 junit.xml

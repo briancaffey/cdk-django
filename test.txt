@@ -1,0 +1,876 @@
+cdk synth --app='lib/examples/ad-hoc/base/index.js' -e TestAdHocBaseStack
+{ alpha: '1', beta: '2' }
+Resources:
+  AdHocBaseAlbSecurityGroupFBDF6CD4:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TestAdHocBaseStack/AdHocBase/AlbSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: HTTPS
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          Description: HTTP
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      VpcId:
+        Ref: VpcC3027511
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AlbSecurityGroup/Resource
+  AdHocBaseAppSecurityGroup4C5C61DC:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TestAdHocBaseStack/AdHocBase/AppSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      VpcId:
+        Ref: VpcC3027511
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AppSecurityGroup/Resource
+  AdHocBaseAppSecurityGroupfromTestAdHocBaseStackAdHocBaseAppSecurityGroup4979D05BALLPORTS8036C3A1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: from TestAdHocBaseStackAdHocBaseAppSecurityGroup4979D05B:ALL PORTS
+      FromPort: 0
+      GroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      ToPort: 65535
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AppSecurityGroup/from TestAdHocBaseStackAdHocBaseAppSecurityGroup4979D05B:ALL PORTS
+  AdHocBaseAppSecurityGroupfromTestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD034ALLPORTSA66A6E11:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: ALB
+      FromPort: 0
+      GroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdHocBaseAlbSecurityGroupFBDF6CD4
+          - GroupId
+      ToPort: 65535
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AppSecurityGroup/from TestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD034:ALL PORTS
+  AdHocBaseAppSecurityGroupfromTestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD03480001C2B23DB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Load balancer to target
+      FromPort: 8000
+      GroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdHocBaseAlbSecurityGroupFBDF6CD4
+          - GroupId
+      ToPort: 8000
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AppSecurityGroup/from TestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD034:8000
+  AdHocBaseAppSecurityGroupfromTestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD034806B5B3801:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: Load balancer to target
+      FromPort: 80
+      GroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdHocBaseAlbSecurityGroupFBDF6CD4
+          - GroupId
+      ToPort: 80
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AppSecurityGroup/from TestAdHocBaseStackAdHocBaseAlbSecurityGroup2D3FD034:80
+  AdHocBaseAlbResourcesdefaulttargetgroup9E94F880:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 300
+      HealthCheckPath: /api/health-check/
+      HealthCheckPort: "80"
+      HealthCheckTimeoutSeconds: 120
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: "true"
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: "300"
+      TargetType: instance
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: VpcC3027511
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AlbResources/default-target-group/Resource
+  AdHocBaseAlbResourceshttplistenerDC17C921:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - RedirectConfig:
+            Port: "443"
+            Protocol: HTTPS
+            StatusCode: HTTP_302
+          Type: redirect
+      LoadBalancerArn:
+        Ref: AdHocBaseLoadBalancerBB0B50C8
+      Port: 80
+      Protocol: HTTP
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AlbResources/http-listener/Resource
+  AdHocBaseAlbResourceshttpslistener0881D48F:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - FixedResponseConfig:
+            ContentType: text/plain
+            MessageBody: Fixed content response
+            StatusCode: "200"
+          Type: fixed-response
+      LoadBalancerArn:
+        Ref: AdHocBaseLoadBalancerBB0B50C8
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-east-1:733623710918:certificate/948b8c39-99f0-47b7-b347-fa8fa131d0e1
+      Port: 443
+      Protocol: HTTPS
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/AlbResources/https-listener/Resource
+  AdHocBaseLoadBalancerBB0B50C8:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::GetAtt:
+            - AdHocBaseAlbSecurityGroupFBDF6CD4
+            - GroupId
+      Subnets:
+        - Ref: VpcingressSubnet1Subnet556A1F96
+        - Ref: VpcingressSubnet2Subnet3CAAAA0B
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      Type: application
+    DependsOn:
+      - VpcingressSubnet1DefaultRoute89ED95C8
+      - VpcingressSubnet1RouteTableAssociationB6BAE862
+      - VpcingressSubnet2DefaultRouteA7D45F1A
+      - VpcingressSubnet2RouteTableAssociation19E43D13
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/LoadBalancer/Resource
+  AdHocBaseServiceDiscoveryNamespace86737BAB:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: dev-sd-ns
+      Vpc:
+        Ref: VpcC3027511
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/ServiceDiscoveryNamespace/Resource
+  AdHocBaseServiceDiscoveryNamespaceServiceEB345BEC:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      DnsConfig:
+        DnsRecords:
+          - TTL: 30
+            Type: A
+        NamespaceId:
+          Fn::GetAtt:
+            - AdHocBaseServiceDiscoveryNamespace86737BAB
+            - Id
+        RoutingPolicy: MULTIVALUE
+      Name: alpha-redis
+      NamespaceId:
+        Fn::GetAtt:
+          - AdHocBaseServiceDiscoveryNamespace86737BAB
+          - Id
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/ServiceDiscoveryNamespace/Service/Resource
+  AdHocBaseRdsInstanceRdsSecurityGroupC62EF8A4:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TestAdHocBaseStack/AdHocBase/RdsInstance/RdsSecurityGroup
+      GroupName: devRdsSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: RDS
+          FromPort: 5432
+          IpProtocol: tcp
+          ToPort: 5432
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      VpcId:
+        Ref: VpcC3027511
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/RdsInstance/RdsSecurityGroup/Resource
+  AdHocBaseRdsInstanceRdsSecurityGroupfromTestAdHocBaseStackAdHocBaseAppSecurityGroup4979D05B543204BC410F:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      IpProtocol: tcp
+      Description: AppSecurityGroup
+      FromPort: 5432
+      GroupId:
+        Fn::GetAtt:
+          - AdHocBaseRdsInstanceRdsSecurityGroupC62EF8A4
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - AdHocBaseAppSecurityGroup4C5C61DC
+          - GroupId
+      ToPort: 5432
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/RdsInstance/RdsSecurityGroup/from TestAdHocBaseStackAdHocBaseAppSecurityGroup4979D05B:5432
+  AdHocBaseRdsInstanceSubnetGroup6618A74F:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RdsInstance database
+      SubnetIds:
+        - Ref: VpcapplicationSubnet1SubnetC8835CB0
+        - Ref: VpcapplicationSubnet2SubnetEF05B07F
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/RdsInstance/RdsInstance/SubnetGroup/Default
+  AdHocBaseRdsInstance89538199:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: "100"
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t3.micro
+      DBInstanceIdentifier: devrdsinstance
+      DBSubnetGroupName:
+        Ref: AdHocBaseRdsInstanceSubnetGroup6618A74F
+      Engine: postgres
+      EngineVersion: "13.4"
+      MasterUsername:
+        Fn::Join:
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - Ref: AdHocBasedbSecretA712D32A
+            - :SecretString:username::}}
+      MasterUserPassword:
+        Fn::Join:
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - Ref: AdHocBasedbSecretA712D32A
+            - :SecretString:password::}}
+      Port: "5432"
+      PubliclyAccessible: false
+      StorageType: gp2
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+      VPCSecurityGroups:
+        - Fn::GetAtt:
+            - AdHocBaseRdsInstanceRdsSecurityGroupC62EF8A4
+            - GroupId
+    UpdateReplacePolicy: Snapshot
+    DeletionPolicy: Snapshot
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/RdsInstance/RdsInstance/Resource
+  AdHocBasedbSecretA712D32A:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: secret for rds
+      GenerateSecretString:
+        ExcludePunctuation: true
+        GenerateStringKey: password
+        IncludeSpace: false
+        SecretStringTemplate: '{"username":"postgres"}'
+      Name: DB_SECRET_NAME
+      Tags:
+        - Key: stack
+          Value: AdHocBaseStack
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/dbSecret/Resource
+  AdHocBasedbSecretAttachment9F9E4CE9:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: AdHocBasedbSecretA712D32A
+      TargetId:
+        Ref: AdHocBaseRdsInstance89538199
+      TargetType: AWS::RDS::DBInstance
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/dbSecret/Attachment/Resource
+  AdHocBaseBastionHostResourcesBastionHostInstanceRoleA63988C4:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: BastionHost
+        - Key: stack
+          Value: AdHocBaseStack
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/BastionHostResources/BastionHost/Resource/InstanceRole/Resource
+  AdHocBaseBastionHostResourcesBastionHostInstanceRoleDefaultPolicyAAA7C61C:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ssmmessages:*
+              - ssm:UpdateInstanceInformation
+              - ec2messages:*
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: AdHocBaseBastionHostResourcesBastionHostInstanceRoleDefaultPolicyAAA7C61C
+      Roles:
+        - Ref: AdHocBaseBastionHostResourcesBastionHostInstanceRoleA63988C4
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/BastionHostResources/BastionHost/Resource/InstanceRole/DefaultPolicy/Resource
+  AdHocBaseBastionHostResourcesBastionHostInstanceProfile15CA1625:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: AdHocBaseBastionHostResourcesBastionHostInstanceRoleA63988C4
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/BastionHostResources/BastionHost/Resource/InstanceProfile
+  AdHocBaseBastionHostResourcesBastionHost0BDF523D:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: us-east-1a
+      IamInstanceProfile:
+        Ref: AdHocBaseBastionHostResourcesBastionHostInstanceProfile15CA1625
+      ImageId:
+        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
+      InstanceType: t3.nano
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - AdHocBaseAppSecurityGroup4C5C61DC
+            - GroupId
+      SubnetId:
+        Ref: VpcapplicationSubnet1SubnetC8835CB0
+      Tags:
+        - Key: Name
+          Value: BastionHost
+        - Key: stack
+          Value: AdHocBaseStack
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #cloud-config
+
+                package_upgrade: true
+                packages:
+                  - postgresql
+                  - socat
+                write_files:
+                  - content: |
+                      # /etc/systemd/system/socat-forwarder.service
+                      [Unit]
+                      Description=socat forwarder service
+                      After=socat-forwarder.service
+                      Requires=socat-forwarder.service
+
+                      [Service]
+                      Type=simple
+                      StandardOutput=syslog
+                      StandardError=syslog
+                      SyslogIdentifier=socat-forwarder
+
+                      ExecStart=/usr/bin/socat -d -d TCP4-LISTEN:5432,fork TCP4:
+              - Fn::GetAtt:
+                  - AdHocBaseRdsInstance89538199
+                  - Endpoint.Address
+              - |
+                :5432
+                      Restart=always
+
+                      [Install]
+                      WantedBy=multi-user.target
+                    path: /etc/systemd/system/socat-forwarder.service
+
+                runcmd:
+                  - [ systemctl, daemon-reload ]
+                  - [ systemctl, enable, socat-forwarder.service ]
+                  # https://dustymabe.com/2015/08/03/installingstarting-systemd-services-using-cloud-init/
+                  - [ systemctl, start, --no-block, socat-forwarder.service ]
+    DependsOn:
+      - AdHocBaseBastionHostResourcesBastionHostInstanceRoleDefaultPolicyAAA7C61C
+      - AdHocBaseBastionHostResourcesBastionHostInstanceRoleA63988C4
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AdHocBase/BastionHostResources/BastionHost/Resource/Resource
+  VpcC3027511:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: dev-vpc
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/Resource
+  VpcingressSubnet1Subnet556A1F96:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: ingress
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/Subnet
+  VpcingressSubnet1RouteTableA12D5868:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/RouteTable
+  VpcingressSubnet1RouteTableAssociationB6BAE862:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcingressSubnet1RouteTableA12D5868
+      SubnetId:
+        Ref: VpcingressSubnet1Subnet556A1F96
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/RouteTableAssociation
+  VpcingressSubnet1DefaultRoute89ED95C8:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: VpcingressSubnet1RouteTableA12D5868
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: VpcIGW488B0FEB
+    DependsOn:
+      - VpcVPCGW42EC8516
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/DefaultRoute
+  VpcingressSubnet1EIPAA060F17:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/EIP
+  VpcingressSubnet1NATGateway3F81BEBE:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: VpcingressSubnet1Subnet556A1F96
+      AllocationId:
+        Fn::GetAtt:
+          - VpcingressSubnet1EIPAA060F17
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1
+    DependsOn:
+      - VpcingressSubnet1DefaultRoute89ED95C8
+      - VpcingressSubnet1RouteTableAssociationB6BAE862
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet1/NATGateway
+  VpcingressSubnet2Subnet3CAAAA0B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: ingress
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2/Subnet
+  VpcingressSubnet2RouteTable99284E2B:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2/RouteTable
+  VpcingressSubnet2RouteTableAssociation19E43D13:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcingressSubnet2RouteTable99284E2B
+      SubnetId:
+        Ref: VpcingressSubnet2Subnet3CAAAA0B
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2/RouteTableAssociation
+  VpcingressSubnet2DefaultRouteA7D45F1A:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: VpcingressSubnet2RouteTable99284E2B
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: VpcIGW488B0FEB
+    DependsOn:
+      - VpcVPCGW42EC8516
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/ingressSubnet2/DefaultRoute
+  VpcapplicationSubnet1SubnetC8835CB0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: application
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1/Subnet
+  VpcapplicationSubnet1RouteTable97F01B17:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1/RouteTable
+  VpcapplicationSubnet1RouteTableAssociationC7CBA21B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcapplicationSubnet1RouteTable97F01B17
+      SubnetId:
+        Ref: VpcapplicationSubnet1SubnetC8835CB0
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1/RouteTableAssociation
+  VpcapplicationSubnet1DefaultRoute40B46D2E:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: VpcapplicationSubnet1RouteTable97F01B17
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: VpcingressSubnet1NATGateway3F81BEBE
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet1/DefaultRoute
+  VpcapplicationSubnet2SubnetEF05B07F:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.3.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: application
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2/Subnet
+  VpcapplicationSubnet2RouteTable4AF03023:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      Tags:
+        - Key: Name
+          Value: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2/RouteTable
+  VpcapplicationSubnet2RouteTableAssociationB436DB82:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: VpcapplicationSubnet2RouteTable4AF03023
+      SubnetId:
+        Ref: VpcapplicationSubnet2SubnetEF05B07F
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2/RouteTableAssociation
+  VpcapplicationSubnet2DefaultRoute72C531CC:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: VpcapplicationSubnet2RouteTable4AF03023
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: VpcingressSubnet1NATGateway3F81BEBE
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/applicationSubnet2/DefaultRoute
+  VpcIGW488B0FEB:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: dev-vpc
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/IGW
+  VpcVPCGW42EC8516:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VpcC3027511
+      InternetGatewayId:
+        Ref: VpcIGW488B0FEB
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Vpc/Vpc/VPCGW
+  AssetsBucket5CB76180:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: jamescaffey-com-dev-assets-bucket
+      Tags:
+        - Key: aws-cdk:auto-delete-objects
+          Value: "true"
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AssetsBucket/Resource
+  AssetsBucketPolicyFFACF6C4:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: AssetsBucket5CB76180
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::GetAtt:
+                  - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+                  - Arn
+            Resource:
+              - Fn::GetAtt:
+                  - AssetsBucket5CB76180
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - AssetsBucket5CB76180
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AssetsBucket/Policy/Resource
+  AssetsBucketAutoDeleteObjectsCustomResource51BA1286:
+    Type: Custom::S3AutoDeleteObjects
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F
+          - Arn
+      BucketName:
+        Ref: AssetsBucket5CB76180
+    DependsOn:
+      - AssetsBucketPolicyFFACF6C4
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/AssetsBucket/AutoDeleteObjectsCustomResource/Default
+  CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+      ManagedPolicyArns:
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role
+  CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-733623710918-us-east-1
+        S3Key: 6babbac1f25446ab4660ead0ad5972e3a7742f50c6d8326af98a8bcd5d485335.zip
+      Timeout: 900
+      MemorySize: 128
+      Handler: __entrypoint__.handler
+      Role:
+        Fn::GetAtt:
+          - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+          - Arn
+      Runtime: nodejs14.x
+      Description:
+        Fn::Join:
+          - ""
+          - - "Lambda function for auto-deleting objects in "
+            - Ref: AssetsBucket5CB76180
+            - " S3 bucket."
+    DependsOn:
+      - CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler
+      aws:asset:path: asset.6babbac1f25446ab4660ead0ad5972e3a7742f50c6d8326af98a8bcd5d485335
+      aws:asset:property: Code
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/31TwW7bMAz9lt0VdW2HFjsmzdAFKFojKXodaJl11diSIVLuAsP/PslybGMrduLjEyU+PUpX8tt3+fULfNBKFcdVpXPZHRjUUQTqV4fqKuSovNN8unfWN+Lu1fyf2JnSIZHYALG25qclftDG/xY7QwxGYdwx4ZdGxfwluxOZzyutDj43yMOpE9pbz/gMeYUzP3NrIqs0xGZTcQQ/dlkMj8D3wPgBJ5E53QY4H7wzjC7gc0FSMmZrDka81Wi4F1jF26jKQpFDFZRrU7bBm3XTBM1D72dwZTjp7MkyXVQ9aGI06GLJhJfrocNm6DDWLPJeELpWKyw0KduiO8luvNLW0CPUSA0kfz+jD2lzGtgAe+EKkt0WGHIgnIaSDJqust38Q5xLoyTlkKkGAyW64bW4cX4JpZDsmC2dC/5e6YWGWnZ7m6Y9xMwGf4bxzOgsIXP2VVdRybXsNl4dU/cRpTDvWuZ9H5knz41nsUey3kV7PLGt5zRI+HwpNG51EcdHhBx+TRkexaARXDCd48CMLVC+00V7eSMvb8NPeyetV84b1jXKfYp/AAl+IjuFAwAA
+    Metadata:
+      aws:cdk:path: TestAdHocBaseStack/CDKMetadata/Default
+Outputs:
+  AdHocBaseBastionHostResourcesBastionHostBastionHostId6632FD2E:
+    Description: Instance ID of the bastion host. Use this to connect via SSM Session Manager
+    Value:
+      Ref: AdHocBaseBastionHostResourcesBastionHost0BDF523D
+  ExportsOutputFnGetAttAdHocBaseLoadBalancerBB0B50C8DNSNameA313B41E:
+    Value:
+      Fn::GetAtt:
+        - AdHocBaseLoadBalancerBB0B50C8
+        - DNSName
+    Export:
+      Name: dev:ExportsOutputFnGetAttAdHocBaseLoadBalancerBB0B50C8DNSNameA313B41E
+  ExportsOutputRefVpcapplicationSubnet1SubnetC8835CB09E1D11C0:
+    Value:
+      Ref: VpcapplicationSubnet1SubnetC8835CB0
+    Export:
+      Name: dev:ExportsOutputRefVpcapplicationSubnet1SubnetC8835CB09E1D11C0
+  ExportsOutputRefVpcapplicationSubnet2SubnetEF05B07F72BAD207:
+    Value:
+      Ref: VpcapplicationSubnet2SubnetEF05B07F
+    Export:
+      Name: dev:ExportsOutputRefVpcapplicationSubnet2SubnetEF05B07F72BAD207
+  ExportsOutputFnGetAttAdHocBaseAppSecurityGroup4C5C61DCGroupIdE7EA3E56:
+    Value:
+      Fn::GetAtt:
+        - AdHocBaseAppSecurityGroup4C5C61DC
+        - GroupId
+    Export:
+      Name: dev:ExportsOutputFnGetAttAdHocBaseAppSecurityGroup4C5C61DCGroupIdE7EA3E56
+  ExportsOutputFnGetAttAdHocBaseServiceDiscoveryNamespaceServiceEB345BECArn2676953B:
+    Value:
+      Fn::GetAtt:
+        - AdHocBaseServiceDiscoveryNamespaceServiceEB345BEC
+        - Arn
+    Export:
+      Name: dev:ExportsOutputFnGetAttAdHocBaseServiceDiscoveryNamespaceServiceEB345BECArn2676953B
+  ExportsOutputRefAssetsBucket5CB761808BF2E271:
+    Value:
+      Ref: AssetsBucket5CB76180
+    Export:
+      Name: dev:ExportsOutputRefAssetsBucket5CB761808BF2E271
+  ExportsOutputFnGetAttAdHocBaseRdsInstance89538199EndpointAddress23906A25:
+    Value:
+      Fn::GetAtt:
+        - AdHocBaseRdsInstance89538199
+        - Endpoint.Address
+    Export:
+      Name: dev:ExportsOutputFnGetAttAdHocBaseRdsInstance89538199EndpointAddress23906A25
+  ExportsOutputRefVpcC302751171D26A23:
+    Value:
+      Ref: VpcC3027511
+    Export:
+      Name: dev:ExportsOutputRefVpcC302751171D26A23
+  ExportsOutputRefAdHocBaseAlbResourceshttpslistener0881D48FFF5EA30C:
+    Value:
+      Ref: AdHocBaseAlbResourceshttpslistener0881D48F
+    Export:
+      Name: dev:ExportsOutputRefAdHocBaseAlbResourceshttpslistener0881D48FFF5EA30C
+Parameters:
+  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

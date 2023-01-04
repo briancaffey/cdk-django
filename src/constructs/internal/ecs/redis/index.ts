@@ -18,6 +18,7 @@ import { Construct } from 'constructs';
 
 
 export interface RedisProps {
+  readonly name: string;
   readonly cluster: Cluster;
   readonly vpc: IVpc;
   readonly cpu?: number;
@@ -25,10 +26,8 @@ export interface RedisProps {
   readonly appSecurityGroup: ISecurityGroup;
   readonly image: ContainerImage;
   readonly useSpot?: boolean;
-  readonly containerName: string;
   readonly taskRole: Role;
   readonly executionRole: Role;
-  readonly family: string;
   readonly environmentVariables: { [key: string]: string };
   readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
 };
@@ -40,10 +39,9 @@ export class RedisService extends Construct {
     const stackName = Stack.of(this).stackName;
 
     // define log group and logstream
-    const logGroupName = `/ecs/${stackName}/${props.containerName}/`;
-    const streamPrefix = props.containerName;
+    const logGroupName = `/ecs/${stackName}/${props.name}/`;
+    const streamPrefix = props.name;
 
-    // define log group and logstream
     const logGroup = new LogGroup(this, 'LogGroup', {
       logGroupName,
       retention: RetentionDays.ONE_DAY,
@@ -52,7 +50,7 @@ export class RedisService extends Construct {
 
     new LogStream(this, 'LogStream', {
       logGroup,
-      logStreamName: props.containerName,
+      logStreamName: props.name,
     });
 
     // task definition
@@ -60,12 +58,12 @@ export class RedisService extends Construct {
       cpu: props.cpu ?? 256,
       executionRole: props.executionRole,
       taskRole: props.taskRole,
-      family: props.family,
+      family: props.name,
     });
 
-    taskDefinition.addContainer(props.containerName, {
+    taskDefinition.addContainer(props.name, {
       image: props.image,
-      containerName: props.containerName,
+      containerName: props.name,
       environment: props.environmentVariables,
       essential: true,
       logging: LogDriver.awsLogs({
@@ -75,7 +73,6 @@ export class RedisService extends Construct {
     });
 
     const useSpot = props.useSpot ?? false;
-
 
     // TODO: add service discovery service
     const cloudMapService = props.serviceDiscoveryNamespace.createService('Service', {
@@ -101,7 +98,7 @@ export class RedisService extends Construct {
       desiredCount: 1,
       enableExecuteCommand: true,
       securityGroups: [props.appSecurityGroup],
-      serviceName: `${stackName}-${props.containerName}`,
+      serviceName: `${stackName}-${props.name}`,
       vpcSubnets: {
         subnets: props.vpc.privateSubnets,
       },

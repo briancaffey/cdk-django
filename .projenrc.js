@@ -8,7 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
   // https://github.com/projen/projen/issues/1941
   bundledDeps: ['@types/jest@27.4.1'],
-  gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml'],
+  gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml', 'cdk.context.json'],
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */

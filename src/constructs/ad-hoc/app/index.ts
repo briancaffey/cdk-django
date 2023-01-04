@@ -27,8 +27,8 @@ export interface AdHocAppProps {
   readonly listener: ApplicationListener;
 
   // application specific props
-  readonly backendVersion: string;
-  readonly frontendVersion: string;
+  readonly backendVersion?: string;
+  readonly frontendVersion?: string;
   readonly djangoSettingsModule?: string;
 }
 
@@ -38,8 +38,6 @@ export class AdHocApp extends Construct {
     super(scope, id);
 
     const stackName = Stack.of(this).stackName;
-    // const awsAccountId = Stack.of(this).account;
-    // const awsRegion = Stack.of(this).region;
 
     // custom resource to get the highest available listener rule priority
     // then take the next two highest priorities and use them for the frontend and backend listener rule priorities
@@ -48,7 +46,8 @@ export class AdHocApp extends Construct {
     // const highestPriorityRule = new HighestPriorityRule(this, 'HighestPriorityRule', { listener: props.listener });
 
     const backendEcrRepo = Repository.fromRepositoryName(this, 'BackendRepo', 'backend');
-    const backendImage = new EcrImage(backendEcrRepo, props.backendVersion);
+    const backendVersion = props.frontendVersion ?? 'latest';
+    const backendImage = new EcrImage(backendEcrRepo, backendVersion);
 
     const frontendEcrRepo = Repository.fromRepositoryName(this, 'FrontendRepo', 'frontend');
     const frontendVersion = props.frontendVersion ?? 'latest';
@@ -94,8 +93,7 @@ export class AdHocApp extends Construct {
       taskRole: ecsRoles.ecsTaskRole,
       executionRole: ecsRoles.taskExecutionRole,
       image: ContainerImage.fromRegistry('redis:5.0.3-alpine'),
-      containerName: 'redis',
-      family: 'redis',
+      name: 'redis',
       serviceDiscoveryNamespace: props.serviceDiscoveryNamespace,
     });
 

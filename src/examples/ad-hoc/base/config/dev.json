@@ -1,0 +1,4 @@
+{
+  "foo": "bar",
+  "extraEnvVars": {"alpha": "1", "beta": "2"}
+}
