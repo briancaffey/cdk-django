@@ -1,4 +1,12 @@
 
+## [1.1.0](https://github.com/briancaffey/cdk-django/compare/v1.0.0...v1.1.0) (2023-01-04)
+
+
+### Features
+
+* **projenrc:** make updates to release mechanism and other settings changes in projenrc.ts ([5804110](https://github.com/briancaffey/cdk-django/commit/58041106c6605f882708ad563eeebaf4b193f3e3))
+* **projenrcts:** ts file for .projenrc.ts ([228a901](https://github.com/briancaffey/cdk-django/commit/228a901e0bae4ba6ffd95ab433f1e9fd045f2024))
+
 ### [0.0.12](https://github.com/briancaffey/cdk-django/compare/v0.0.11...v0.0.12) (2022-12-18)
 
 
