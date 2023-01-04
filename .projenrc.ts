@@ -1,20 +1,79 @@
-const { awscdk } = require('projen');
+import { awscdk, github, release } from 'projen';
 const project = new awscdk.AwsCdkConstructLibrary({
-  author: 'briancaffey',
+  author: 'Brian Caffey',
+  authorEmail: 'briancaffey2010@gmail.com',
   projenrcTs: true,
-  authorAddress: 'briancaffey2010@gmail.com',
+  projenrcTsOptions: {
+    filename: '.projenrc.ts',
+  },
+  authorAddress: '',
+  authorUrl: 'https://briancaffey.github.io',
+  license: 'MIT',
+  copyrightOwner: 'Brian Caffey',
   cdkVersion: '2.49.0',
   defaultReleaseBranch: 'main',
   name: 'cdk-django',
   repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
+
+  // Automation
+  githubOptions: {
+    projenCredentials: github.GithubCredentials.fromApp(),
+    pullRequestLintOptions: {
+      semanticTitleOptions: {
+        types: ['feat', 'fix', 'chore', 'docs', 'ci'],
+      },
+    },
+  },
   // https://github.com/projen/projen/issues/1941
   bundledDeps: ['@types/jest@27.4.1'],
-  gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml', 'cdk.context.json'],
   majorVersion: 1,
+  releaseTrigger: {
+    isContinuous: false,
+  } as release.ReleaseTrigger,
 
+  // ignore
+  gitignore: ['cdk.out', 'notes', 'app.yml', 'base.yml', 'cdk.context.json'],
+  npmignore: [
+    '.npmrc',
+    '.nvmrc',
+    '.versionrc',
+    '.gitattributes',
+    '*.tgz',
+    '*.gz',
+    '*.zip',
+    'cdk.out',
+    '.cdk.staging',
+    '/examples',
+    'PUBLISHING.md',
+    '.vscode',
+    '.projenrc.ts',
+    'projenrc',
+    '/images',
+    'API.md',
+    'CHANGELOG.md',
+    'CONTRIBUTING.md',
+    'SECURITY.md',
+  ],
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],             /* Build dependencies for this module. */
   // packageName: undefined,  /* The "name" in package.json. */
 });
+
+// release only via manual trigger
+project.release?.publisher?.publishToGit({
+  changelogFile: 'dist/dist/changelog.md',
+  versionFile: 'dist/dist/version.txt',
+  releaseTagFile: 'dist/dist/releasetag.txt',
+  projectChangelogFile: 'CHANGELOG.md',
+  gitBranch: 'main',
+});
+project.tryFindObjectFile('.github/workflows/release.yml')?.addToArray(
+  'jobs.release.steps',
+  {
+    name: 'Publish tag',
+    run: 'npx projen publish:git',
+  },
+);
+
 project.synth();
