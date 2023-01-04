@@ -185,6 +185,7 @@ Any object.
 | --- | --- | --- |
 | <code><a href="#cdk-django.AdHocBase.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
 | <code><a href="#cdk-django.AdHocBase.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationLoadBalancer</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.albSecurityGroup">albSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.SecurityGroup</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.SecurityGroup</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.databaseInstance">databaseInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
@@ -214,6 +215,16 @@ public readonly alb: ApplicationLoadBalancer;
 ```
 
 - *Type:* aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationLoadBalancer
+
+---
+
+##### `albSecurityGroup`<sup>Required</sup> <a name="albSecurityGroup" id="cdk-django.AdHocBase.property.albSecurityGroup"></a>
+
+```typescript
+public readonly albSecurityGroup: SecurityGroup;
+```
+
+- *Type:* aws-cdk-lib.aws_ec2.SecurityGroup
 
 ---
 
@@ -307,15 +318,15 @@ const adHocAppProps: AdHocAppProps = { ... }
 | <code><a href="#cdk-django.AdHocAppProps.property.alb">alb</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.IApplicationLoadBalancer</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.appSecurityGroup">appSecurityGroup</a></code> | <code>aws-cdk-lib.aws_ec2.ISecurityGroup</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.backendVersion">backendVersion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.baseStackName">baseStackName</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.frontendVersion">frontendVersion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.rdsInstance">rdsInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.backendVersion">backendVersion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.djangoSettingsModule">djangoSettingsModule</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.frontendVersion">frontendVersion</a></code> | <code>string</code> | *No description.* |
 
 ---
 
@@ -349,16 +360,6 @@ public readonly assetsBucket: Bucket;
 
 ---
 
-##### `backendVersion`<sup>Required</sup> <a name="backendVersion" id="cdk-django.AdHocAppProps.property.backendVersion"></a>
-
-```typescript
-public readonly backendVersion: string;
-```
-
-- *Type:* string
-
----
-
 ##### `baseStackName`<sup>Required</sup> <a name="baseStackName" id="cdk-django.AdHocAppProps.property.baseStackName"></a>
 
 ```typescript
@@ -373,16 +374,6 @@ public readonly baseStackName: string;
 
 ```typescript
 public readonly domainName: string;
-```
-
-- *Type:* string
-
----
-
-##### `frontendVersion`<sup>Required</sup> <a name="frontendVersion" id="cdk-django.AdHocAppProps.property.frontendVersion"></a>
-
-```typescript
-public readonly frontendVersion: string;
 ```
 
 - *Type:* string
@@ -429,10 +420,30 @@ public readonly vpc: IVpc;
 
 ---
 
+##### `backendVersion`<sup>Optional</sup> <a name="backendVersion" id="cdk-django.AdHocAppProps.property.backendVersion"></a>
+
+```typescript
+public readonly backendVersion: string;
+```
+
+- *Type:* string
+
+---
+
 ##### `djangoSettingsModule`<sup>Optional</sup> <a name="djangoSettingsModule" id="cdk-django.AdHocAppProps.property.djangoSettingsModule"></a>
 
 ```typescript
 public readonly djangoSettingsModule: string;
+```
+
+- *Type:* string
+
+---
+
+##### `frontendVersion`<sup>Optional</sup> <a name="frontendVersion" id="cdk-django.AdHocAppProps.property.frontendVersion"></a>
+
+```typescript
+public readonly frontendVersion: string;
 ```
 
 - *Type:* string
