@@ -324,9 +324,6 @@ const adHocAppProps: AdHocAppProps = { ... }
 | <code><a href="#cdk-django.AdHocAppProps.property.rdsInstance">rdsInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.backendVersion">backendVersion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.djangoSettingsModule">djangoSettingsModule</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.frontendVersion">frontendVersion</a></code> | <code>string</code> | *No description.* |
 
 ---
 
@@ -417,36 +414,6 @@ public readonly vpc: IVpc;
 ```
 
 - *Type:* aws-cdk-lib.aws_ec2.IVpc
-
----
-
-##### `backendVersion`<sup>Optional</sup> <a name="backendVersion" id="cdk-django.AdHocAppProps.property.backendVersion"></a>
-
-```typescript
-public readonly backendVersion: string;
-```
-
-- *Type:* string
-
----
-
-##### `djangoSettingsModule`<sup>Optional</sup> <a name="djangoSettingsModule" id="cdk-django.AdHocAppProps.property.djangoSettingsModule"></a>
-
-```typescript
-public readonly djangoSettingsModule: string;
-```
-
-- *Type:* string
-
----
-
-##### `frontendVersion`<sup>Optional</sup> <a name="frontendVersion" id="cdk-django.AdHocAppProps.property.frontendVersion"></a>
-
-```typescript
-public readonly frontendVersion: string;
-```
-
-- *Type:* string
 
 ---
 
