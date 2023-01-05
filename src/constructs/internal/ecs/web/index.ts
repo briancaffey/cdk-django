@@ -26,6 +26,7 @@ import { Construct } from 'constructs';
 
 
 export interface WebProps {
+  readonly name: string;
   readonly cluster: Cluster;
   readonly vpc: IVpc;
   readonly listener: ApplicationListener;
@@ -35,14 +36,11 @@ export interface WebProps {
   readonly image: ContainerImage;
   readonly command: string[];
   readonly useSpot?: boolean;
-  readonly containerName: string;
   readonly taskRole: Role;
   readonly executionRole: Role;
-  readonly family: string;
   readonly environmentVariables: { [key: string]: string };
   readonly domainName: string;
   readonly pathPatterns: string[];
-  readonly hostHeaders: string[];
   readonly port: number;
   readonly priority: number;
   readonly healthCheckPath: string;
@@ -55,8 +53,8 @@ export class WebService extends Construct {
     const stackName = Stack.of(this).stackName;
 
     // define log group and logstream
-    const logGroupName = `/ecs/${stackName}/${props.containerName}/`;
-    const streamPrefix = props.containerName;
+    const logGroupName = `/ecs/${stackName}/${props.name}/`;
+    const streamPrefix = props.name;
 
     // define log group and logstream
     const logGroup = new LogGroup(this, 'LogGroup', {
@@ -67,7 +65,7 @@ export class WebService extends Construct {
 
     new LogStream(this, 'LogStream', {
       logGroup,
-      logStreamName: props.containerName,
+      logStreamName: props.name,
     });
 
     // task definition
@@ -75,13 +73,13 @@ export class WebService extends Construct {
       cpu: props.cpu ?? 256,
       executionRole: props.executionRole,
       taskRole: props.taskRole,
-      family: props.family,
+      family: props.name,
     });
 
-    taskDefinition.addContainer(props.containerName, {
+    taskDefinition.addContainer(props.name, {
       image: props.image,
       command: props.command,
-      containerName: props.containerName,
+      containerName: props.name,
       environment: props.environmentVariables,
       essential: true,
       logging: LogDriver.awsLogs({
@@ -113,7 +111,7 @@ export class WebService extends Construct {
       desiredCount: 1,
       enableExecuteCommand: true,
       securityGroups: [props.appSecurityGroup],
-      serviceName: `${stackName}-${props.containerName}`,
+      serviceName: `${stackName}-${props.name}`,
       vpcSubnets: {
         subnets: props.vpc.privateSubnets,
       },

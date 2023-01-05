@@ -31,10 +31,6 @@ export class AdHocBase extends Construct {
   constructor(scope: Construct, id: string, props: AdHocBaseProps) {
     super(scope, id);
 
-    const foo = this.node.tryGetContext('config').extraEnvVars;
-
-    console.log(foo);
-
     const stackName = Stack.of(this).stackName;
     this.domainName = props.domainName;
 
@@ -72,7 +68,7 @@ export class AdHocBase extends Construct {
     const rdsInstance = new RdsInstance(this, 'RdsInstance', {
       vpc: this.vpc,
       appSecurityGroup: appSecurityGroup,
-      dbSecretName: 'DB_SECRET_NAME',
+      dbSecretName: this.node.tryGetContext('config')?.dbSecretName ?? 'DB_SECRET_NAME',
     });
     this.databaseInstance = rdsInstance.rdsInstance;
     const { dbInstanceEndpointAddress } = rdsInstance.rdsInstance;
@@ -81,6 +77,8 @@ export class AdHocBase extends Construct {
       appSecurityGroup,
       vpc: this.vpc,
       rdsAddress: dbInstanceEndpointAddress,
+      instanceClass: this.node.tryGetContext('config').instanceClass,
+      // instanceType: this.node.tryGetContext('config').instanceType,
     });
   }
 }

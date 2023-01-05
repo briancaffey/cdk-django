@@ -30,7 +30,6 @@ export class SecurityGroupResources extends Construct {
       vpc: props.vpc,
     });
     appSecurityGroup.connections.allowFrom(appSecurityGroup, Port.allTcp());
-    appSecurityGroup.connections.allowTo(appSecurityGroup, Port.allTcp());
 
     this.appSecurityGroup = appSecurityGroup;
 

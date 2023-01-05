@@ -25,11 +25,6 @@ export interface AdHocAppProps {
   readonly assetsBucket: Bucket;
   readonly domainName: string;
   readonly listener: ApplicationListener;
-
-  // application specific props
-  readonly backendVersion?: string;
-  readonly frontendVersion?: string;
-  readonly djangoSettingsModule?: string;
 }
 
 export class AdHocApp extends Construct {
@@ -46,11 +41,11 @@ export class AdHocApp extends Construct {
     // const highestPriorityRule = new HighestPriorityRule(this, 'HighestPriorityRule', { listener: props.listener });
 
     const backendEcrRepo = Repository.fromRepositoryName(this, 'BackendRepo', 'backend');
-    const backendVersion = props.frontendVersion ?? 'latest';
+    const backendVersion = 'latest';
     const backendImage = new EcrImage(backendEcrRepo, backendVersion);
 
     const frontendEcrRepo = Repository.fromRepositoryName(this, 'FrontendRepo', 'frontend');
-    const frontendVersion = props.frontendVersion ?? 'latest';
+    const frontendVersion = 'latest';
     const frontendImage = new EcrImage(frontendEcrRepo, frontendVersion);
 
     const cluster = new Cluster(this, 'Cluster', {
@@ -61,18 +56,25 @@ export class AdHocApp extends Construct {
 
     const serviceDiscoveryNamespace = props.serviceDiscoveryNamespace.namespaceName;
 
+    const settingsModule = this.node.tryGetContext('config').settingsModule ?? 'backend.settings.production';
     // shared environment variables
-    const environmentVariables: { [key: string]: string }= {
+    let environmentVariables: { [key: string]: string } = {
       S3_BUCKET_NAME: props.assetsBucket.bucketName,
       REDIS_SERVICE_HOST: `${stackName}-redis.${serviceDiscoveryNamespace}`,
       POSTGRES_SERVICE_HOST: props.rdsInstance.dbInstanceEndpointAddress,
       POSTGRES_NAME: `${stackName}-db`,
-      DJANGO_SETTINGS_MODULE: props.djangoSettingsModule ?? 'backend.settings.production',
+      DJANGO_SETTINGS_MODULE: settingsModule,
       FRONTEND_URL: `https://${stackName}.${props.domainName}`,
       DOMAIN_NAME: props.domainName,
       // TODO: read this from ad hoc base stack
       DB_SECRET_NAME: 'DB_SECRET_NAME',
     };
+
+    const extraEnvVars = this.node.tryGetContext('config').extraEnvVars;
+
+    if (extraEnvVars) {
+      environmentVariables = { ...extraEnvVars, ...environmentVariables };
+    }
 
     // define ecsTaskRole and taskExecutionRole for ECS
     const ecsRoles = new EcsRoles(scope, 'EcsRoles');
@@ -109,12 +111,10 @@ export class AdHocApp extends Construct {
       image: backendImage,
       listener: props.listener,
       command: ['gunicorn', '-t', '1000', '-b', '0.0.0.0:8000', '--log-level', 'info', 'backend.wsgi'],
-      containerName: 'api',
-      family: 'api',
+      name: 'gunicorn',
       port: 8000,
       domainName: props.domainName,
       pathPatterns: ['/api/*', '/admin/*', '/mtv/*', '/graphql/*'],
-      hostHeaders: ['*'],
       priority: 2, //highestPriorityRule.priority + 1,
       healthCheckPath: '/api/health-check/',
     });
@@ -131,12 +131,10 @@ export class AdHocApp extends Construct {
       image: frontendImage,
       listener: props.listener,
       command: ['nginx', '-g', 'daemon off;'],
-      containerName: 'web-ui',
-      family: `${stackName}-web-ui`,
+      name: 'web-ui',
       port: 80,
       domainName: props.domainName,
       pathPatterns: ['/*'],
-      hostHeaders: ['*'],
       priority: 3, // highestPriorityRule.priority + 2,
       healthCheckPath: '/',
     });
@@ -151,8 +149,7 @@ export class AdHocApp extends Construct {
       executionRole: ecsRoles.taskExecutionRole,
       image: backendImage,
       command: ['celery', '--app=backend.celery_app:app', 'worker', '--loglevel=INFO', '-Q', 'default'],
-      containerName: 'default-worker',
-      family: 'default-worker',
+      name: 'default-worker',
     });
 
     // scheduler service
@@ -167,8 +164,7 @@ export class AdHocApp extends Construct {
       executionRole: ecsRoles.taskExecutionRole,
       image: backendImage,
       command: ['python', 'manage.py', 'pre_update'],
-      containerName: 'backendUpdate',
-      family: 'backendUpdate',
+      name: 'backendUpdate',
     });
 
     // define stack output use for running the management command

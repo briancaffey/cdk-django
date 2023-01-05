@@ -23,10 +23,9 @@ export interface ManagementCommandTaskProps {
   readonly appSecurityGroup: ISecurityGroup;
   readonly image: ContainerImage;
   readonly command: string[];
-  readonly containerName: string;
+  readonly name: string;
   readonly taskRole: Role;
   readonly executionRole: Role;
-  readonly family: string;
   readonly environmentVariables: { [key: string]: string };
 };
 
@@ -43,8 +42,8 @@ export class ManagementCommandTask extends Construct {
     const stackName = Stack.of(this).stackName;
 
     // define log group and logstream
-    const logGroupName = `/ecs/${stackName}/${props.containerName}/`;
-    const streamPrefix = props.containerName;
+    const logGroupName = `/ecs/${stackName}/${props.name}/`;
+    const streamPrefix = props.name;
     const logGroup = new LogGroup(this, 'LogGroup', {
       logGroupName,
       retention: RetentionDays.ONE_DAY,
@@ -53,7 +52,7 @@ export class ManagementCommandTask extends Construct {
 
     new LogStream(this, 'LogStream', {
       logGroup,
-      logStreamName: props.containerName,
+      logStreamName: props.name,
     });
 
     // task definition
@@ -61,13 +60,13 @@ export class ManagementCommandTask extends Construct {
       cpu: props.cpu ?? 256,
       executionRole: props.executionRole,
       taskRole: props.taskRole,
-      family: props.family,
+      family: props.name,
     });
 
-    taskDefinition.addContainer(props.containerName, {
+    taskDefinition.addContainer(props.name, {
       image: props.image,
       command: props.command,
-      containerName: props.containerName,
+      containerName: props.name,
       environment: props.environmentVariables,
       essential: true,
       logging: LogDriver.awsLogs({
@@ -88,7 +87,7 @@ aws ecs wait tasks-stopped --tasks $TASK_ID --cluster ${props.cluster.clusterArn
 
 END_TIME=$(date +%s000)
 
-aws logs get-log-events --log-group-name ${logGroupName} --log-stream-name ${streamPrefix}/${props.containerName}/\${TASK_ID##*/} --start-time $START_TIME --end-time $END_TIME | jq -r '.events[].message'
+aws logs get-log-events --log-group-name ${logGroupName} --log-stream-name ${streamPrefix}/${props.name}/\${TASK_ID##*/} --start-time $START_TIME --end-time $END_TIME | jq -r '.events[].message'
     `;
 
     this.executionScript = executionScript;

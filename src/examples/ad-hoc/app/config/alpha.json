@@ -1,0 +1,6 @@
+{
+  "settingsModule": "backend.settings.aws",
+  "extraEnvVars": {
+    "FOO": "BAR"
+  }
+}
