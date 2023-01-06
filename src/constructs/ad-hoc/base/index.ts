@@ -60,7 +60,6 @@ export class AdHocBase extends Construct {
 
     const serviceDiscoveryPrivateDnsNamespace = new PrivateDnsNamespace(this, 'ServiceDiscoveryNamespace', {
       vpc: this.vpc,
-      // TODO: add stack name as part of the name
       name: `${stackName}-sd-ns`,
     });
     this.serviceDiscoveryNamespace = serviceDiscoveryPrivateDnsNamespace;

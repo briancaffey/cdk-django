@@ -24,6 +24,7 @@ ad-hoc-app-diff:
 ad-hoc-app-deploy:
 	cdk deploy --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocAppStack
 
+# TODO: make sure this includes all services including beat
 ad-hoc-app-delete-services:
 	export AWS_PAGER=''
 	aws ecs delete-service --cluster alpha-cluster --service alpha-web-ui --force

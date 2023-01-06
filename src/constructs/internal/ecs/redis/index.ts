@@ -74,7 +74,6 @@ export class RedisService extends Construct {
 
     const useSpot = props.useSpot ?? false;
 
-    // TODO: add service discovery service
     const cloudMapService = props.serviceDiscoveryNamespace.createService('Service', {
       name: `${stackName}-redis`,
       dnsRecordType: DnsRecordType.A,

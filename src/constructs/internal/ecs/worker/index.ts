@@ -75,9 +75,6 @@ export class WorkerService extends Construct {
 
     const useSpot = props.useSpot ?? false;
 
-    // we don't need autoscaling in ad hoc environments
-    // TODO: add prop to enable autoscaling for the worker
-    // const service =
     new FargateService(this, 'Service', {
       cluster: props.cluster,
       taskDefinition,
