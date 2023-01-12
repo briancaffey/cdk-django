@@ -44,16 +44,10 @@ jobs:
       pull-requests: write
     if: ${{ needs.upgrade.outputs.patch_created }}
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@7ce9ffdcdeb2ba82b01b51d6584a6a85872336d4
-        with:
-          app_id: ${{ secrets.PROJEN_APP_ID }}
-          private_key: ${{ secrets.PROJEN_APP_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          token: ${{ steps.generate_token.outputs.token }}
+          token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           ref: main
       - name: Download patch
         uses: actions/download-artifact@v3
@@ -70,7 +64,7 @@ jobs:
         id: create-pr
         uses: peter-evans/create-pull-request@v3
         with:
-          token: ${{ steps.generate_token.outputs.token }}
+          token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           commit-message: |-
             chore(deps): upgrade dependencies
 

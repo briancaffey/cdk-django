@@ -1,5 +1,6 @@
 {
   "name": "cdk-django",
+  "description": "CDK construct library for building Django applications on AWS with ECS Fargate",
   "repository": {
     "type": "git",
     "url": "git@github.com:briancaffey/cdk-django.git"

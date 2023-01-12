@@ -1,4 +1,4 @@
-import { awscdk, github, release } from 'projen';
+import { awscdk, release } from 'projen';
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'Brian Caffey',
   authorEmail: 'briancaffey2010@gmail.com',
@@ -17,7 +17,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
   // Automation
   githubOptions: {
-    projenCredentials: github.GithubCredentials.fromApp(),
+    // projenCredentials: github.GithubCredentials.fromApp(),
     pullRequestLintOptions: {
       semanticTitleOptions: {
         types: ['feat', 'fix', 'chore', 'docs', 'ci'],
@@ -54,10 +54,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'CONTRIBUTING.md',
     'SECURITY.md',
   ],
-  // deps: [],                /* Runtime dependencies of this module. */
-  // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-  // devDeps: [],             /* Build dependencies for this module. */
-  // packageName: undefined,  /* The "name" in package.json. */
+  description: 'CDK construct library for building Django applications on AWS with ECS Fargate',
+  packageName: 'cdk-django',
 });
 
 // release only via manual trigger
