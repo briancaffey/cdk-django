@@ -1,4 +1,11 @@
 
+### [1.2.1](https://github.com/briancaffey/cdk-django/compare/v1.2.0...v1.2.1) (2023-01-12)
+
+
+### Bug Fixes
+
+* **upgrade-main:** revert to using default github auth method ([fbe84ca](https://github.com/briancaffey/cdk-django/commit/fbe84ca048c9bcc69983628664127de535eddd5d))
+
 ## [1.2.0](https://github.com/briancaffey/cdk-django/compare/v1.1.0...v1.2.0) (2023-01-05)
 
 
