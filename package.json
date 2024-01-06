@@ -53,7 +53,7 @@
     "jsii-docgen": "^7.2.9",
     "jsii-pacmak": "^1.93.0",
     "jsii-rosetta": "1.x",
-    "projen": "^0.78.9",
+    "projen": "^0.78.10",
     "standard-version": "^9",
     "ts-jest": "^27",
     "ts-node": "^10.9.2",
