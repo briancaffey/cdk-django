@@ -53,7 +53,7 @@ export class RdsInstance extends Construct {
     const rdsInstance = new DatabaseInstance(this, 'RdsInstance', {
       instanceIdentifier: `${stackName}RdsInstance`,
       vpc: props.vpc,
-      engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.VER_13_4 }),
+      engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.of('16.1', '16') }),
       credentials: Credentials.fromSecret(secret),
       instanceType,
       port: 5432,

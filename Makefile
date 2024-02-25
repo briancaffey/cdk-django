@@ -1,28 +1,28 @@
 ## ad hoc base cdk commands
 ad-hoc-base-synth:
-	cdk synth --app='lib/examples/ad-hoc/base/index.js' -e ExampleAdHocBaseStack
+	cdk synth --app='lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ad-hoc-base-diff:
-	cdk diff --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocBaseStack
+	cdk diff --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ad-hoc-base-deploy:
-	cdk deploy --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocBaseStack
+	cdk deploy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ad-hoc-base-deploy-approve:
-	cdk deploy --app='./lib/examples/ad-hoc/base/index.js' --require-approval never -e ExampleAdHocBaseStack
+	cdk deploy --app='./lib/examples/ad-hoc/index.js' --require-approval never -e ExampleAdHocBaseStack
 
 ad-hoc-base-destroy:
-	cdk destroy --app='./lib/examples/ad-hoc/base/index.js' --require-approval never -e ExampleAdHocBaseStack
+	yes | cdk destroy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ## ad hoc app cdk commands
 ad-hoc-app-synth:
-	cdk synth --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocAppStack
+	cdk synth --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack
 
 ad-hoc-app-diff:
-	cdk diff --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocAppStack
+	cdk diff --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack
 
 ad-hoc-app-deploy:
-	cdk deploy --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocAppStack
+	cdk deploy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack
 
 # TODO: make sure this includes all services including beat
 ad-hoc-app-delete-services:
@@ -33,4 +33,4 @@ ad-hoc-app-delete-services:
 	aws ecs delete-service --cluster alpha-cluster --service alpha-gunicorn --force
 
 ad-hoc-app-destroy:	ad-hoc-app-delete-services
-	cdk destroy --app='./lib/examples/ad-hoc/base/index.js' -e ExampleAdHocAppStack
+	cdk destroy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack

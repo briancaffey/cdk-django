@@ -1,14 +1,14 @@
 import * as fs from 'fs';
 import { App, Stack, Tags } from 'aws-cdk-lib';
-import { AdHocApp } from '../../../constructs/ad-hoc/app';
-import { AdHocBase } from '../../../constructs/ad-hoc/base';
+import { AdHocApp } from '../../constructs/ad-hoc/app';
+import { AdHocBase } from '../../constructs/ad-hoc/base';
 
 const adHocBaseEnvName = process.env.AD_HOC_BASE_NAME || 'dev';
 const adHocAppEnvName = process.env.AD_HOC_APP_NAME || 'alpha';
 
 // TODO: define interfaces for these config and type check them
-var adHocBaseEnvConfig = JSON.parse(fs.readFileSync(`src/examples/ad-hoc/base/config/${adHocBaseEnvName}.json`, 'utf8'));
-var adHocAppEnvConfig = JSON.parse(fs.readFileSync(`src/examples/ad-hoc/app/config/${adHocAppEnvName}.json`, 'utf8'));
+var adHocBaseEnvConfig = JSON.parse(fs.readFileSync(`src/examples/ad-hoc/config/${adHocBaseEnvName}.json`, 'utf8'));
+var adHocAppEnvConfig = JSON.parse(fs.readFileSync(`src/examples/ad-hoc/config/${adHocAppEnvName}.json`, 'utf8'));
 
 // https://docs.aws.amazon.com/cdk/v2/guide/stack_how_to_create_multiple_stacks.html
 const app = new App();
