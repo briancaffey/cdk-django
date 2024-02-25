@@ -1,4 +1,11 @@
 
+## [1.3.0](https://github.com/briancaffey/cdk-django/compare/v1.2.1...v1.3.0) (2024-02-25)
+
+
+### Features
+
+* **project:** upgrade projen ([0ba65a6](https://github.com/briancaffey/cdk-django/commit/0ba65a6b6205cbdbc1f5546a6b30f8c2ecd3d135))
+
 ### [1.2.1](https://github.com/briancaffey/cdk-django/compare/v1.2.0...v1.2.1) (2023-01-12)
 
 
