@@ -47,6 +47,7 @@ export class EcsRoles extends Construct {
     });
 
     // S3
+    // TODO: tighten persmissions https://stackoverflow.com/a/23667874/6084948
     taskExecutionRole.addToPolicy(new PolicyStatement({
       effect: Effect.ALLOW,
       actions: ['s3:*'],

@@ -34,15 +34,15 @@ const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
   vpc: adHocBase.vpc,
   alb: adHocBase.alb,
   appSecurityGroup: adHocBase.appSecurityGroup,
-  serviceDiscoveryNamespace: adHocBase.serviceDiscoveryNamespace,
   rdsInstance: adHocBase.databaseInstance,
   assetsBucket: adHocBase.assetsBucket,
   domainName: adHocBase.domainName,
   listener: adHocBase.listener,
+  elastiCacheHost: adHocBase.elastiCacheHostname,
 });
 
 /**
  * Add tagging for this construct and all child constructs
  */
-Tags.of(adHocBase).add('env', adHocBaseEnvName);
-Tags.of(addHocApp).add('env', adHocAppEnvName);
+Tags.of(adHocBase).add('base-env', adHocBaseEnvName);
+Tags.of(addHocApp).add('app-env', adHocAppEnvName);

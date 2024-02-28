@@ -1,4 +1,3 @@
-// import { Stack } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 import { InstanceType, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';

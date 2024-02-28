@@ -3,10 +3,10 @@ import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { ApplicationListener, ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { PrivateDnsNamespace } from 'aws-cdk-lib/aws-servicediscovery';
 import { Construct } from 'constructs';
 import { AlbResources } from '../../internal/alb';
 import { BastionHostResources } from '../../internal/bastion';
+import { ElastiCacheCluster } from '../../internal/ec';
 import { RdsInstance } from '../../internal/rds';
 import { SecurityGroupResources } from '../../internal/sg';
 import { ApplicationVpc } from '../../internal/vpc';
@@ -22,11 +22,11 @@ export class AdHocBase extends Construct {
   public alb: ApplicationLoadBalancer;
   public appSecurityGroup: SecurityGroup;
   public albSecurityGroup: SecurityGroup;
-  public serviceDiscoveryNamespace: PrivateDnsNamespace;
   public databaseInstance: DatabaseInstance;
   public assetsBucket: Bucket;
   public domainName: string;
   public listener: ApplicationListener;
+  public elastiCacheHostname: string;
 
   constructor(scope: Construct, id: string, props: AdHocBaseProps) {
     super(scope, id);
@@ -58,12 +58,6 @@ export class AdHocBase extends Construct {
     this.alb = alb;
     this.listener = listener;
 
-    const serviceDiscoveryPrivateDnsNamespace = new PrivateDnsNamespace(this, 'ServiceDiscoveryNamespace', {
-      vpc: this.vpc,
-      name: `${stackName}-sd-ns`,
-    });
-    this.serviceDiscoveryNamespace = serviceDiscoveryPrivateDnsNamespace;
-
     const rdsInstance = new RdsInstance(this, 'RdsInstance', {
       vpc: this.vpc,
       appSecurityGroup: appSecurityGroup,
@@ -72,6 +66,16 @@ export class AdHocBase extends Construct {
     this.databaseInstance = rdsInstance.rdsInstance;
     const { dbInstanceEndpointAddress } = rdsInstance.rdsInstance;
 
+    // elasticache cluster
+    const elastiCacheCluster = new ElastiCacheCluster(this, 'ElastiCacheCluster', {
+      vpc: this.vpc,
+      appSecurityGroup: appSecurityGroup,
+    });
+
+    // get the elasticache cluster hostname
+    this.elastiCacheHostname = elastiCacheCluster.elastiCacheHost;
+
+    // TODO: is this needed?
     new BastionHostResources(this, 'BastionHostResources', {
       appSecurityGroup,
       vpc: this.vpc,
