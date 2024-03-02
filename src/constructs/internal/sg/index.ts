@@ -1,4 +1,4 @@
-// import { Stack } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 import { IVpc, Peer, Port, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 
@@ -25,10 +25,16 @@ export class SecurityGroupResources extends Construct {
     albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), 'HTTPS');
     albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80), 'HTTP');
 
+    const appSgName = `${Stack.of(this).stackName}-app-sg`;
+
     // create application security group
     const appSecurityGroup = new SecurityGroup(scope, 'AppSecurityGroup', {
+      securityGroupName: appSgName,
       vpc: props.vpc,
     });
+
+    Tags.of(appSecurityGroup).add('Name', `${Stack.of(this).stackName}-app-sg`);
+
     appSecurityGroup.connections.allowFrom(appSecurityGroup, Port.allTcp());
 
     this.appSecurityGroup = appSecurityGroup;

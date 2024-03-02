@@ -79,6 +79,9 @@ export class AdHocApp extends Construct {
     // define ecsTaskRole and taskExecutionRole for ECS
     const ecsRoles = new EcsRoles(scope, 'EcsRoles');
 
+    // allow the task role to read and write to the bucket
+    props.assetsBucket.grantReadWrite(ecsRoles.ecsTaskRole);
+
     // Route53
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName });
     const cnameRecord = new CnameRecord(this, 'CnameApiRecord', {
@@ -159,7 +162,7 @@ export class AdHocApp extends Construct {
     // scheduler service
 
     // management command task definition
-    const backendUpdateTask = new ManagementCommandTask(this, 'BackendUpdateTask', {
+    const backendUpdateTask = new ManagementCommandTask(this, 'update', {
       cluster,
       environmentVariables,
       vpc: props.vpc,
@@ -168,7 +171,7 @@ export class AdHocApp extends Construct {
       executionRole: ecsRoles.taskExecutionRole,
       image: backendImage,
       command: ['python', 'manage.py', 'pre_update'],
-      name: 'backendUpdate',
+      name: 'update',
     });
 
     // worker service

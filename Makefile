@@ -6,7 +6,7 @@ ad-hoc-base-diff:
 	cdk diff --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ad-hoc-base-deploy:
-	cdk deploy --verbose --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
+	cdk deploy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocBaseStack
 
 ad-hoc-base-deploy-approve:
 	cdk deploy --app='./lib/examples/ad-hoc/index.js' --require-approval never -e ExampleAdHocBaseStack

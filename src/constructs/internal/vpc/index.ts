@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 import { IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 
 import { Construct } from 'constructs';
@@ -28,5 +28,8 @@ export class ApplicationVpc extends Construct {
       ],
     });
     this.vpc = vpc;
+
+    // having trouble making sure the VPC resources are getting tagged correctly
+    Tags.of(vpc).add('base-env', Stack.of(this).stackName);
   }
 }

@@ -5,7 +5,6 @@ import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { AlbResources } from '../../internal/alb';
-import { BastionHostResources } from '../../internal/bastion';
 import { ElastiCacheCluster } from '../../internal/ec';
 import { RdsInstance } from '../../internal/rds';
 import { SecurityGroupResources } from '../../internal/sg';
@@ -40,6 +39,12 @@ export class AdHocBase extends Construct {
     const assetsBucket = new Bucket(scope, 'AssetsBucket', {
       bucketName: `${props.domainName.replace('.', '-')}-${stackName}-assets-bucket`,
       removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: {
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false,
+      },
       autoDeleteObjects: true,
     });
     this.assetsBucket = assetsBucket;
@@ -64,7 +69,6 @@ export class AdHocBase extends Construct {
       dbSecretName: this.node.tryGetContext('config')?.dbSecretName ?? 'DB_SECRET_NAME',
     });
     this.databaseInstance = rdsInstance.rdsInstance;
-    const { dbInstanceEndpointAddress } = rdsInstance.rdsInstance;
 
     // elasticache cluster
     const elastiCacheCluster = new ElastiCacheCluster(this, 'ElastiCacheCluster', {
@@ -75,13 +79,5 @@ export class AdHocBase extends Construct {
     // get the elasticache cluster hostname
     this.elastiCacheHostname = elastiCacheCluster.elastiCacheHost;
 
-    // TODO: is this needed?
-    new BastionHostResources(this, 'BastionHostResources', {
-      appSecurityGroup,
-      vpc: this.vpc,
-      rdsAddress: dbInstanceEndpointAddress,
-      instanceClass: this.node.tryGetContext('config').instanceClass,
-      // instanceType: this.node.tryGetContext('config').instanceType,
-    });
   }
 }
