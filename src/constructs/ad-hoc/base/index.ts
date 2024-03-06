@@ -2,7 +2,7 @@ import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { ApplicationListener, ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { AlbResources } from '../../internal/alb';
 import { ElastiCacheCluster } from '../../internal/ec';
@@ -46,6 +46,7 @@ export class AdHocBase extends Construct {
         restrictPublicBuckets: false,
       },
       autoDeleteObjects: true,
+      objectOwnership: ObjectOwnership.OBJECT_WRITER,
     });
     this.assetsBucket = assetsBucket;
 
