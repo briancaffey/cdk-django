@@ -268,8 +268,8 @@ Any object.
 | <code><a href="#cdk-django.AdHocBase.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.databaseInstance">databaseInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocBase.property.elastiCacheHostname">elastiCacheHostname</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocBase.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocBase.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
 
 ---
@@ -346,6 +346,16 @@ public readonly domainName: string;
 
 ---
 
+##### `elastiCacheHostname`<sup>Required</sup> <a name="elastiCacheHostname" id="cdk-django.AdHocBase.property.elastiCacheHostname"></a>
+
+```typescript
+public readonly elastiCacheHostname: string;
+```
+
+- *Type:* string
+
+---
+
 ##### `listener`<sup>Required</sup> <a name="listener" id="cdk-django.AdHocBase.property.listener"></a>
 
 ```typescript
@@ -353,16 +363,6 @@ public readonly listener: ApplicationListener;
 ```
 
 - *Type:* aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener
-
----
-
-##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="cdk-django.AdHocBase.property.serviceDiscoveryNamespace"></a>
-
-```typescript
-public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
-```
-
-- *Type:* aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace
 
 ---
 
@@ -398,9 +398,9 @@ const adHocAppProps: AdHocAppProps = { ... }
 | <code><a href="#cdk-django.AdHocAppProps.property.assetsBucket">assetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.Bucket</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.baseStackName">baseStackName</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.domainName">domainName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#cdk-django.AdHocAppProps.property.elastiCacheHost">elastiCacheHost</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.listener">listener</a></code> | <code>aws-cdk-lib.aws_elasticloadbalancingv2.ApplicationListener</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.rdsInstance">rdsInstance</a></code> | <code>aws-cdk-lib.aws_rds.DatabaseInstance</code> | *No description.* |
-| <code><a href="#cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace">serviceDiscoveryNamespace</a></code> | <code>aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace</code> | *No description.* |
 | <code><a href="#cdk-django.AdHocAppProps.property.vpc">vpc</a></code> | <code>aws-cdk-lib.aws_ec2.IVpc</code> | *No description.* |
 
 ---
@@ -455,6 +455,16 @@ public readonly domainName: string;
 
 ---
 
+##### `elastiCacheHost`<sup>Required</sup> <a name="elastiCacheHost" id="cdk-django.AdHocAppProps.property.elastiCacheHost"></a>
+
+```typescript
+public readonly elastiCacheHost: string;
+```
+
+- *Type:* string
+
+---
+
 ##### `listener`<sup>Required</sup> <a name="listener" id="cdk-django.AdHocAppProps.property.listener"></a>
 
 ```typescript
@@ -472,16 +482,6 @@ public readonly rdsInstance: DatabaseInstance;
 ```
 
 - *Type:* aws-cdk-lib.aws_rds.DatabaseInstance
-
----
-
-##### `serviceDiscoveryNamespace`<sup>Required</sup> <a name="serviceDiscoveryNamespace" id="cdk-django.AdHocAppProps.property.serviceDiscoveryNamespace"></a>
-
-```typescript
-public readonly serviceDiscoveryNamespace: PrivateDnsNamespace;
-```
-
-- *Type:* aws-cdk-lib.aws_servicediscovery.PrivateDnsNamespace
 
 ---
 
