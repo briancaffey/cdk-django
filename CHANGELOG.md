@@ -1,4 +1,14 @@
 
+## [1.4.0](https://github.com/briancaffey/cdk-django/compare/v1.3.0...v1.4.0) (2024-03-10)
+
+
+### Features
+
+* **cdk:** fixes for base - app compatibility ([9888efb](https://github.com/briancaffey/cdk-django/commit/9888efbd55da0c9bc330ff6ee2e8b7ccb3de103b))
+* **cdk:** upgrade cdk version, refactor ad-hoc example directory ([7bf723b](https://github.com/briancaffey/cdk-django/commit/7bf723b609ef7caf5534dea10edfee9c5f8c5bf1))
+* **gha:** add github action for service update ([b0820a3](https://github.com/briancaffey/cdk-django/commit/b0820a35b89390b1884715d2cef448fbeb179598))
+* **s3:** fix bucket permissions ([e648a7b](https://github.com/briancaffey/cdk-django/commit/e648a7bc2c11bf66b754ff422cb8b26af50916f7))
+
 ## [1.3.0](https://github.com/briancaffey/cdk-django/compare/v1.2.1...v1.3.0) (2024-02-25)
 
 
