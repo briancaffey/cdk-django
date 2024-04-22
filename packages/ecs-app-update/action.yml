@@ -57,4 +57,4 @@ runs:
         cluster: ${{ inputs.APP_ENV }}-cluster
         service: ${{ inputs.APP_ENV }}-${{ inputs.CONTAINER_NAME }}
         task-definition: ${{ steps.render-new-task-definition.outputs.task-definition }}
-
+        wait-for-service-stability: true

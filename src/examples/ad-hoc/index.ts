@@ -29,7 +29,7 @@ const domainName = process.env.DOMAIN_NAME || 'example.com';
 
 const adHocBase = new AdHocBase(baseStack, 'AdHocBase', { certificateArn, domainName });
 
-const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
+const adHocApp = new AdHocApp(appStack, 'AdHocApp', {
   baseStackName: adHocBaseEnvName,
   vpc: adHocBase.vpc,
   alb: adHocBase.alb,
@@ -46,4 +46,4 @@ const addHocApp = new AdHocApp(appStack, 'AdHocApp', {
  */
 Tags.of(adHocBase).add('base-env', adHocBaseEnvName);
 Tags.of(adHocBase).add('ad-hoc', 'true');
-Tags.of(addHocApp).add('app-env', adHocAppEnvName);
+Tags.of(adHocApp).add('app-env', adHocAppEnvName);

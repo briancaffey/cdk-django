@@ -29,8 +29,8 @@ ad-hoc-app-delete-services:
 	export AWS_PAGER=''
 	aws ecs delete-service --cluster alpha-cluster --service alpha-web-ui --force
 	aws ecs delete-service --cluster alpha-cluster --service alpha-default-worker --force
-	aws ecs delete-service --cluster alpha-cluster --service alpha-redis --force
 	aws ecs delete-service --cluster alpha-cluster --service alpha-gunicorn --force
+	aws ecs delete-service --cluster alpha-cluster --service alpha-ecs-exec --force
 
 ad-hoc-app-destroy:	ad-hoc-app-delete-services
-	cdk destroy --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack
+	cdk destroy --verbose --app='./lib/examples/ad-hoc/index.js' -e ExampleAdHocAppStack
