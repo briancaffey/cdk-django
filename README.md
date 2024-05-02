@@ -73,6 +73,16 @@ The production environment is quite expensive to run compared to other alternati
 
 Ad hoc environments take advantage of Fargate Spot instances which are less expensive than regular Fargate instances. Similar to EC2 spot instances, this allows us to use "left-over" compute resources at a discount with the caveat that the instances may be shut down for rescheduling by AWS at any time (with a 2 minute warning).
 
-## Redeploying package
+## Maintaining this repo
 
-Old versions have been removed. The package was deleted from npm and is being re-published.
+To update packages, run the following:
+
+```
+projen upgrade
+```
+
+Update CDK version in `.projenrc.ts` and then run:
+
+```
+projen
+```

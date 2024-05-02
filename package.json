@@ -41,7 +41,7 @@
     "@types/node": "^16 <= 16.18.78",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
-    "aws-cdk-lib": "2.130.0",
+    "aws-cdk-lib": "2.139.1",
     "constructs": "10.0.5",
     "eslint": "^8",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -49,18 +49,18 @@
     "jest": "^27",
     "jest-junit": "^15",
     "jsii": "1.x",
-    "jsii-diff": "^1.95.0",
+    "jsii-diff": "^1.98.0",
     "jsii-docgen": "^7.2.9",
-    "jsii-pacmak": "^1.95.0",
+    "jsii-pacmak": "^1.98.0",
     "jsii-rosetta": "1.x",
-    "projen": "^0.80.9",
+    "projen": "^0.81.5",
     "standard-version": "^9",
     "ts-jest": "^27",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.130.0",
+    "aws-cdk-lib": "^2.139.1",
     "constructs": "^10.0.5"
   },
   "dependencies": {

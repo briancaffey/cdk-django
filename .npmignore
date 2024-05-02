@@ -43,3 +43,4 @@ tsconfig.tsbuildinfo
 !.jsii
 /.gitattributes
 /.projenrc.ts
+/projenrc
