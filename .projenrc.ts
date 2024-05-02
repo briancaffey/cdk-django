@@ -74,4 +74,7 @@ project.tryFindObjectFile('.github/workflows/release.yml')?.addToArray(
   },
 );
 
+project.addDevDeps('jsii-docgen@10.x');
+project.addDevDeps('jsii-rosetta@5.x');
+
 project.synth();
