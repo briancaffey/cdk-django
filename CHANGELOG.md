@@ -1,4 +1,17 @@
 
+## [1.5.0](https://github.com/briancaffey/cdk-django/compare/v1.4.0...v1.5.0) (2024-05-02)
+
+
+### Features
+
+* **docgen:** upgrade docgen version to fix release ([db818f6](https://github.com/briancaffey/cdk-django/commit/db818f61b726466428c7407c1b8f5e93a32c2eb9))
+* **upgrade:** upgrade projen and cdk versions ([fd6afd0](https://github.com/briancaffey/cdk-django/commit/fd6afd09727c17f8a12108196bfafa908e9d9ed5))
+
+
+### Bug Fixes
+
+* **typo:** fix typo ([4167100](https://github.com/briancaffey/cdk-django/commit/41671003fcc7d3badc6af29610a31df3c928f5df))
+
 ## [1.4.0](https://github.com/briancaffey/cdk-django/compare/v1.3.0...v1.4.0) (2024-03-10)
 
 
