@@ -10,7 +10,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorUrl: 'https://briancaffey.github.io',
   license: 'MIT',
   copyrightOwner: 'Brian Caffey',
-  cdkVersion: '2.139.1',
+  cdkVersion: '2.177.0',
   defaultReleaseBranch: 'main',
   name: 'cdk-django',
   repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
