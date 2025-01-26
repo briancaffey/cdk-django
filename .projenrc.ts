@@ -25,7 +25,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     },
   },
   // https://github.com/projen/projen/issues/1941
-  bundledDeps: ['@types/jest@27.4.1'],
+  // bundledDeps: ['@types/jest@27.4.1'],
   majorVersion: 1,
   releaseTrigger: {
     isContinuous: false,
