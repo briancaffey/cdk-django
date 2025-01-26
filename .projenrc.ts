@@ -60,9 +60,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
 // release only via manual trigger
 project.release?.publisher?.publishToGit({
-  changelogFile: 'dist/dist/changelog.md',
-  versionFile: 'dist/dist/version.txt',
-  releaseTagFile: 'dist/dist/releasetag.txt',
+  changelogFile: 'dist/changelog.md',
+  versionFile: 'dist/version.txt',
+  releaseTagFile: 'dist/releasetag.txt',
   projectChangelogFile: 'CHANGELOG.md',
   gitBranch: 'main',
 });
