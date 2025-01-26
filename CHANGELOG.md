@@ -1,4 +1,16 @@
 
+## [1.6.0](https://github.com/briancaffey/cdk-django/compare/v1.5.0...v1.6.0) (2025-01-26)
+
+
+### Features
+
+* **upgrade:** run projen upgrade, fix issue with jest types ([2778840](https://github.com/briancaffey/cdk-django/commit/2778840534d3f050f7b2f1149d26505a12f3b3a4))
+
+
+### Bug Fixes
+
+* **release:** debug broken release ([ce27e83](https://github.com/briancaffey/cdk-django/commit/ce27e83424970210c43d5ca8f73947c1da603c4a))
+
 ## [1.5.0](https://github.com/briancaffey/cdk-django/compare/v1.4.0...v1.5.0) (2024-05-02)
 
 
