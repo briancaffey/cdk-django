@@ -1,4 +1,22 @@
 
+## [1.7.0](https://github.com/briancaffey/cdk-django/compare/v1.6.0...v1.7.0) (2025-02-11)
+
+
+### Features
+
+* **cdk:** bump cdk version to v2.177.0 ([4ae4218](https://github.com/briancaffey/cdk-django/commit/4ae42186930e24d0ac7294eaed1f6760f2cf3b02))
+* **examples:** remove ad hoc and prod examples to align with other iac library structures ([e853f96](https://github.com/briancaffey/cdk-django/commit/e853f96547d60cd8d7b90abfe6783b3ecc1c9307))
+
+
+### Bug Fixes
+
+* **docs:** add section to readme about the release process ([61c0cd7](https://github.com/briancaffey/cdk-django/commit/61c0cd7de1a2790a627d1fcd0989b7123ac52f43))
+* **docs:** generate docs with yarn build ([bb6b55a](https://github.com/briancaffey/cdk-django/commit/bb6b55a94700b45b4d2d5369e11d264945af950c))
+* **docs:** sync readme with other iac library readmes and updated cdk version ([cbdefd7](https://github.com/briancaffey/cdk-django/commit/cbdefd755e38aa1d3848b0db0fcb36586cc20181))
+* **docs:** update readme ([7092e87](https://github.com/briancaffey/cdk-django/commit/7092e87cb74a53c212f9c2b88029816093d3be24))
+* **lint:** run eslint ([c8030f9](https://github.com/briancaffey/cdk-django/commit/c8030f94d9e208bb4238a4fd43eab2e79cb2940a))
+* **misc:** various fixes to fix base and app stack deployments with cdk ([5e43b09](https://github.com/briancaffey/cdk-django/commit/5e43b093f6bbc12f942e25a2e478e0a533b283c9))
+
 ## [1.6.0](https://github.com/briancaffey/cdk-django/compare/v1.5.0...v1.6.0) (2025-01-26)
 
 
