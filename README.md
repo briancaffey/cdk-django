@@ -83,6 +83,12 @@ This construct library focuses on security, best practices, scalability, flexibi
 
 ## Maintaining this repo
 
+Make sure you are on the most recent version of CDK:
+
+```
+npm i -g aws-cdk
+```
+
 This project is managed by [`projen`](https://github.com/projen/projen). To update the application, run the following:
 
 ```
@@ -94,3 +100,5 @@ Update [CDK version](https://github.com/aws/aws-cdk/releases) in `.projenrc.ts` 
 ```
 npx projen
 ```
+
+Run `npx projen watch` in one terminal. In another terminal, export AWS credentials and then run commands in the `Makefile`.

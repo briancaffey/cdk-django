@@ -10,12 +10,12 @@ import { RdsInstance } from '../../internal/rds';
 import { SecurityGroupResources } from '../../internal/sg';
 import { ApplicationVpc } from '../../internal/vpc';
 
-export interface AdHocBaseProps {
+export interface EcsBaseProps {
   readonly certificateArn: string;
   readonly domainName: string;
 }
 
-export class AdHocBase extends Construct {
+export class EcsBase extends Construct {
 
   public vpc: IVpc;
   public alb: ApplicationLoadBalancer;
@@ -27,7 +27,7 @@ export class AdHocBase extends Construct {
   public listener: ApplicationListener;
   public elastiCacheHostname: string;
 
-  constructor(scope: Construct, id: string, props: AdHocBaseProps) {
+  constructor(scope: Construct, id: string, props: EcsBaseProps) {
     super(scope, id);
 
     const stackName = Stack.of(this).stackName;

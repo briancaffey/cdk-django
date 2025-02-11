@@ -13,7 +13,7 @@ import { ManagementCommandTask } from '../../internal/ecs/management-command';
 import { WebService } from '../../internal/ecs/web';
 import { WorkerService } from '../../internal/ecs/worker';
 
-export interface AdHocAppProps {
+export interface EcsAppProps {
   readonly baseStackName: string;
   readonly vpc: IVpc;
   readonly alb: IApplicationLoadBalancer;
@@ -25,9 +25,9 @@ export interface AdHocAppProps {
   readonly elastiCacheHost: string;
 }
 
-export class AdHocApp extends Construct {
+export class EcsApp extends Construct {
 
-  constructor(scope: Construct, id: string, props: AdHocAppProps) {
+  constructor(scope: Construct, id: string, props: EcsAppProps) {
     super(scope, id);
 
     const stackName = Stack.of(this).stackName;
@@ -62,7 +62,7 @@ export class AdHocApp extends Construct {
       DJANGO_SETTINGS_MODULE: settingsModule,
       FRONTEND_URL: `https://${stackName}.${props.domainName}`,
       DOMAIN_NAME: props.domainName,
-      // TODO: read this from ad hoc base stack
+      // TODO: read this from ecs base stack
       DB_SECRET_NAME: 'DB_SECRET_NAME',
       APP_ENV_NAME: stackName, // e.g. alpha
       BASE_ENV_NAME: props.baseStackName, // e.g. dev

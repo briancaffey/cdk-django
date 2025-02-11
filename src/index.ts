@@ -1,5 +1,2 @@
-export * from './constructs/ad-hoc/base';
-export * from './constructs/ad-hoc/app';
-
-// export * from './prod/base';
-// export * from './prod/app';
+export * from './constructs/ecs/base';
+export * from './constructs/ecs/app';
