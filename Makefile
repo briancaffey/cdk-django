@@ -1,4 +1,4 @@
-## base stack
+# base stack
 ecs-base-synth:
 	cdk synth --app='lib/examples/ecs/index.js' -e ExampleEcsBaseStack
 

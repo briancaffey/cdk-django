@@ -1,4 +1,4 @@
-# Django CDK
+# `cdk-django`
 
 ## About this construct library
 
@@ -54,8 +54,22 @@ It is best to deploy cloud infrastructure with automated pipelines that execute 
 
 The `Makefile` in this repo documents the commands to create and destroy infrastructure for the `base` and `app` stacks. For example:
 
-```
-# TODO update this example
+```Makefile
+# base stack
+ecs-base-synth:
+	cdk synth --app='lib/examples/ecs/index.js' -e ExampleEcsBaseStack
+
+ecs-base-diff:
+	cdk diff --app='./lib/examples/ecs/index.js' -e ExampleEcsBaseStack
+
+ecs-base-deploy:
+	cdk deploy --app='./lib/examples/ecs/index.js' -e ExampleEcsBaseStack
+
+ecs-base-deploy-approve:
+	cdk deploy --app='./lib/examples/ecs/index.js' --require-approval never -e ExampleEcsBaseStack
+
+ecs-base-destroy:
+	yes | cdk destroy --app='./lib/examples/ecs/index.js' -e ExampleEcsBaseStack
 ```
 
 ## Companion application
@@ -101,4 +115,19 @@ Update [CDK version](https://github.com/aws/aws-cdk/releases) in `.projenrc.ts` 
 npx projen
 ```
 
-Run `npx projen watch` in one terminal. In another terminal, export AWS credentials and then run commands in the `Makefile`.
+Run `npx projen watch` in one terminal.
+
+
+In another terminal, export AWS credentials and environment variables and then run commands in the `Makefile`.
+
+Here are the environment variables you will need to export:
+
+```
+export DOMAIN_NAME=example.com
+export CERTIFICATE_ARN=arn:aws:acm:us-east-1:111111111111:certificate/11111111-1111-1111-1111-111111111111
+export AWS_REGION=us-east-1
+export AWS_ACCESS_KEY_ID=abc
+export AWS_SESSION_TOKEN=123
+export COMPANY_NAME=abc
+export AWS_ACCOUNT_ID=123456789
+```
