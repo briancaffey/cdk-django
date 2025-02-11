@@ -126,7 +126,7 @@ export class EcsApp extends Construct {
     new WebService(this, 'FrontendService', {
       cluster,
       environmentVariables: {
-        NUXT_PUBLIC_API_BASE: `https://${stackName}.${props.domainName}`
+        NUXT_PUBLIC_API_BASE: `https://${stackName}.${props.domainName}`,
       },
       vpc: props.vpc,
       appSecurityGroup: props.appSecurityGroup,
@@ -134,7 +134,7 @@ export class EcsApp extends Construct {
       executionRole: ecsRoles.taskExecutionRole,
       image: frontendImage,
       listener: props.listener,
-      command: ["node", ".output/server/index.mjs"],
+      command: ['node', '.output/server/index.mjs'],
       name: 'web-ui',
       port: 3000,
       domainName: props.domainName,

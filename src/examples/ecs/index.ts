@@ -41,7 +41,7 @@ const ecsApp = new EcsApp(appStack, 'EcsApp', {
   listener: ecsBase.listener,
   elastiCacheHost: ecsBase.elastiCacheHostname,
   rdsPasswordSecretName: ecsBase.rdsPasswordSecretName,
-  companyName
+  companyName,
 });
 
 /**
