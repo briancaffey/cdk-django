@@ -2,87 +2,95 @@
 
 ## About this construct library
 
-`cdk-django` is a construct library for AWS Cloud Development Kit (CDK) that I wrote to learn more about infrastructure as code. It it focuses on showing how to build AWS infrastructure to support Django applications. I recommend that you only use this construct library as a reference for your own applications.
+`cdk-django` is a library for deploying Django applications to AWS using ECS Fargate.
 
-There are four major constructs in this library:
+`cdk-django` aims to demonstrate best-practices for building web applications in AWS cloud. Executing the code in this project will build cloud resources such as networks, servers and databases that power a web application that can run securely on the public internet.
 
-- ad hoc base
-- ad hoc app
-- prod base
-- prod app
+You don't need to use this library directly in your code. It is recommended that you use this repo as a guide. It includes common patterns that are used when working with Infrastructure as Code.
 
-Ad hoc environments (or on-demand environments) are application environments that teams use internally for testing, QA, internal demos, etc. Multiple ad hoc environments build on top of a single "an hoc base" environment that provides shared resources such as:
+### Companion application
+
+This project has a companion repo that contains a Django (Python) web application backend and a Nuxt.js frontend site (server-rendered Vue.js written in TypeScript). This project can be found here:
+
+[https://github.com/briancaffey/django-step-by-step/](https://github.com/briancaffey/django-step-by-step/)
+
+### Related projects
+
+This project is has been written with the two other main Infrastructure as Code tools: Terraform and Pulumi. You can find these repos here:
+
+- [terraform-aws-django](https://github.com/briancaffey/terraform-aws-django)
+- [pulumi-aws-django](https://github.com/briancaffey/pulumi-aws-django)
+
+## Project structure
+
+There are two main constructs the build resources for the different stacks:
+
+- `base`
+- `app`
+
+The `base` stack deploys long-lived resources that shouldn't need to be updated frequently, these include:
 
 - VPC
-- security groups
-- IAM roles
+- ElastiCache
+- S3
+- Security Groups
 - Load balancer
-- RDS instance
+- RDS
 
-The ad hoc environments themselves consist of :
+The `app` stack deploys resources primarily for ECS services that run the application processes, these include:
 
-- ECS cluster
-- task definitions
-- ECS services
-- Route 53 record
-- target groups
-- listener rules
+- ECS cluster for the environment
+- web-facing services (for running gunicorn and for running the frontend UI app)
+- celery worker for asynchronous task processing
+- celery beat for scheduled tasks
+- management_command for running migrations and other "pre-update" tasks (collectstatic, loading fixtures, etc.)
+- All backend environment variables are configured here (shared between all backend services)
+- Route 53 record for the environment (e.g. `<env_name>.example.com`)
+- IAM resources (this might be able to be moved to the base stack)
 
-I wrote about ad hoc environments in an article on my blog here: [https://briancaffey.github.io/2022/03/27/ad-hoc-developer-environments-for-django-with-aws-ecs-terraform-and-github-actions](https://briancaffey.github.io/2022/03/27/ad-hoc-developer-environments-for-django-with-aws-ecs-terraform-and-github-actions).
+### Local Examples
 
-The prod base and prod app constructs are used for setting up infrastructure for production environments.
+It is best to deploy cloud infrastructure with automated pipelines that execute Infrastructure as Code. For testing and development you can deploy locally.
 
-I have written a very similar library that will deploy almost the exact same infrastructure (both for ad hoc and production environments) using Terraform which can be found here: [https://github.com/briancaffey/terraform-aws-django](https://github.com/briancaffey/terraform-aws-django). The directory structures for these two repositories are very similar. `cdk-django` is published to npm and `terraform-aws-django` is published to the Terraform registry.
+The `Makefile` in this repo documents the commands to create and destroy infrastructure for the `base` and `app` stacks. For example:
+
+```
+# TODO update this example
+```
+
+## Companion application
+
+To see how `terraform-aws-django` can be used, have a look at [https://github.com/briancaffey/django-step-by-step](https://github.com/briancaffey/django-step-by-step).
+
+This companion repo includes two main components: a Django application (backend) and a Nuxt.js application (frontend)
+
+### Django backend application features
+
+- email-based authentication flow (confirmation email + forgot password)
+- microblog app (users can write posts with text and images, like posts)
+- chat app (a simple OpenAI API wrapper)
+
+### Nuxt.js frontend client features
+
+- Vue 3, Nuxt v3.15
+- SSR
+- shadcn
+- tailwindcss
+- pinia
+- composables
 
 This construct library focuses on security, best practices, scalability, flexibility and cost-efficiency.
 
-## Companion Django application
-
-I developed this construct library together with a sample reference Django application that I wrote for learning, testing and experimentation. This Django application is a simple blogging application called **μblog**. This repo for μblog can be found here: [https://github.com/briancaffey/django-step-by-step](https://github.com/briancaffey/django-step-by-step).
-
-This repo shows how to set up local development environments using docker and docker-compose, and also contains multiple GitHub Actions workflows that demonstrate how to use `cdk-django` to build and deploy the applications using CI/CD automation. There are GitHub Actions workflows for both `cdk-django` and `terraform-aws-django`.
-
-## Important points
-
-Here are some highlights of the features of this library:
-
-### Serverless infrastructure, containerized application
-
-The Django application is packaged into a docker container and runs on ECS Fargate, a serverless runtime that abstracts the operating system. This gives up our control over the underlying operating system that runs our application's containers, but it also enforces best practices for security and scalability.
-
-### Access patterns
-
-This application demonstrates how development teams can access both the application server and the database using AWS Systems Manager (SSM). This removes the need to manage overhead associated with SSH and allows for access to be controlled through IAM roles.
-
-This follows AWS best practices for access patterns. EcsExec can be used in production for "break glass" scenarios where engineers may need to open an interactive shell that provides access to the application.
-
-Port forwarding patterns are demonstrated to show how tools like DBeaver can be used to directly connect to the database over a secure Bastion Host placed in a private subnet.
-
-### Scalability
-
-This construct library demonstrates how to apply autoscaling to our ECS services so we that we can scale in and out horizontally as needed by adding or removing instances in response to load on our application.
-
-
-### Safe Operations
-
-Another major focus of this project is to show best practices for secure and safe application operations and change management. This includes patterns for safely rolling out both infrastructure updates and application updates with zero downtime.
-
-### Cost efficiency
-
-The production environment is quite expensive to run compared to other alternatives, so it may not be a best fit for all organizations and development teams. ECS Fargate is more expensive for comparable amounts of compute that be purchased using EC2 instances.
-
-Ad hoc environments take advantage of Fargate Spot instances which are less expensive than regular Fargate instances. Similar to EC2 spot instances, this allows us to use "left-over" compute resources at a discount with the caveat that the instances may be shut down for rescheduling by AWS at any time (with a 2 minute warning).
-
 ## Maintaining this repo
 
-To update packages, run the following:
+This project is managed by [`projen`](https://github.com/projen/projen). To update the application, run the following:
 
 ```
-projen upgrade
+npx projen upgrade
 ```
 
-Update CDK version in `.projenrc.ts` and then run:
+Update [CDK version](https://github.com/aws/aws-cdk/releases) in `.projenrc.ts` and then run:
 
 ```
-projen
+npx projen
 ```
