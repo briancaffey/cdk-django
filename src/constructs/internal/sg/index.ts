@@ -1,45 +1,81 @@
 import { Stack, Tags } from 'aws-cdk-lib';
-import { IVpc, Peer, Port, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
+import { IVpc, Peer, Port, SecurityGroup, SubnetType, InterfaceVpcEndpoint, GatewayVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
-
 
 interface SecurityGroupResourcesProps {
   readonly vpc: IVpc;
 }
 
 export class SecurityGroupResources extends Construct {
-  // public rdsInstance: DatabaseInstance;
   public readonly albSecurityGroup: SecurityGroup;
   public readonly appSecurityGroup: SecurityGroup;
+  public readonly vpceSecurityGroup: SecurityGroup;
 
   constructor(scope: Construct, id: string, props: SecurityGroupResourcesProps) {
     super(scope, id);
 
-    // security group for the ALB
-    const albSecurityGroup = new SecurityGroup(scope, 'AlbSecurityGroup', {
+    const stackName = Stack.of(this).stackName;
+
+    // ALB Security Group
+    this.albSecurityGroup = new SecurityGroup(this, 'AlbSecurityGroup', {
       vpc: props.vpc,
+      description: 'ALB security group',
+      allowAllOutbound: true,
     });
-    this.albSecurityGroup = albSecurityGroup;
+    Tags.of(this.albSecurityGroup).add('Name', `${stackName}-alb-sg`);
+    this.albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80), 'Allow HTTP traffic from anywhere');
+    this.albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), 'Allow HTTPS traffic from anywhere');
 
-    // allow internet traffic from port 80 and 443 to the ALB for HTTP and HTTPS
-    albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), 'HTTPS');
-    albSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80), 'HTTP');
-
-    const appSgName = `${Stack.of(this).stackName}-app-sg`;
-
-    // create application security group
-    const appSecurityGroup = new SecurityGroup(scope, 'AppSecurityGroup', {
-      securityGroupName: appSgName,
+    // Application Security Group
+    this.appSecurityGroup = new SecurityGroup(this, 'AppSecurityGroup', {
       vpc: props.vpc,
+      description: 'Allows inbound access from the ALB only',
+      allowAllOutbound: true,
     });
+    Tags.of(this.appSecurityGroup).add('Name', `${stackName}-ecs-sg`);
+    this.appSecurityGroup.addIngressRule(this.albSecurityGroup, Port.allTraffic(), 'Allow all traffic from ALB');
 
-    Tags.of(appSecurityGroup).add('Name', `${Stack.of(this).stackName}-app-sg`);
+    // VPC Endpoint Security Group
+    this.vpceSecurityGroup = new SecurityGroup(this, 'VpceSecurityGroup', {
+      vpc: props.vpc,
+      description: 'Security Group for VPC Endpoints',
+      allowAllOutbound: true,
+    });
+    Tags.of(this.vpceSecurityGroup).add('Name', `${stackName}-vpce-sg`);
+    this.appSecurityGroup.addIngressRule(this.vpceSecurityGroup, Port.tcp(443), 'Allow HTTPS from VPC Endpoint');
+    this.vpceSecurityGroup.addIngressRule(this.appSecurityGroup, Port.tcp(443), 'Allow HTTPS to App');
 
-    appSecurityGroup.connections.allowFrom(appSecurityGroup, Port.allTcp());
+    // VPC Endpoint - ECR API
+    const ecrApiEndpoint = new InterfaceVpcEndpoint(this, 'EcrApiEndpoint', {
+      vpc: props.vpc,
+      service: {
+        name: `com.amazonaws.${Stack.of(this).region}.ecr.api`,
+        port: 443,
+      },
+      subnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+      securityGroups: [this.vpceSecurityGroup],
+      privateDnsEnabled: true,
+    });
+    Tags.of(ecrApiEndpoint).add('Name', `${stackName}-vpce-ecr-api`);
 
-    this.appSecurityGroup = appSecurityGroup;
+    // VPC Endpoint - ECR DKR
+    const ecrDkrEndpoint = new InterfaceVpcEndpoint(this, 'EcrDkrEndpoint', {
+      vpc: props.vpc,
+      service: {
+        name: `com.amazonaws.${Stack.of(this).region}.ecr.dkr`,
+        port: 443,
+      },
+      subnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+      securityGroups: [this.vpceSecurityGroup],
+      privateDnsEnabled: true,
+    });
+    Tags.of(ecrDkrEndpoint).add('Name', `${stackName}-vpce-ecr-dkr`);
 
-    // allow traffic from ALB security group to the application security group
-    appSecurityGroup.addIngressRule(albSecurityGroup, Port.allTcp(), 'ALB');
+    // VPC Endpoint - S3
+    const s3Endpoint = props.vpc.addGatewayEndpoint('S3Endpoint', {
+      service: GatewayVpcEndpointAwsService.S3,
+      subnets: [{ subnetType: SubnetType.PRIVATE_WITH_EGRESS }],
+    });
+    Tags.of(s3Endpoint).add('Name', `${stackName}-vpce-s3`);
   }
 }

@@ -27,10 +27,9 @@ ecs-app-deploy:
 # TODO: make sure this includes all services including beat
 ecs-app-delete-services:
 	export AWS_PAGER=''
-	aws ecs delete-service --cluster alpha-cluster --service alpha-web-ui --force
-	aws ecs delete-service --cluster alpha-cluster --service alpha-default-worker --force
-	aws ecs delete-service --cluster alpha-cluster --service alpha-gunicorn --force
-	aws ecs delete-service --cluster alpha-cluster --service alpha-ecs-exec --force
+	aws ecs delete-service --cluster alpha-cluster --service alpha-web-ui --force --region us-east-1
+	aws ecs delete-service --cluster alpha-cluster --service alpha-default --force --region us-east-1
+	aws ecs delete-service --cluster alpha-cluster --service alpha-gunicorn --force --region us-east-1
 
-ecs-app-destroy:	ecs-app-delete-services
+ecs-app-destroy:
 	cdk destroy --verbose --app='./lib/examples/ecs/index.js' -e ExampleEcsAppStack

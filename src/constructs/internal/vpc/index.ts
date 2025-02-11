@@ -17,12 +17,12 @@ export class ApplicationVpc extends Construct {
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: 'ingress',
+          name: 'public',
           subnetType: SubnetType.PUBLIC,
         },
         {
           cidrMask: 24,
-          name: 'application',
+          name: 'private',
           subnetType: SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
@@ -30,6 +30,6 @@ export class ApplicationVpc extends Construct {
     this.vpc = vpc;
 
     // having trouble making sure the VPC resources are getting tagged correctly
-    Tags.of(vpc).add('base-env', Stack.of(this).stackName);
+    Tags.of(vpc).add('env', Stack.of(this).stackName);
   }
 }

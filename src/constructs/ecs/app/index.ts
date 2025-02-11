@@ -1,4 +1,4 @@
-import { CfnOutput, Stack } from 'aws-cdk-lib';
+import { Stack } from 'aws-cdk-lib';
 import { IVpc, ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
@@ -23,6 +23,8 @@ export interface EcsAppProps {
   readonly domainName: string;
   readonly listener: ApplicationListener;
   readonly elastiCacheHost: string;
+  readonly rdsPasswordSecretName: string;
+  readonly companyName: string;
 }
 
 export class EcsApp extends Construct {
@@ -38,11 +40,11 @@ export class EcsApp extends Construct {
 
     // const highestPriorityRule = new HighestPriorityRule(this, 'HighestPriorityRule', { listener: props.listener });
 
-    const backendEcrRepo = Repository.fromRepositoryName(this, 'BackendRepo', 'backend');
+    const backendEcrRepo = Repository.fromRepositoryName(this, 'BackendRepo', `${props.companyName}-backend`);
     const backendVersion = 'latest';
     const backendImage = new EcrImage(backendEcrRepo, backendVersion);
 
-    const frontendEcrRepo = Repository.fromRepositoryName(this, 'FrontendRepo', 'frontend');
+    const frontendEcrRepo = Repository.fromRepositoryName(this, 'FrontendRepo', `${props.companyName}-frontend`);
     const frontendVersion = 'latest';
     const frontendImage = new EcrImage(frontendEcrRepo, frontendVersion);
 
@@ -55,19 +57,18 @@ export class EcsApp extends Construct {
     const settingsModule = this.node.tryGetContext('config').settingsModule ?? 'backend.settings.production';
     // shared environment variables
     let environmentVariables: { [key: string]: string } = {
-      S3_BUCKET_NAME: props.assetsBucket.bucketName,
-      REDIS_SERVICE_HOST: props.elastiCacheHost,
-      POSTGRES_SERVICE_HOST: props.rdsInstance.dbInstanceEndpointAddress,
-      POSTGRES_NAME: stackName,
+      APP_NAME: stackName, // e.g. alpha
+      BASE_STACK_NAME: props.baseStackName, // e.g. dev
+      DB_SECRET_NAME: props.rdsPasswordSecretName,
+      DOMAIN_NAME: props.domainName,
       DJANGO_SETTINGS_MODULE: settingsModule,
       FRONTEND_URL: `https://${stackName}.${props.domainName}`,
-      DOMAIN_NAME: props.domainName,
-      // TODO: read this from ecs base stack
-      DB_SECRET_NAME: 'DB_SECRET_NAME',
-      APP_ENV_NAME: stackName, // e.g. alpha
-      BASE_ENV_NAME: props.baseStackName, // e.g. dev
-      AD_HOC_ENV: 'True', // used in application code
-      FOO: 'foo',
+      NVIDIA_API_KEY: '',
+      POSTGRES_NAME: `${stackName}-db`,
+      POSTGRES_SERVICE_HOST: props.rdsInstance.dbInstanceEndpointAddress,
+      S3_BUCKET_NAME: props.assetsBucket.bucketName,
+      REDIS_SERVICE_HOST: props.elastiCacheHost,
+      SENTRY_DSN: '',
     };
 
     const extraEnvVars = this.node.tryGetContext('config').extraEnvVars;
@@ -84,7 +85,8 @@ export class EcsApp extends Construct {
 
     // Route53
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', { domainName: props.domainName });
-    const cnameRecord = new CnameRecord(this, 'CnameApiRecord', {
+    // const cnameRecord =
+    new CnameRecord(this, 'CnameApiRecord', {
       recordName: stackName,
       domainName: props.alb.loadBalancerDnsName,
       zone: hostedZone,
@@ -123,16 +125,18 @@ export class EcsApp extends Construct {
     // const frontendService =
     new WebService(this, 'FrontendService', {
       cluster,
-      environmentVariables: {},
+      environmentVariables: {
+        NUXT_PUBLIC_API_BASE: `https://${stackName}.${props.domainName}`
+      },
       vpc: props.vpc,
       appSecurityGroup: props.appSecurityGroup,
       taskRole: ecsRoles.ecsTaskRole,
       executionRole: ecsRoles.taskExecutionRole,
       image: frontendImage,
       listener: props.listener,
-      command: ['nginx', '-g', 'daemon off;'],
+      command: ["node", ".output/server/index.mjs"],
       name: 'web-ui',
-      port: 80,
+      port: 3000,
       domainName: props.domainName,
       pathPatterns: ['/*'],
       priority: 3, // highestPriorityRule.priority + 2,
@@ -156,13 +160,30 @@ export class EcsApp extends Construct {
         '-Q',
         'default',
       ],
-      name: 'default-worker',
+      name: 'default',
     });
 
     // scheduler service
+    new WorkerService(this, 'CeleryBeat', {
+      cluster,
+      environmentVariables,
+      vpc: props.vpc,
+      appSecurityGroup: props.appSecurityGroup,
+      taskRole: ecsRoles.ecsTaskRole,
+      executionRole: ecsRoles.taskExecutionRole,
+      image: backendImage,
+      command: [
+        'celery',
+        '--app=backend.celery_app:app',
+        'beat',
+        '--loglevel=INFO',
+      ],
+      name: 'beat',
+    });
 
     // management command task definition
-    const backendUpdateTask = new ManagementCommandTask(this, 'update', {
+    // const backendUpdateTask =
+    new ManagementCommandTask(this, 'update', {
       cluster,
       environmentVariables,
       vpc: props.vpc,
@@ -171,24 +192,21 @@ export class EcsApp extends Construct {
       executionRole: ecsRoles.taskExecutionRole,
       image: backendImage,
       command: ['python', 'manage.py', 'pre_update'],
-      name: 'update',
+      name: 'backend_update',
     });
 
-    // worker service
-    new WorkerService(this, 'EcsExecBastion', {
-      cluster,
-      environmentVariables,
-      vpc: props.vpc,
-      appSecurityGroup: props.appSecurityGroup,
-      taskRole: ecsRoles.ecsTaskRole,
-      executionRole: ecsRoles.taskExecutionRole,
-      image: backendImage,
-      command: ['sh', '-c', 'tail -f /dev/null'],
-      name: 'ecs-exec',
-    });
+    // // worker service
+    // new WorkerService(this, 'EcsExecBastion', {
+    //   cluster,
+    //   environmentVariables,
+    //   vpc: props.vpc,
+    //   appSecurityGroup: props.appSecurityGroup,
+    //   taskRole: ecsRoles.ecsTaskRole,
+    //   executionRole: ecsRoles.taskExecutionRole,
+    //   image: backendImage,
+    //   command: ['sh', '-c', 'tail -f /dev/null'],
+    //   name: 'ecs-exec',
+    // });
 
-    // define stack output use for running the management command
-    new CfnOutput(this, 'backendUpdateCommand', { value: backendUpdateTask.executionScript });
-    new CfnOutput(this, 'domainName', { value: cnameRecord.domainName });
   }
 }

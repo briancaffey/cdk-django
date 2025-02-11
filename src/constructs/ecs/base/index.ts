@@ -26,6 +26,7 @@ export class EcsBase extends Construct {
   public domainName: string;
   public listener: ApplicationListener;
   public elastiCacheHostname: string;
+  public rdsPasswordSecretName: string;
 
   constructor(scope: Construct, id: string, props: EcsBaseProps) {
     super(scope, id);
@@ -64,12 +65,14 @@ export class EcsBase extends Construct {
     this.alb = alb;
     this.listener = listener;
 
+    // TODO: rename to RdsResources
     const rdsInstance = new RdsInstance(this, 'RdsInstance', {
       vpc: this.vpc,
       appSecurityGroup: appSecurityGroup,
       dbSecretName: this.node.tryGetContext('config')?.dbSecretName ?? 'DB_SECRET_NAME',
     });
     this.databaseInstance = rdsInstance.rdsInstance;
+    this.rdsPasswordSecretName = rdsInstance.rdsPasswordSecretName;
 
     // elasticache cluster
     const elastiCacheCluster = new ElastiCacheCluster(this, 'ElastiCacheCluster', {

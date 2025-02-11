@@ -60,7 +60,7 @@ export class ManagementCommandTask extends Construct {
       cpu: props.cpu ?? 256,
       executionRole: props.executionRole,
       taskRole: props.taskRole,
-      family: props.name,
+      family: `${stackName}-${props.name}`,
     });
 
     taskDefinition.addContainer(props.name, {

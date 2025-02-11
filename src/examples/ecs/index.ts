@@ -3,8 +3,9 @@ import { App, Stack, Tags } from 'aws-cdk-lib';
 import { EcsApp } from '../../constructs/ecs/app';
 import { EcsBase } from '../../constructs/ecs/base';
 
-const ecsBaseEnvName = process.env.AD_HOC_BASE_NAME || 'dev';
-const ecsAppEnvName = process.env.AD_HOC_APP_NAME || 'alpha';
+const companyName = process.env.COMPANY_NAME || 'abc';
+const ecsBaseEnvName = process.env.BASE_NAME || 'dev';
+const ecsAppEnvName = process.env.APP_NAME || 'alpha';
 
 // TODO: define interfaces for these config and type check them
 var ecsBaseEnvConfig = JSON.parse(fs.readFileSync(`src/examples/ecs/config/${ecsBaseEnvName}.json`, 'utf8'));
@@ -39,6 +40,8 @@ const ecsApp = new EcsApp(appStack, 'EcsApp', {
   domainName: ecsBase.domainName,
   listener: ecsBase.listener,
   elastiCacheHost: ecsBase.elastiCacheHostname,
+  rdsPasswordSecretName: ecsBase.rdsPasswordSecretName,
+  companyName
 });
 
 /**

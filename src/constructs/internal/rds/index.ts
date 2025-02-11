@@ -1,6 +1,7 @@
+import * as cdk from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 import { InstanceType, IVpc, Peer, Port, SecurityGroup, SubnetType } from 'aws-cdk-lib/aws-ec2';
-import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
+import { DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 
@@ -15,6 +16,7 @@ interface RdsInstanceProps {
 
 export class RdsInstance extends Construct {
   public rdsInstance: DatabaseInstance;
+  public rdsPasswordSecretName: string;
   private instanceClass: string;
   private instanceSize: string;
 
@@ -31,15 +33,17 @@ export class RdsInstance extends Construct {
 
 
     const secret = new Secret(scope, 'dbSecret', {
-      secretName: props.dbSecretName,
+      secretName: `${stackName}/rds-postgres-password`,
       description: 'secret for rds',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       generateSecretString: {
-        secretStringTemplate: JSON.stringify({ username: 'postgres' }),
-        generateStringKey: 'password',
+        // secretStringTemplate: JSON.stringify({ username: 'postgres' }),
+        // generateStringKey: 'password',
         excludePunctuation: true,
         includeSpace: false,
       },
     });
+    this.rdsPasswordSecretName = secret.secretName;
 
     const rdsSecurityGroup = new SecurityGroup(this, 'RdsSecurityGroup', {
       vpc: props.vpc,
@@ -52,8 +56,9 @@ export class RdsInstance extends Construct {
     const rdsInstance = new DatabaseInstance(this, 'RdsInstance', {
       instanceIdentifier: `${stackName}RdsInstance`,
       vpc: props.vpc,
-      engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.of('16.1', '16') }),
-      credentials: Credentials.fromSecret(secret),
+      engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.of('17.2', '17') }),
+      // credentials: Credentials.fromSecret(secret),
+      credentials: { username: 'postgres', password: secret.secretValue },
       instanceType,
       port: 5432,
       securityGroups: [rdsSecurityGroup],

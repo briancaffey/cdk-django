@@ -73,7 +73,7 @@ export class WebService extends Construct {
       cpu: props.cpu ?? 256,
       executionRole: props.executionRole,
       taskRole: props.taskRole,
-      family: props.name,
+      family: `${stackName}-${props.name}`,
     });
 
     taskDefinition.addContainer(props.name, {
@@ -97,7 +97,7 @@ export class WebService extends Construct {
     const service = new FargateService(this, 'Service', {
       cluster: props.cluster,
       taskDefinition,
-      assignPublicIp: true,
+      assignPublicIp: false,
       capacityProviderStrategies: [
         {
           capacityProvider: 'FARGATE_SPOT',
@@ -108,7 +108,8 @@ export class WebService extends Construct {
           weight: useSpot ? 0 : 100,
         },
       ],
-      desiredCount: 1,
+      desiredCount: 0,
+      minHealthyPercent: 50,
       enableExecuteCommand: true,
       securityGroups: [props.appSecurityGroup],
       serviceName: `${stackName}-${props.name}`,
