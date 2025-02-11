@@ -131,3 +131,7 @@ export AWS_SESSION_TOKEN=123
 export COMPANY_NAME=abc
 export AWS_ACCOUNT_ID=123456789
 ```
+
+## Release process
+
+This project uses `projen` to manage the release process. There is a GitHub Action called `release` that will make a release and publish it to npm. Before running release, make sure you run `yarn build` to build the documentation, and run `yarn eslint` to fix any linting errors.
