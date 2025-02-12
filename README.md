@@ -135,3 +135,7 @@ export AWS_ACCOUNT_ID=123456789
 ## Release process
 
 This project uses `projen` to manage the release process. There is a GitHub Action called `release` that will make a release and publish it to npm. Before running release, make sure you run `yarn build` to build the documentation, and run `yarn eslint` to fix any linting errors.
+
+## Issues
+
+- [https://github.com/projen/projen/issues/3950](https://github.com/projen/projen/issues/3950)

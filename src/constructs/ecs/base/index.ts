@@ -1,14 +1,15 @@
-import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Stack } from 'aws-cdk-lib';
 import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { ApplicationListener, ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
-import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { AlbResources } from '../../internal/alb';
 import { ElastiCacheCluster } from '../../internal/ec';
 import { RdsInstance } from '../../internal/rds';
 import { SecurityGroupResources } from '../../internal/sg';
 import { ApplicationVpc } from '../../internal/vpc';
+import { S3Resources } from '../../internal/s3';
 
 export interface EcsBaseProps {
   readonly certificateArn: string;
@@ -37,19 +38,13 @@ export class EcsBase extends Construct {
     const applicationVpc = new ApplicationVpc(scope, 'Vpc');
     this.vpc = applicationVpc.vpc;
 
-    const assetsBucket = new Bucket(scope, 'AssetsBucket', {
+    // S3 resources
+    const assetsBucket = new S3Resources(this, 'StaticAssetsBucket', {
       bucketName: `${props.domainName.replace('.', '-')}-${stackName}-assets-bucket`,
-      removalPolicy: RemovalPolicy.DESTROY,
-      blockPublicAccess: {
-        blockPublicAcls: false,
-        blockPublicPolicy: false,
-        ignorePublicAcls: false,
-        restrictPublicBuckets: false,
-      },
-      autoDeleteObjects: true,
-      objectOwnership: ObjectOwnership.OBJECT_WRITER,
+      forceDestroy: false,
+      publicReadAccess: false,
     });
-    this.assetsBucket = assetsBucket;
+    this.assetsBucket = assetsBucket.bucket;
 
     const { albSecurityGroup, appSecurityGroup } = new SecurityGroupResources(this, 'SecurityGroupResources', {
       vpc: this.vpc,
@@ -79,8 +74,6 @@ export class EcsBase extends Construct {
       vpc: this.vpc,
       appSecurityGroup: appSecurityGroup,
     });
-
-    // get the elasticache cluster hostname
     this.elastiCacheHostname = elastiCacheCluster.elastiCacheHost;
 
   }
