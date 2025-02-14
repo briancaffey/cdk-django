@@ -1,4 +1,17 @@
 
+## [1.8.0](https://github.com/briancaffey/cdk-django/compare/v1.7.0...v1.8.0) (2025-02-14)
+
+
+### Features
+
+* **s3:** move s3 bucket resources to separate construct ([ffc4213](https://github.com/briancaffey/cdk-django/commit/ffc4213325ceadedb4fe7ecb8901f1a918988133))
+
+
+### Bug Fixes
+
+* **ecs:** fix error with dependencies between service and cluster capacity provider when destroying app stack ([6f9b875](https://github.com/briancaffey/cdk-django/commit/6f9b875f7489f94a22e974e4c0316c0d250bb50b))
+* **lint:** run eslint ([ef91308](https://github.com/briancaffey/cdk-django/commit/ef913084d7ddd6026d1633fa5f423486b2764412))
+
 ## [1.7.0](https://github.com/briancaffey/cdk-django/compare/v1.6.0...v1.7.0) (2025-02-11)
 
 
