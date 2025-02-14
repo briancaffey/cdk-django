@@ -215,9 +215,9 @@ export class EcsApp extends Construct {
     const cfnWorkerService = workerService.service.node.defaultChild as ecs.CfnService;
     const cfnCluster = cluster.node.defaultChild as ecs.CfnCluster;
 
-    cfnCluster.addDependency(cfnServiceBackend);
-    cfnCluster.addDependency(cfnServiceFrontend);
-    cfnCluster.addDependency(cfnBeatService);
-    cfnCluster.addDependency(cfnWorkerService);
+    cfnServiceBackend.addDependency(cfnCluster);
+    cfnServiceFrontend.addDependency(cfnCluster);
+    cfnBeatService.addDependency(cfnCluster);
+    cfnWorkerService.addDependency(cfnCluster);
   }
 }
