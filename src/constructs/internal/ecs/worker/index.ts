@@ -32,6 +32,7 @@ export interface WorkerProps {
 };
 
 export class WorkerService extends Construct {
+  public service: FargateService;
   constructor(scope: Construct, id: string, props: WorkerProps) {
     super(scope, id);
 
@@ -75,7 +76,7 @@ export class WorkerService extends Construct {
 
     const useSpot = props.useSpot ?? false;
 
-    new FargateService(this, 'Service', {
+    this.service = new FargateService(this, 'Service', {
       cluster: props.cluster,
       taskDefinition,
       assignPublicIp: false,

@@ -7,6 +7,7 @@ import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { CnameRecord, HostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 // import { HighestPriorityRule } from '../../internal/customResources/highestPriorityRule';
 import { EcsRoles } from '../../internal/ecs/iam';
 import { ManagementCommandTask } from '../../internal/ecs/management-command';
@@ -93,8 +94,7 @@ export class EcsApp extends Construct {
     });
 
     // api service
-    // const backendService =
-    new WebService(this, 'ApiService', {
+    const backendService = new WebService(this, 'ApiService', {
       cluster,
       environmentVariables,
       vpc: props.vpc,
@@ -121,9 +121,7 @@ export class EcsApp extends Construct {
       healthCheckPath: '/api/health-check/',
     });
 
-    // frontend service
-    // const frontendService =
-    new WebService(this, 'FrontendService', {
+    const frontendService = new WebService(this, 'FrontendService', {
       cluster,
       environmentVariables: {
         NUXT_PUBLIC_API_BASE: `https://${stackName}.${props.domainName}`,
@@ -144,7 +142,7 @@ export class EcsApp extends Construct {
     });
 
     // worker service
-    new WorkerService(this, 'DefaultCeleryWorker', {
+    const workerService = new WorkerService(this, 'DefaultCeleryWorker', {
       cluster,
       environmentVariables,
       vpc: props.vpc,
@@ -164,7 +162,7 @@ export class EcsApp extends Construct {
     });
 
     // scheduler service
-    new WorkerService(this, 'CeleryBeat', {
+    const beatService = new WorkerService(this, 'CeleryBeat', {
       cluster,
       environmentVariables,
       vpc: props.vpc,
@@ -208,5 +206,18 @@ export class EcsApp extends Construct {
     //   name: 'ecs-exec',
     // });
 
+
+    // cluster <-> service dependencies
+    // Get the low-level Cfn resources
+    const cfnServiceBackend = backendService.service.node.defaultChild as ecs.CfnService;
+    const cfnServiceFrontend = frontendService.service.node.defaultChild as ecs.CfnService;
+    const cfnBeatService = beatService.service.node.defaultChild as ecs.CfnService;
+    const cfnWorkerService = workerService.service.node.defaultChild as ecs.CfnService;
+    const cfnCluster = cluster.node.defaultChild as ecs.CfnCluster;
+
+    cfnCluster.addDependency(cfnServiceBackend)
+    cfnCluster.addDependency(cfnServiceFrontend)
+    cfnCluster.addDependency(cfnBeatService)
+    cfnCluster.addDependency(cfnWorkerService)
   }
 }

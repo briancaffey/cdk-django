@@ -47,6 +47,7 @@ export interface WebProps {
 };
 
 export class WebService extends Construct {
+  public service: FargateService;
   constructor(scope: Construct, id: string, props: WebProps) {
     super(scope, id);
 
@@ -94,7 +95,7 @@ export class WebService extends Construct {
 
     const useSpot = props.useSpot ?? false;
 
-    const service = new FargateService(this, 'Service', {
+    this.service = new FargateService(this, 'Service', {
       cluster: props.cluster,
       taskDefinition,
       assignPublicIp: false,
@@ -145,7 +146,7 @@ export class WebService extends Construct {
       action: ListenerAction.forward([targetGroup]),
     });
 
-    service.attachToApplicationTargetGroup(targetGroup);
+    this.service.attachToApplicationTargetGroup(targetGroup);
 
   }
 }
