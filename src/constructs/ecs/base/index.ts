@@ -7,9 +7,9 @@ import { Construct } from 'constructs';
 import { AlbResources } from '../../internal/alb';
 import { ElastiCacheCluster } from '../../internal/ec';
 import { RdsInstance } from '../../internal/rds';
+import { S3Resources } from '../../internal/s3';
 import { SecurityGroupResources } from '../../internal/sg';
 import { ApplicationVpc } from '../../internal/vpc';
-import { S3Resources } from '../../internal/s3';
 
 export interface EcsBaseProps {
   readonly certificateArn: string;

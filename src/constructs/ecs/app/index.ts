@@ -2,12 +2,12 @@ import { Stack } from 'aws-cdk-lib';
 import { IVpc, ISecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Cluster, EcrImage } from 'aws-cdk-lib/aws-ecs';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { IApplicationLoadBalancer, ApplicationListener } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { DatabaseInstance } from 'aws-cdk-lib/aws-rds';
 import { CnameRecord, HostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
 // import { HighestPriorityRule } from '../../internal/customResources/highestPriorityRule';
 import { EcsRoles } from '../../internal/ecs/iam';
 import { ManagementCommandTask } from '../../internal/ecs/management-command';
@@ -215,9 +215,9 @@ export class EcsApp extends Construct {
     const cfnWorkerService = workerService.service.node.defaultChild as ecs.CfnService;
     const cfnCluster = cluster.node.defaultChild as ecs.CfnCluster;
 
-    cfnCluster.addDependency(cfnServiceBackend)
-    cfnCluster.addDependency(cfnServiceFrontend)
-    cfnCluster.addDependency(cfnBeatService)
-    cfnCluster.addDependency(cfnWorkerService)
+    cfnCluster.addDependency(cfnServiceBackend);
+    cfnCluster.addDependency(cfnServiceFrontend);
+    cfnCluster.addDependency(cfnBeatService);
+    cfnCluster.addDependency(cfnWorkerService);
   }
 }
