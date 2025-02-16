@@ -52,7 +52,14 @@ export class EcsApp extends Construct {
     const cluster = new Cluster(this, 'Cluster', {
       clusterName: `${stackName}-cluster`,
       vpc: props.vpc,
-      enableFargateCapacityProviders: true,
+    });
+
+    const cfnCapacityProviderAssociations = new ecs.CfnClusterCapacityProviderAssociations(this, 'CapacityProviderAssociations', {
+      cluster: cluster.clusterName,
+      capacityProviders: ['FARGATE', 'FARGATE_SPOT'],
+      defaultCapacityProviderStrategy: [{
+        capacityProvider: 'FARGATE',
+      }],
     });
 
     const settingsModule = this.node.tryGetContext('config').settingsModule ?? 'backend.settings.production';
@@ -213,11 +220,10 @@ export class EcsApp extends Construct {
     const cfnServiceFrontend = frontendService.service.node.defaultChild as ecs.CfnService;
     const cfnBeatService = beatService.service.node.defaultChild as ecs.CfnService;
     const cfnWorkerService = workerService.service.node.defaultChild as ecs.CfnService;
-    const cfnCluster = cluster.node.defaultChild as ecs.CfnCluster;
 
-    cfnServiceBackend.addDependency(cfnCluster);
-    cfnServiceFrontend.addDependency(cfnCluster);
-    cfnBeatService.addDependency(cfnCluster);
-    cfnWorkerService.addDependency(cfnCluster);
+    cfnServiceBackend.addDependency(cfnCapacityProviderAssociations);
+    cfnServiceFrontend.addDependency(cfnCapacityProviderAssociations);
+    cfnBeatService.addDependency(cfnCapacityProviderAssociations);
+    cfnWorkerService.addDependency(cfnCapacityProviderAssociations);
   }
 }
