@@ -1,4 +1,11 @@
 
+## [1.8.2](https://github.com/briancaffey/cdk-django/compare/v1.8.1...v1.8.2) (2025-02-16)
+
+
+### Bug Fixes
+
+* **ecs:** fix capacity provider association dependency issue when destroying stacks ([b413f4a](https://github.com/briancaffey/cdk-django/commit/b413f4afe1180fb43e4e244e92b0c584aad1b2f0))
+
 ## [1.8.1](https://github.com/briancaffey/cdk-django/compare/v1.8.0...v1.8.1) (2025-02-14)
 
 
