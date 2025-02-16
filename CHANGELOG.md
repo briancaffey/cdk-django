@@ -1,4 +1,11 @@
 
+## [1.8.1](https://github.com/briancaffey/cdk-django/compare/v1.8.0...v1.8.1) (2025-02-14)
+
+
+### Bug Fixes
+
+* **ecs:** fix dependencies in ecs app stack ([42af37a](https://github.com/briancaffey/cdk-django/commit/42af37a923bd3d9f90b21288d6e3c7c58edd2aaa))
+
 ## [1.8.0](https://github.com/briancaffey/cdk-django/compare/v1.7.0...v1.8.0) (2025-02-14)
 
 
