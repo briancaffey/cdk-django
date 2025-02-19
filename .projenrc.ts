@@ -11,6 +11,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   license: 'MIT',
   copyrightOwner: 'Brian Caffey',
   cdkVersion: '2.178.1',
+  deps: ['aws-sdk@2.1692.0'],
   defaultReleaseBranch: 'main',
   name: 'cdk-django',
   repositoryUrl: 'git@github.com:briancaffey/cdk-django.git',
